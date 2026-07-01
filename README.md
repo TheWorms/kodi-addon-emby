@@ -1,5 +1,9 @@
 # EmbyCon — édition française · `kodi-addon-emby`
 
+<!-- version:auto -->
+**Version : 1.13.24**
+<!-- /version:auto -->
+
 **Français** · [English](readme.en.md)
 
 Extension Kodi pour parcourir et lire la médiathèque d'un serveur **[Emby](https://emby.media)** (films, séries, musique) directement dans l'interface Kodi.

@@ -1,5 +1,9 @@
 # EmbyCon — French edition · `kodi-addon-emby`
 
+<!-- version:auto -->
+**Version : 1.13.24**
+<!-- /version:auto -->
+
 [Français](README.md) · **English**
 
 Kodi add-on to browse and play the media library of an **[Emby](https://emby.media)** server (movies, TV shows, music) directly from the Kodi interface.
