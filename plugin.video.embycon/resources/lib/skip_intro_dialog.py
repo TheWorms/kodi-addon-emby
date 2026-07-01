@@ -34,8 +34,12 @@ class SkipIntroMonitor(threading.Thread):
         player = xbmc.Player()
         monitor = xbmc.Monitor()
         while not monitor.abortRequested():
-            play_time = player.getTime()
-            play_path = player.getPlayingFile()
+            try:
+                play_time = player.getTime()
+                play_path = player.getPlayingFile()
+            except Exception:
+                # lecture arretee/indisponible : on sort proprement
+                break
 
             if play_path != self.original_play_path:
                 log.debug(
@@ -57,6 +61,10 @@ class SkipIntroMonitor(threading.Thread):
                 if self.auto_skip:
                     log.debug("SkipIntroMonitor auto skip")
                     player.seekTime(intro_end_sec)
+                    # On saute UNE seule fois puis on sort : sinon, si le buffer
+                    # tarde a rafraichir play_time, on relancerait un seek a
+                    # chaque iteration (tempete de seek qui bloque la lecture).
+                    break
                 else:
                     log.debug("SkipIntroMonitor show dialog")
                     skip_intro_dialog = SkipIntroDialog(
