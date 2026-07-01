@@ -1,0 +1,1335 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: EmbyCon\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: TheWorms\n"
+"Language-Team: French\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgctxt "#30000"
+msgid "Host"
+msgstr "Hôte"
+
+msgctxt "#30001"
+msgid "Port"
+msgstr "Port"
+
+msgctxt "#30003"
+msgid "Verify HTTPS certificate"
+msgstr "Vérifier le certificat HTTPS"
+
+msgctxt "#30005"
+msgid "Username"
+msgstr "Nom d'utilisateur"
+
+msgctxt "#30006"
+msgid "Password"
+msgstr "Mot de passe"
+
+msgctxt "#30007"
+msgid "Samba username"
+msgstr "Nom d'utilisateur Samba"
+
+msgctxt "#30008"
+msgid "Samba password"
+msgstr "Mot de passe Samba"
+
+msgctxt "#30010"
+msgid "Enable performance profiling"
+msgstr "Activer le profilage des performances"
+
+msgctxt "#30011"
+msgid "[Detect local server]"
+msgstr "[Détecter le serveur local]"
+
+msgctxt "#30012"
+msgid "[Change user]"
+msgstr "[Changer d'utilisateur]"
+
+msgctxt "#30014"
+msgid "Emby"
+msgstr "Emby"
+
+msgctxt "#30015"
+msgid "Log timing data"
+msgstr "Journaliser les données de temps"
+
+msgctxt "#30016"
+msgid "Device display name"
+msgstr "Nom d'affichage de l'appareil"
+
+msgctxt "#30017"
+msgid "Show connected clients"
+msgstr "Afficher les clients connectés"
+
+msgctxt "#30018"
+msgid "Number of items to show in filtered lists"
+msgstr "Nombre d'éléments à afficher dans les listes filtrées"
+
+msgctxt "#30019"
+msgid "Filtered episode name format"
+msgstr "Format du nom des épisodes filtrés"
+
+msgctxt "#30020"
+msgid "Flatten TV Show seasons"
+msgstr "Aplatir les saisons des séries"
+
+msgctxt "#30021"
+msgid "Show all episodes item"
+msgstr "Afficher l'élément « Tous les épisodes »"
+
+msgctxt "#30022"
+msgid "Advanced"
+msgstr "Avancé"
+
+msgctxt "#30023"
+msgid "Hide unwatched episode details"
+msgstr "Masquer les détails des épisodes non vus"
+
+msgctxt "#30024"
+msgid "Username:"
+msgstr "Nom d'utilisateur :"
+
+msgctxt "#30025"
+msgid "Password:"
+msgstr "Mot de passe :"
+
+msgctxt "#30026"
+msgid "Widget item select action"
+msgstr "Action de sélection d'un widget"
+
+msgctxt "#30027"
+msgid "Enable debug logging"
+msgstr "Activer la journalisation de débogage"
+
+msgctxt "#30044"
+msgid "Incorrect Username/Password"
+msgstr "Nom d'utilisateur / mot de passe incorrect"
+
+msgctxt "#30045"
+msgid "Username not found"
+msgstr "Nom d'utilisateur introuvable"
+
+msgctxt "#30052"
+msgid "Deleting"
+msgstr "Suppression"
+
+msgctxt "#30053"
+msgid "Waiting for server to delete"
+msgstr "En attente de la suppression par le serveur"
+
+msgctxt "#30063"
+msgid "N/A"
+msgstr "N/D"
+
+msgctxt "#30091"
+msgid "Confirm delete?"
+msgstr "Confirmer la suppression ?"
+
+msgctxt "#30092"
+msgid "Warning: This action will delete the media files from the server."
+msgstr "Attention : cette action supprimera les fichiers média du serveur."
+
+msgctxt "#30110"
+msgid "Interface"
+msgstr "Interface"
+
+msgctxt "#30111"
+msgid "Services"
+msgstr "Services"
+
+msgctxt "#30112"
+msgid "Loading Content"
+msgstr "Chargement du contenu"
+
+msgctxt "#30113"
+msgid "Retrieving Data"
+msgstr "Récupération des données"
+
+msgctxt "#30114"
+msgid "Jump back seconds"
+msgstr "Reculer de (secondes)"
+
+msgctxt "#30116"
+msgid "Add unwatched counts to names"
+msgstr "Ajouter le nombre de non-vus aux noms"
+
+msgctxt "#30117"
+msgid "User premiered date as date added"
+msgstr "Utiliser la date de sortie comme date d'ajout"
+
+msgctxt "#30118"
+msgid "Add resume percent to names"
+msgstr "Ajouter le pourcentage de reprise aux noms"
+
+msgctxt "#30120"
+msgid "Show load progress"
+msgstr "Afficher la progression du chargement"
+
+msgctxt "#30121"
+msgid "On resume"
+msgstr "À la reprise"
+
+msgctxt "#30125"
+msgid "Done"
+msgstr "Terminé"
+
+msgctxt "#30126"
+msgid "Processing Item : "
+msgstr "Traitement de l'élément : "
+
+msgctxt "#30135"
+msgid "Error"
+msgstr "Erreur"
+
+msgctxt "#30136"
+msgid "Server not configured in settings"
+msgstr "Serveur non configuré dans les réglages"
+
+msgctxt "#30139"
+msgid "No Media Type Set"
+msgstr "Aucun type de média défini"
+
+msgctxt "#30163"
+msgid "Add (cc) if subtitle is available"
+msgstr "Ajouter (st) si des sous-titres sont disponibles"
+
+msgctxt "#30166"
+msgid "Select Server"
+msgstr "Sélectionner un serveur"
+
+msgctxt "#30167"
+msgid "Selected Server Address"
+msgstr "Adresse du serveur sélectionné"
+
+msgctxt "#30169"
+msgid "Address: "
+msgstr "Adresse : "
+
+msgctxt "#30180"
+msgid "Select User"
+msgstr "Sélectionner un utilisateur"
+
+msgctxt "#30181"
+msgid "Include plot"
+msgstr "Inclure le synopsis"
+
+msgctxt "#30182"
+msgid "Include media stream info"
+msgstr "Inclure les infos des flux média"
+
+msgctxt "#30183"
+msgid "Include people"
+msgstr "Inclure les personnes"
+
+msgctxt "#30200"
+msgid "URL error: %s"
+msgstr "Erreur d'URL : %s"
+
+msgctxt "#30201"
+msgid "Unable to connect to server"
+msgstr "Impossible de se connecter au serveur"
+
+msgctxt "#30206"
+msgid "Playback type"
+msgstr "Type de lecture"
+
+msgctxt "#30207"
+msgid "Playback"
+msgstr "Lecture"
+
+msgctxt "#30208"
+msgid "Max stream bitrate (kbs)"
+msgstr "Débit maximal du flux (kb/s)"
+
+msgctxt "#30209"
+msgid "File direct path"
+msgstr "Chemin direct du fichier"
+
+msgctxt "#30210"
+msgid "HTTP direct stream"
+msgstr "Flux direct HTTP"
+
+msgctxt "#30211"
+msgid "Transcode options"
+msgstr "Options de transcodage"
+
+msgctxt "#30212"
+msgid "Video max width"
+msgstr "Largeur vidéo maximale"
+
+msgctxt "#30213"
+msgid "Video force 8 bit"
+msgstr "Forcer la vidéo en 8 bits"
+
+msgctxt "#30214"
+msgid "Events"
+msgstr "Événements"
+
+msgctxt "#30215"
+msgid "On playback stop (100% = disabled)"
+msgstr "À l'arrêt de la lecture (100 % = désactivé)"
+
+msgctxt "#30216"
+msgid "Item Details"
+msgstr "Détails de l'élément"
+
+msgctxt "#30217"
+msgid "Prompt to delete episode after %"
+msgstr "Proposer de supprimer l'épisode après %"
+
+msgctxt "#30218"
+msgid "Play next episode after %"
+msgstr "Lire l'épisode suivant après %"
+
+msgctxt "#30219"
+msgid " - Prompt before play"
+msgstr " - Confirmer avant lecture"
+
+msgctxt "#30220"
+msgid "Prompt to delete movie after %"
+msgstr "Proposer de supprimer le film après %"
+
+msgctxt "#30222"
+msgid "Item Layout"
+msgstr "Disposition des éléments"
+
+msgctxt "#30223"
+msgid "Page Size and Filtering"
+msgstr "Taille de page et filtrage"
+
+msgctxt "#30224"
+msgid "Interaction"
+msgstr "Interaction"
+
+msgctxt "#30229"
+msgid "TV Shows"
+msgstr "Séries"
+
+msgctxt "#30231"
+msgid "Movies"
+msgstr "Films"
+
+msgctxt "#30235"
+msgid "Episodes"
+msgstr "Épisodes"
+
+msgctxt "#30236"
+msgid "Force transcode h265 (hevc)"
+msgstr "Forcer le transcodage h265 (hevc)"
+
+msgctxt "#30237"
+msgid "Start from beginning"
+msgstr "Reprendre depuis le début"
+
+msgctxt "#30238"
+msgid "Playback stream options"
+msgstr "Options du flux de lecture"
+
+msgctxt "#30239"
+msgid "Force transcode mpeg2"
+msgstr "Forcer le transcodage mpeg2"
+
+msgctxt "#30240"
+msgid "Force transcode msmpeg4v3 (divx)"
+msgstr "Forcer le transcodage msmpeg4v3 (divx)"
+
+msgctxt "#30241"
+msgid "Force transcode mpeg4"
+msgstr "Forcer le transcodage mpeg4"
+
+msgctxt "#30246"
+msgid "Search"
+msgstr "Recherche"
+
+msgctxt "#30247"
+msgid "Custom Widget Content"
+msgstr "Contenu de widget personnalisé"
+
+msgctxt "#30250"
+msgid "Unknown"
+msgstr "Inconnu"
+
+msgctxt "#30251"
+msgid "Movies - Genres"
+msgstr "Films - Genres"
+
+msgctxt "#30252"
+msgid "Movies - A-Z"
+msgstr "Films - A-Z"
+
+msgctxt "#30254"
+msgid "Show add-on settings"
+msgstr "Afficher les réglages de l'extension"
+
+msgctxt "#30255"
+msgid "TV Shows - A-Z"
+msgstr "Séries - A-Z"
+
+msgctxt "#30256"
+msgid "Movies"
+msgstr "Films"
+
+msgctxt "#30257"
+msgid "Movies - Recently Added"
+msgstr "Films - Ajouts récents"
+
+msgctxt "#30258"
+msgid "Movies - In Progress"
+msgstr "Films - En cours"
+
+msgctxt "#30259"
+msgid "Movies - Favorites"
+msgstr "Films - Favoris"
+
+msgctxt "#30260"
+msgid "BoxSets"
+msgstr "Collections"
+
+msgctxt "#30261"
+msgid "TV Shows"
+msgstr "Séries"
+
+msgctxt "#30262"
+msgid "TV Shows - Favorites"
+msgstr "Séries - Favoris"
+
+msgctxt "#30263"
+msgid "Episodes - Recently Added"
+msgstr "Épisodes - Ajouts récents"
+
+msgctxt "#30264"
+msgid "Episodes - In Progress"
+msgstr "Épisodes - En cours"
+
+msgctxt "#30265"
+msgid "Episodes - Next Up"
+msgstr "Épisodes - À suivre"
+
+msgctxt "#30266"
+msgid "Movies - Pages"
+msgstr "Films - Pages"
+
+msgctxt "#30267"
+msgid " - In Progress"
+msgstr " - En cours"
+
+msgctxt "#30268"
+msgid " - Recently Added"
+msgstr " - Ajouts récents"
+
+msgctxt "#30269"
+msgid "Movies - Random"
+msgstr "Films - Aléatoire"
+
+msgctxt "#30270"
+msgid "Mark Watched"
+msgstr "Marquer comme vu"
+
+msgctxt "#30271"
+msgid "Mark Unwatched"
+msgstr "Marquer comme non vu"
+
+msgctxt "#30272"
+msgid "Set Favourite"
+msgstr "Ajouter aux favoris"
+
+msgctxt "#30273"
+msgid "Unset Favourite"
+msgstr "Retirer des favoris"
+
+msgctxt "#30274"
+msgid "Delete"
+msgstr "Supprimer"
+
+msgctxt "#30275"
+msgid "Force Transcode"
+msgstr "Forcer le transcodage"
+
+msgctxt "#30276"
+msgid "Extra Resume Prompt Detected"
+msgstr "Double invite de reprise détectée"
+
+msgctxt "#30277"
+msgid ""
+"EmbyCon needs to prompt for resume on partily played items, Kodi can also "
+"prompt, this can cause a double prompt. Do you want to remove the double "
+"prompt?"
+msgstr ""
+"EmbyCon doit demander la reprise sur les éléments partiellement lus ; Kodi "
+"peut aussi le faire, ce qui peut provoquer une double invite. Voulez-vous "
+"supprimer la double invite ?"
+
+msgctxt "#30278"
+msgid " - Next Up"
+msgstr " - À suivre"
+
+msgctxt "#30279"
+msgid "TV Shows - Unwatched"
+msgstr "Séries - Non vues"
+
+msgctxt "#30280"
+msgid "Missing Title"
+msgstr "Titre manquant"
+
+msgctxt "#30281"
+msgid "Refresh Cached Images"
+msgstr "Actualiser les images en cache"
+
+msgctxt "#30282"
+msgid ""
+"No Emby servers detected on your local network.\n"
+"Do you want to manually enter a server url?"
+msgstr ""
+"Aucun serveur Emby détecté sur votre réseau local.\n"
+"Voulez-vous saisir manuellement l'URL d'un serveur ?"
+
+msgctxt "#30283"
+msgid "Play Next Episode?"
+msgstr "Lire l'épisode suivant ?"
+
+msgctxt "#30285"
+msgid " - Unwatched"
+msgstr " - Non vus"
+
+msgctxt "#30286"
+msgid "Movies - Unwatched"
+msgstr "Films - Non vus"
+
+msgctxt "#30287"
+msgid "TV Shows - Latest"
+msgstr "Séries - Dernières"
+
+msgctxt "#30288"
+msgid " - Latest"
+msgstr " - Dernières"
+
+msgctxt "#30289"
+msgid "TV Shows - Genres"
+msgstr "Séries - Genres"
+
+msgctxt "#30290"
+msgid "All"
+msgstr "Tout"
+
+msgctxt "#30291"
+msgid "Select Audio Stream"
+msgstr "Sélectionner la piste audio"
+
+msgctxt "#30292"
+msgid "Select Subtitle Stream"
+msgstr "Sélectionner la piste de sous-titres"
+
+msgctxt "#30293"
+msgid "Cache images"
+msgstr "Mettre les images en cache"
+
+msgctxt "#30294"
+msgid "Notice"
+msgstr "Avis"
+
+msgctxt "#30295"
+msgid ""
+"To use this feature you need HTTP control enabled.\n"
+"Kodi Settings->Services->Allow remote control via HTTP"
+msgstr ""
+"Pour utiliser cette fonction, le contrôle HTTP doit être activé.\n"
+"Réglages Kodi -> Services -> Autoriser le contrôle à distance via HTTP"
+
+msgctxt "#30296"
+msgid "Delete"
+msgstr "Supprimer"
+
+msgctxt "#30297"
+msgid "Delete unused images?"
+msgstr "Supprimer les images inutilisées ?"
+
+msgctxt "#30298"
+msgid "Deleting Kodi Images"
+msgstr "Suppression des images Kodi"
+
+msgctxt "#30299"
+msgid "Cache Images"
+msgstr "Mettre les images en cache"
+
+msgctxt "#30300"
+msgid "Cache all Emby images as local Kodi images?"
+msgstr ""
+"Mettre en cache toutes les images Emby en tant qu'images Kodi locales ?"
+
+msgctxt "#30301"
+msgid "Caching Images"
+msgstr "Mise en cache des images"
+
+msgctxt "#30302"
+msgid "Existing images : "
+msgstr "Images existantes : "
+
+msgctxt "#30303"
+msgid "Missing Emby images : "
+msgstr "Images Emby manquantes : "
+
+msgctxt "#30304"
+msgid "Cached Emby images : "
+msgstr "Images Emby en cache : "
+
+msgctxt "#30305"
+msgid "Not Found: %s"
+msgstr "Introuvable : %s"
+
+msgctxt "#30306"
+msgid "Playback starting: %s"
+msgstr "Démarrage de la lecture : %s"
+
+msgctxt "#30307"
+msgid "Play Trailer"
+msgstr "Lire la bande-annonce"
+
+msgctxt "#30308"
+msgid "Select Trailer"
+msgstr "Sélectionner une bande-annonce"
+
+msgctxt "#30309"
+msgid "Select Media Source"
+msgstr "Sélectionner la source du média"
+
+msgctxt "#30310"
+msgid "Enable Emby remote control"
+msgstr "Activer le contrôle à distance Emby"
+
+msgctxt "#30311"
+msgid "Library - "
+msgstr "Bibliothèque - "
+
+msgctxt "#30312"
+msgid "All - "
+msgstr "Tout - "
+
+msgctxt "#30313"
+msgid "Menu"
+msgstr "Menu"
+
+msgctxt "#30314"
+msgid "Play"
+msgstr "Lecture"
+
+msgctxt "#30315"
+msgid "Suppress notifications for connection errors"
+msgstr "Masquer les notifications d'erreurs de connexion"
+
+msgctxt "#30316"
+msgid "Connection Error"
+msgstr "Erreur de connexion"
+
+msgctxt "#30317"
+msgid "Play All"
+msgstr "Tout lire"
+
+msgctxt "#30318"
+msgid "Music - Albums"
+msgstr "Musique - Albums"
+
+msgctxt "#30320"
+msgid " - Albums"
+msgstr " - Albums"
+
+msgctxt "#30322"
+msgid "Auto resume"
+msgstr "Reprise automatique"
+
+msgctxt "#30325"
+msgid " - Genres"
+msgstr " - Genres"
+
+msgctxt "#30327"
+msgid "Go To Season"
+msgstr "Aller à la saison"
+
+msgctxt "#30328"
+msgid "Show empty folders (shows, seasons, collections)"
+msgstr "Afficher les dossiers vides (séries, saisons, collections)"
+
+msgctxt "#30329"
+msgid "Screensaver"
+msgstr "Écran de veille"
+
+msgctxt "#30330"
+msgid "Show change user dialog"
+msgstr "Afficher la boîte de dialogue de changement d'utilisateur"
+
+msgctxt "#30331"
+msgid "Items per page"
+msgstr "Éléments par page"
+
+msgctxt "#30332"
+msgid "Stop media playback on screensaver activation"
+msgstr "Arrêter la lecture à l'activation de l'écran de veille"
+
+msgctxt "#30333"
+msgid "Cache artwork in the background"
+msgstr "Mettre les visuels en cache en arrière-plan"
+
+msgctxt "#30334"
+msgid "Use EmbyCon context menu"
+msgstr "Utiliser le menu contextuel EmbyCon"
+
+msgctxt "#30335"
+msgid "Use EmbyCon bookmarks dialog"
+msgstr "Utiliser la boîte de dialogue de signets EmbyCon"
+
+msgctxt "#30337"
+msgid "Song"
+msgstr "Morceau"
+
+msgctxt "#30338"
+msgid "Album"
+msgstr "Album"
+
+msgctxt "#30339"
+msgid "Person"
+msgstr "Personne"
+
+msgctxt "#30340"
+msgid "Group movies into collections"
+msgstr "Regrouper les films en collections"
+
+msgctxt "#30341"
+msgid "Background image update interval (0 = disabled)"
+msgstr "Intervalle de mise à jour de l'image de fond (0 = désactivé)"
+
+msgctxt "#30342"
+msgid "New content check interval (0 = disabled)"
+msgstr "Intervalle de vérification du nouveau contenu (0 = désactivé)"
+
+msgctxt "#30343"
+msgid "Changes Require Kodi Restart"
+msgstr "Les modifications nécessitent un redémarrage de Kodi"
+
+msgctxt "#30344"
+msgid "Number of images removed from cache : %s"
+msgstr "Nombre d'images retirées du cache : %s"
+
+msgctxt "#30345"
+msgid "Cache Emby server data requests"
+msgstr "Mettre en cache les requêtes de données du serveur Emby"
+
+msgctxt "#30346"
+msgid "Deleteing Cached Images"
+msgstr "Suppression des images en cache"
+
+msgctxt "#30347"
+msgid "Getting Existing Images"
+msgstr "Récupération des images existantes"
+
+msgctxt "#30348"
+msgid "Add user ratings"
+msgstr "Ajouter les notes des utilisateurs"
+
+msgctxt "#30349"
+msgid " - Recently Played"
+msgstr " - Lus récemment"
+
+msgctxt "#30350"
+msgid "Music - Recently Added"
+msgstr "Musique - Ajouts récents"
+
+msgctxt "#30351"
+msgid "Music - Recently Played"
+msgstr "Musique - Lus récemment"
+
+msgctxt "#30352"
+msgid "Music - Frequently Played"
+msgstr "Musique - Écoutés fréquemment"
+
+msgctxt "#30319"
+msgid "Music - All Album Artists"
+msgstr "Musique - Tous les artistes d'album"
+
+msgctxt "#30321"
+msgid " - Album Artists"
+msgstr " - Artistes d'album"
+
+msgctxt "#30353"
+msgid " - Frequently Played"
+msgstr " - Écoutés fréquemment"
+
+msgctxt "#30354"
+msgid "Go To Series"
+msgstr "Aller à la série"
+
+msgctxt "#30356"
+msgid "Loading existing image list"
+msgstr "Chargement de la liste d'images existantes"
+
+msgctxt "#30357"
+msgid "Processing existing image list"
+msgstr "Traitement de la liste d'images existantes"
+
+msgctxt "#30358"
+msgid "Retreiving remote image list"
+msgstr "Récupération de la liste d'images distantes"
+
+msgctxt "#30359"
+msgid "Building full image list"
+msgstr "Construction de la liste complète d'images"
+
+msgctxt "#30360"
+msgid " - Channels"
+msgstr " - Chaînes"
+
+msgctxt "#30361"
+msgid " - Programs"
+msgstr " - Programmes"
+
+msgctxt "#30362"
+msgid " - Recordings"
+msgstr " - Enregistrements"
+
+msgctxt "#30363"
+msgid "Save Password?"
+msgstr "Enregistrer le mot de passe ?"
+
+msgctxt "#30364"
+msgid "Do you want to save the password?"
+msgstr "Voulez-vous enregistrer le mot de passe ?"
+
+msgctxt "#30365"
+msgid "Manual Login"
+msgstr "Connexion manuelle"
+
+msgctxt "#30366"
+msgid "Manually enter user details"
+msgstr "Saisir manuellement les détails de l'utilisateur"
+
+msgctxt "#30367"
+msgid "Allow fast user switching password saving"
+msgstr ""
+"Autoriser l'enregistrement du mot de passe pour le changement rapide "
+"d'utilisateur"
+
+msgctxt "#30368"
+msgid "Clear Password?"
+msgstr "Effacer le mot de passe ?"
+
+msgctxt "#30369"
+msgid "Do you want to clear your saved password?"
+msgstr "Voulez-vous effacer votre mot de passe enregistré ?"
+
+msgctxt "#30371"
+msgid "Could not connect to the URL you entered, do you want to try again?"
+msgstr "Impossible de se connecter à l'URL saisie, voulez-vous réessayer ?"
+
+msgctxt "#30372"
+msgid "Server URL"
+msgstr "URL du serveur"
+
+msgctxt "#30373"
+msgid "Scanning for local servers"
+msgstr "Recherche de serveurs locaux"
+
+msgctxt "#30374"
+msgid "Sending request"
+msgstr "Envoi de la requête"
+
+msgctxt "#30375"
+msgid "Receiving data packet: %s"
+msgstr "Réception du paquet de données : %s"
+
+msgctxt "#30376"
+msgid "Checking server url"
+msgstr "Vérification de l'URL du serveur"
+
+msgctxt "#30377"
+msgid "Sending request"
+msgstr "Envoi de la requête"
+
+msgctxt "#30378"
+msgid "Persist user details"
+msgstr "Conserver les détails de l'utilisateur"
+
+msgctxt "#30379"
+msgid "External subtitle prompt"
+msgstr "Invite pour les sous-titres externes"
+
+msgctxt "#30380"
+msgid "Never"
+msgstr "Jamais"
+
+msgctxt "#30381"
+msgid "More than one"
+msgstr "Plus d'un"
+
+msgctxt "#30382"
+msgid "Always"
+msgstr "Toujours"
+
+msgctxt "#30383"
+msgid "System - "
+msgstr "Système - "
+
+msgctxt "#30384"
+msgid "Random movies interval minutes (0 = disabled)"
+msgstr "Intervalle des films aléatoires (minutes, 0 = désactivé)"
+
+msgctxt "#30385"
+msgid "Existing images before delete : "
+msgstr "Images existantes avant suppression : "
+
+msgctxt "#30386"
+msgid "Unused Emby images : "
+msgstr "Images Emby inutilisées : "
+
+msgctxt "#30387"
+msgid "Unused images removed : "
+msgstr "Images inutilisées supprimées : "
+
+msgctxt "#30388"
+msgid "Server details"
+msgstr "Détails du serveur"
+
+msgctxt "#30389"
+msgid "User details"
+msgstr "Détails de l'utilisateur"
+
+msgctxt "#30390"
+msgid "Protocol"
+msgstr "Protocole"
+
+msgctxt "#30391"
+msgid "HTTP"
+msgstr "HTTP"
+
+msgctxt "#30392"
+msgid "HTTPS"
+msgstr "HTTPS"
+
+msgctxt "#30393"
+msgid "Clear Cache Result"
+msgstr "Résultat du vidage du cache"
+
+msgctxt "#30394"
+msgid "%s cache files deleted"
+msgstr "%s fichiers de cache supprimés"
+
+msgctxt "#30395"
+msgid "Clear cached server data"
+msgstr "Effacer les données serveur en cache"
+
+msgctxt "#30397"
+msgid " - Pages"
+msgstr " - Pages"
+
+msgctxt "#30398"
+msgid "Refresh Emby Metadata"
+msgstr "Actualiser les métadonnées Emby"
+
+msgctxt "#30399"
+msgid "Hide"
+msgstr "Masquer"
+
+msgctxt "#30400"
+msgid "Cache images interval minutes (0 = disabled)"
+msgstr "Intervalle de mise en cache des images (minutes, 0 = désactivé)"
+
+msgctxt "#30401"
+msgid "Info"
+msgstr "Infos"
+
+msgctxt "#30402"
+msgid "Add to Kodi Playlist"
+msgstr "Ajouter à la liste de lecture Kodi"
+
+msgctxt "#30403"
+msgid "Movies - Recommendations"
+msgstr "Films - Recommandations"
+
+msgctxt "#30404"
+msgid " - A-Z"
+msgstr " - A-Z"
+
+msgctxt "#30405"
+msgid " - Show All"
+msgstr " - Tout afficher"
+
+msgctxt "#30406"
+msgid "Emby Libraries"
+msgstr "Bibliothèques Emby"
+
+msgctxt "#30407"
+msgid "Global Lists"
+msgstr "Listes globales"
+
+msgctxt "#30408"
+msgid "Custom Widgets"
+msgstr "Widgets personnalisés"
+
+msgctxt "#30409"
+msgid "Add-on Actions"
+msgstr "Actions de l'extension"
+
+msgctxt "#30410"
+msgid " - Collections"
+msgstr " - Collections"
+
+msgctxt "#30411"
+msgid " - Years"
+msgstr " - Années"
+
+msgctxt "#30412"
+msgid " - Decades"
+msgstr " - Décennies"
+
+msgctxt "#30413"
+msgid " - Tags"
+msgstr " - Étiquettes"
+
+msgctxt "#30414"
+msgid " - Favorites"
+msgstr " - Favoris"
+
+msgctxt "#30415"
+msgid " - Favorite Collections"
+msgstr " - Collections favorites"
+
+msgctxt "#30416"
+msgid "HTTP timeout seconds"
+msgstr "Délai d'expiration HTTP (secondes)"
+
+msgctxt "#30417"
+msgid "You do not have permision to delete this item"
+msgstr "Vous n'avez pas la permission de supprimer cet élément"
+
+msgctxt "#30418"
+msgid "Audio bitrate (kbs)"
+msgstr "Débit audio (kb/s)"
+
+msgctxt "#30419"
+msgid "Audio codec"
+msgstr "Codec audio"
+
+msgctxt "#30420"
+msgid "Audio max channels"
+msgstr "Nombre maximal de canaux audio"
+
+msgctxt "#30421"
+msgid "Views"
+msgstr "Vues"
+
+msgctxt "#30422"
+msgid "Sorting"
+msgstr "Tri"
+
+msgctxt "#30423"
+msgid "NotSet"
+msgstr "Non défini"
+
+msgctxt "#30424"
+msgid "Default"
+msgstr "Par défaut"
+
+msgctxt "#30425"
+msgid "Year"
+msgstr "Année"
+
+msgctxt "#30426"
+msgid "Title"
+msgstr "Titre"
+
+msgctxt "#30427"
+msgid "Added"
+msgstr "Date d'ajout"
+
+msgctxt "#30428"
+msgid "Rating"
+msgstr "Note"
+
+msgctxt "#30429"
+msgid "Genre"
+msgstr "Genre"
+
+msgctxt "#30430"
+msgid "Label"
+msgstr "Nom"
+
+msgctxt "#30431"
+msgid "Seasons"
+msgstr "Saisons"
+
+msgctxt "#30432"
+msgid "Hide watched items in lists"
+msgstr "Masquer les éléments vus dans les listes"
+
+msgctxt "#30433"
+msgid "Allow direct file playback"
+msgstr "Autoriser la lecture directe des fichiers"
+
+msgctxt "#30434"
+msgid "Force transcode stream bitrate (kbs)"
+msgstr "Forcer le débit du flux de transcodage (kb/s)"
+
+msgctxt "#30435"
+msgid "Connection speed test"
+msgstr "Test de vitesse de connexion"
+
+msgctxt "#30436"
+msgid "Speed test data size (MB)"
+msgstr "Taille des données du test de vitesse (Mo)"
+
+msgctxt "#30437"
+msgid "Playback options"
+msgstr "Options de lecture"
+
+msgctxt "#30438"
+msgid "Play cinema intros"
+msgstr "Lire les intros cinéma"
+
+msgctxt "#30439"
+msgid "Show play next episode at time left"
+msgstr "Afficher « Lire l'épisode suivant » selon le temps restant"
+
+msgctxt "#30440"
+msgid "Play next"
+msgstr "Lire le suivant"
+
+msgctxt "#30441"
+msgid "Intro Skipping"
+msgstr "Saut d'intro"
+
+msgctxt "#30442"
+msgid "Off"
+msgstr "Désactivé"
+
+msgctxt "#30443"
+msgid "Show skip button"
+msgstr "Afficher le bouton de saut"
+
+msgctxt "#30444"
+msgid "Auto skip intro"
+msgstr "Sauter l'intro automatiquement"
+
+msgctxt "#30445"
+msgid "No Flattening"
+msgstr "Aucun aplatissement"
+
+msgctxt "#30446"
+msgid "Flatten Single"
+msgstr "Aplatir si unique"
+
+msgctxt "#30447"
+msgid "Flatten All"
+msgstr "Tout aplatir"
+
+msgctxt "#30448"
+msgid "Force transcode av1"
+msgstr "Forcer le transcodage av1"
+
+msgctxt "#30449"
+msgid "Max Image Width"
+msgstr "Largeur maximale de l'image"
+
+msgctxt "#30450"
+msgid "Movies view ID"
+msgstr "ID de vue Films"
+
+msgctxt "#30451"
+msgid "TV Shows view ID"
+msgstr "ID de vue Séries"
+
+msgctxt "#30452"
+msgid "Seasons view ID"
+msgstr "ID de vue Saisons"
+
+msgctxt "#30453"
+msgid "Episodes view ID"
+msgstr "ID de vue Épisodes"
+
+msgctxt "#30454"
+msgid "Collections view ID"
+msgstr "ID de vue Collections"
+
+msgctxt "#30455"
+msgid "Autoplay first version of an item"
+msgstr "Lire automatiquement la première version d'un élément"
+
+msgctxt "#30456"
+msgid "Episode"
+msgstr "Épisode"
+
+msgctxt "#30457"
+msgid "Confirm"
+msgstr "Confirmer"
+
+msgctxt "#30458"
+msgid "Are you sure you want to hide this item?"
+msgstr "Voulez-vous vraiment masquer cet élément ?"
+
+msgctxt "#30460"
+msgid "Sort order"
+msgstr "Ordre du tri"
+
+msgctxt "#30461"
+msgid "Ascending"
+msgstr "Croissant"
+
+msgctxt "#30462"
+msgid "Descending"
+msgstr "Décroissant"
+
+msgctxt "#30463"
+msgid "Refresh list after playback"
+msgstr "Actualiser la liste après lecture"
+
+msgctxt "#30464"
+msgid "Playback quality"
+msgstr "Qualité de lecture"
+
+msgctxt "#30465"
+msgid "Manual"
+msgstr "Manuel"
+
+msgctxt "#30466"
+msgid "Automatic (detect before playback)"
+msgstr "Automatique (détection avant lecture)"
+
+msgctxt "#30467"
+msgid "Auto quality test size (MB)"
+msgstr "Taille du test de qualité auto (Mo)"
+
+msgctxt "#30469"
+msgid "Skip credits (end of episode)"
+msgstr "Sauter le générique de fin"
+
+msgctxt "#30470"
+msgid "Skip Credits"
+msgstr "Sauter le générique"
+
+msgctxt "#30474"
+msgid "Show 'Play next episode' dialog"
+msgstr "Afficher le dialogue « Lecture de l'épisode suivant »"
+
+msgctxt "#30476"
+msgid "Subtitle mode"
+msgstr "Mode des sous-titres"
+
+msgctxt "#30477"
+msgid "Preferred audio language"
+msgstr "Langue audio préférée"
+
+msgctxt "#30478"
+msgid "Preferred subtitle language"
+msgstr "Langue de sous-titres préférée"
+
+msgctxt "#30479"
+msgid "Intelligent"
+msgstr "Intelligent"
+
+msgctxt "#30480"
+msgid ""
+"Shows subtitles in the preferred language when the audio is not in the "
+"preferred audio language."
+msgstr ""
+"Affiche les sous-titres dans la langue préférée quand l'audio n'est pas dans"
+" la langue audio préférée."
+
+msgctxt "#30481"
+msgid "French"
+msgstr "Français"
+
+msgctxt "#30482"
+msgid "English"
+msgstr "Anglais"
+
+msgctxt "#30483"
+msgid "Spanish"
+msgstr "Espagnol"
+
+msgctxt "#30484"
+msgid "German"
+msgstr "Allemand"
+
+msgctxt "#30485"
+msgid "Italian"
+msgstr "Italien"
+
+msgctxt "#30486"
+msgid "Portuguese"
+msgstr "Portugais"
+
+msgctxt "#30487"
+msgid "Japanese"
+msgstr "Japonais"
+
+msgctxt "#30488"
+msgid "Dutch"
+msgstr "Néerlandais"
+
+msgctxt "#30489"
+msgid "Skip credits automatically"
+msgstr "Sauter le générique automatiquement"
+
+msgctxt "#30490"
+msgid "Server & account"
+msgstr "Serveur & compte"
+
+msgctxt "#30491"
+msgid "Quality & playback"
+msgstr "Qualité & lecture"
+
+msgctxt "#30492"
+msgid "Automations"
+msgstr "Automatisations"
+
+msgctxt "#30493"
+msgid "Display & lists"
+msgstr "Affichage & listes"
+
+msgctxt "#30494"
+msgid "Services"
+msgstr "Services"
+
+msgctxt "#30495"
+msgid "Advanced"
+msgstr "Avancé"
+
+msgctxt "#30496"
+msgid "Device"
+msgstr "Appareil"
+
+msgctxt "#30497"
+msgid "Playback quality"
+msgstr "Qualité de lecture"
+
+msgctxt "#30498"
+msgid "Subtitles"
+msgstr "Sous-titres"
+
+msgctxt "#30499"
+msgid "Delete after watching"
+msgstr "Suppression après visionnage"
+
+msgctxt "#30500"
+msgid "Refresh"
+msgstr "Rafraîchissement"
+
+msgctxt "#30501"
+msgid "Network & cache"
+msgstr "Réseau & cache"
+
+msgctxt "#30502"
+msgid "Logging"
+msgstr "Journalisation"
+
+msgctxt "#30503"
+msgid "Intro fallback: skip the first X seconds (0 = off)"
+msgstr "Repli intro : sauter les X premières secondes (0 = désactivé)"
+
+msgctxt "#30504"
+msgid "Credits fallback: offer skip X s before the end (0 = off)"
+msgstr "Repli générique : saut proposé X s avant la fin (0 = désactivé)"
