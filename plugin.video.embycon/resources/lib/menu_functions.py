@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import sys
+import time
 import urllib.parse
 import base64
 import json
@@ -134,12 +135,19 @@ def do_user_change(menu_params: dict[str, str]) -> None:
         du = DownloadUtils()
         du.authenticate()
         du.get_user_id()
-        log.debug("Changed user - reloading skin")
+        log.debug("Changed user - refreshing home")
         xbmc.executebuiltin("Dialog.Close(all,true)")
         xbmc.executebuiltin("ActivateWindow(Home)")
         if "estuary_embycon" in xbmc.getSkinDir():
+            # Skin clone EmbyCon : le rechargement complet est necessaire pour
+            # reprendre en compte les noeuds/widgets injectes.
             xbmc.executebuiltin("SetFocus(9000, 0, absolute)")
-        xbmc.executebuiltin("ReloadSkin()")
+            xbmc.executebuiltin("ReloadSkin()")
+        else:
+            # Skin tiers (ex. Arctic Zephyr) : un ReloadSkin() complet peut figer
+            # l'interface juste apres l'identification. On rafraichit uniquement
+            # les widgets Home via leur jeton dedie.
+            home_window.set_property("embycon_widget_reload", str(time.time()))
 
 
 def show_user_lists(menu_params: dict[str, str]) -> None:
