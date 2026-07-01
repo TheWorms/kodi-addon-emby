@@ -1558,6 +1558,58 @@ def _lang_matches(stream_lang: str, pref_code: str) -> bool:
     return False
 
 
+def _kodi_subtitle_streams() -> list:
+    """Pistes de sous-titres du lecteur avec langue + drapeau 'isforced'.
+
+    L'API xbmc.Player n'expose PAS l'attribut forced ; on passe donc par
+    JSON-RPC Player.GetProperties qui renvoie index/language/isforced/isdefault
+    (disponible depuis Kodi 19 Matrix). L'index renvoye correspond a celui
+    attendu par player.setSubtitleStream().
+    """
+    req = {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "Player.GetProperties",
+        "params": {"playerid": 1, "properties": ["subtitles"]},
+    }
+    try:
+        resp = json.loads(xbmc.executeJSONRPC(json.dumps(req)))
+        return resp.get("result", {}).get("subtitles", []) or []
+    except Exception as e:
+        log.error("_kodi_subtitle_streams failed: {0}", e)
+        return []
+
+
+def _pick_subtitle(
+    streams: list,
+    pref_sub: str,
+    forced_only: bool = False,
+    prefer_non_forced: bool = False,
+):
+    """Index Kodi d'un sous-titre de la langue preferee, ou None.
+
+    forced_only=True      -> uniquement une piste forced (traduction des
+                             passages etrangers / textes a l'ecran).
+    prefer_non_forced=True -> privilegie une piste complete (non-forced),
+                             et retombe sur une forced a defaut.
+    """
+    match_forced = None
+    match_full = None
+    for s in streams:
+        if not _lang_matches(s.get("language", ""), pref_sub):
+            continue
+        if s.get("isforced"):
+            if match_forced is None:
+                match_forced = s.get("index")
+        elif match_full is None:
+            match_full = s.get("index")
+    if forced_only:
+        return match_forced
+    if prefer_non_forced:
+        return match_full if match_full is not None else match_forced
+    return match_full if match_full is not None else match_forced
+
+
 def apply_intelligent_subtitle(play_data: dict) -> None:
     """Mode sous-titres « Intelligent » (facon Emby).
 
@@ -1583,22 +1635,44 @@ def apply_intelligent_subtitle(play_data: dict) -> None:
 
         player = xbmc.Player()
         audio_lang = xbmc.getInfoLabel("VideoPlayer.AudioLanguage")
+
+        # Attendre l'enumeration des pistes : les sous-titres embarques
+        # (notamment forced) apparaissent parfois un instant apres onAVStarted.
+        streams = []
+        for _ in range(20):  # ~2 s max
+            streams = _kodi_subtitle_streams()
+            if streams:
+                break
+            xbmc.sleep(100)
+
         log.debug(
-            "Intelligent subs: audio='{0}' pref_audio='{1}' pref_sub='{2}'",
-            audio_lang, pref_audio, pref_sub,
+            "Intelligent subs: audio='{0}' pref_audio='{1}' pref_sub='{2}' streams={3}",
+            audio_lang, pref_audio, pref_sub, streams,
         )
+
         if _lang_matches(audio_lang, pref_audio):
-            player.showSubtitles(False)
+            # L'audio est deja dans la langue preferee : pas de sous-titres
+            # complets, MAIS on active une eventuelle piste FORCED de la langue
+            # preferee (traduction des passages etrangers / textes a l'ecran),
+            # qui doit toujours s'afficher.
+            forced_idx = _pick_subtitle(streams, pref_sub, forced_only=True)
+            if forced_idx is not None:
+                player.setSubtitleStream(forced_idx)
+                player.showSubtitles(True)
+                log.debug("Intelligent subs: forced sub actif (stream {0})", forced_idx)
+            else:
+                player.showSubtitles(False)
             return
 
-        subs = player.getAvailableSubtitleStreams()
-        for i, s in enumerate(subs):
-            if _lang_matches(s, pref_sub):
-                player.setSubtitleStream(i)
-                player.showSubtitles(True)
-                log.debug("Intelligent subs: enabled stream {0} ({1})", i, s)
-                return
-        log.debug("Intelligent subs: no subtitle matching '{0}'", pref_sub)
+        # Audio dans une langue etrangere : afficher des sous-titres COMPLETS
+        # dans la langue preferee (on privilegie une piste non-forced).
+        idx = _pick_subtitle(streams, pref_sub, prefer_non_forced=True)
+        if idx is not None:
+            player.setSubtitleStream(idx)
+            player.showSubtitles(True)
+            log.debug("Intelligent subs: sous-titres actifs (stream {0})", idx)
+            return
+        log.debug("Intelligent subs: aucun sous-titre correspondant a '{0}'", pref_sub)
     except Exception as e:
         log.error("apply_intelligent_subtitle failed: {0}", e)
 

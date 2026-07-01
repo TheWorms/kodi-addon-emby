@@ -1,7 +1,7 @@
 # EmbyCon — édition française · `kodi-addon-emby`
 
 <!-- version:auto -->
-**Version : 1.13.24**
+**Version : 1.13.25**
 <!-- /version:auto -->
 
 **Français** · [English](readme.en.md)
