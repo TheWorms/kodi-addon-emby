@@ -1802,11 +1802,13 @@ class PlaybackMonitorService(xbmc.Player):
         self._flag_refresh_after_playback()
 
     def _flag_refresh_after_playback(self) -> None:
-        # EmbyCon FR: demande au service de rafraichir la liste une fois la
-        # lecture terminee (met a jour l'etat lu / disparition des Ajouts recents).
-        settings = xbmcaddon.Addon()
-        if settings.getSetting("auto_refresh_after_playback") == "true":
-            HomeWindow().set_property("embycon_refresh_pending", "true")
+        # EmbyCon FR: signale TOUJOURS la fin de lecture au service. C'est le
+        # service (thread principal, hors lecture) qui appelle
+        # check_for_new_content() et decide du Container.Refresh selon le
+        # reglage auto_refresh_after_playback. Aucun rechargement de widgets
+        # n'est declenche depuis les callbacks du player : c'etait la source
+        # des segfaults CGUIListItem pendant les transitions d'episodes.
+        HomeWindow().set_property("embycon_refresh_pending", "true")
 
     def onPlayBackPaused(self) -> None:
         # Will be called when kodi pauses the video

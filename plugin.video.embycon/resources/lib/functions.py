@@ -264,7 +264,6 @@ def mark_item_watched(item_id: str, refresh: bool = True) -> None:
     url = "{server}/emby/Users/{userid}/PlayedItems/" + item_id
     downloadUtils = DownloadUtils()
     downloadUtils.download_url(url, post_body="", method="POST")
-    check_for_new_content()
     home_window = HomeWindow()
     last_url = home_window.get_property("last_content_url")
     if last_url:
@@ -272,6 +271,12 @@ def mark_item_watched(item_id: str, refresh: bool = True) -> None:
         home_window.set_property("skip_cache_for_" + last_url, "true")
 
     if refresh:
+        # EmbyCon FR: check_for_new_content() uniquement sur action utilisateur
+        # (refresh=True). Avec refresh=False (fin de lecture), le rechargement
+        # des widgets est serialise par le service (embycon_refresh_pending)
+        # pour eviter les races GUI pendant les transitions (segfault
+        # CGUIListItem).
+        check_for_new_content()
         _flag_fresh_refresh()
         xbmc.executebuiltin("Container.Refresh")
 
@@ -281,7 +286,6 @@ def mark_item_unwatched(item_id: str, refresh: bool = True) -> None:
     url = "{server}/emby/Users/{userid}/PlayedItems/" + item_id
     downloadUtils = DownloadUtils()
     downloadUtils.download_url(url, method="DELETE")
-    check_for_new_content()
     home_window = HomeWindow()
     last_url = home_window.get_property("last_content_url")
     if last_url:
@@ -289,6 +293,8 @@ def mark_item_unwatched(item_id: str, refresh: bool = True) -> None:
         home_window.set_property("skip_cache_for_" + last_url, "true")
 
     if refresh:
+        # EmbyCon FR: voir mark_item_watched (serialisation anti-race).
+        check_for_new_content()
         _flag_fresh_refresh()
         xbmc.executebuiltin("Container.Refresh")
 

@@ -257,3 +257,9 @@ class PlayNextDialog(xbmcgui.WindowXMLDialog):
     def stop_auto_close(self) -> None:
         if self.auto_close_thread is not None:
             self.auto_close_thread.stop()
+            # EmbyCon FR: attendre la fin reelle du thread avant que l'appelant
+            # ne detruise le dialogue (close + del) : sinon le thread peut
+            # encore toucher getControl() sur un objet libere -> segfault.
+            if self.auto_close_thread.is_alive():
+                self.auto_close_thread.join(2)
+            self.auto_close_thread = None

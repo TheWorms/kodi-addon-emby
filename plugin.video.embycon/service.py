@@ -17,7 +17,11 @@ from resources.lib.play_utils import (
     send_progress,
 )
 from resources.lib.kodi_utils import HomeWindow
-from resources.lib.widgets import set_background_image, set_random_movies
+from resources.lib.widgets import (
+    set_background_image,
+    set_random_movies,
+    check_for_new_content,
+)
 from resources.lib.websocket_client import WebSocketClient
 from resources.lib.menu_functions import set_library_window_values
 from resources.lib.context_monitor import ContextMonitor
@@ -167,10 +171,25 @@ while not kodi_monitor.abortRequested():
                     if refresh_grace >= 2:
                         refresh_grace = 0
                         home_window.clear_property("embycon_refresh_pending")
-                        folder_path = xbmc.getInfoLabel("Container.FolderPath")
-                        if folder_path and "plugin.video.embycon" in folder_path:
-                            log.debug("Refreshing container after playback")
-                            xbmc.executebuiltin("Container.Refresh")
+                        # EmbyCon FR: rechargement des widgets serialise ICI
+                        # (thread unique du service, hors lecture) et jamais
+                        # depuis les callbacks du player -> anti-race GUI.
+                        check_for_new_content()
+                        if (
+                            xbmcaddon.Addon().getSetting(
+                                "auto_refresh_after_playback"
+                            )
+                            == "true"
+                        ):
+                            folder_path = xbmc.getInfoLabel(
+                                "Container.FolderPath"
+                            )
+                            if (
+                                folder_path
+                                and "plugin.video.embycon" in folder_path
+                            ):
+                                log.debug("Refreshing container after playback")
+                                xbmc.executebuiltin("Container.Refresh")
             else:
                 refresh_grace = 0
 

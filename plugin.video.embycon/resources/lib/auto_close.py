@@ -40,13 +40,24 @@ class ActionAutoClose(threading.Thread):
 
             if time_since_last > self.time_out:
                 log.debug("ActionAutoClose Closing Parent")
-                if self.parent_dialog:
-                    self.parent_dialog.close()
+                # EmbyCon FR: le dialogue parent peut etre ferme/detruit par un
+                # autre thread entre deux iterations -> ne jamais planter Kodi
+                # sur un objet GUI disparu (use-after-free, segfault
+                # CGUIControlLookup::RemoveLookup).
+                if self.parent_dialog is not None and not self.stop_thread:
+                    try:
+                        self.parent_dialog.close()
+                    except Exception:
+                        pass
                 break
 
-            if self.progress_call_back is not None:
+            if self.progress_call_back is not None and not self.stop_thread:
                 percentage = (float(time_since_last) / float(self.time_out)) * 100
-                self.progress_call_back.update_progress(percentage)
+                try:
+                    self.progress_call_back.update_progress(percentage)
+                except Exception:
+                    # dialogue detruit pendant l'appel -> sortie propre
+                    break
 
             monitor.waitForAbort(0.1)
 

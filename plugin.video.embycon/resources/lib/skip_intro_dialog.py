@@ -59,12 +59,29 @@ class SkipIntroMonitor(threading.Thread):
                     intro_end_sec,
                 )
                 if self.auto_skip:
-                    log.debug("SkipIntroMonitor auto skip")
-                    player.seekTime(intro_end_sec)
-                    # On saute UNE seule fois puis on sort : sinon, si le buffer
-                    # tarde a rafraichir play_time, on relancerait un seek a
-                    # chaque iteration (tempete de seek qui bloque la lecture).
-                    break
+                    # EmbyCon FR: seek auto uniquement une fois la lecture
+                    # reellement stabilisee. Un seekTime() pendant que le
+                    # demuxer/codec Amlogic s'initialise (premieres secondes)
+                    # peut faire planter Kodi (OpenDemuxStream errors puis
+                    # segfault). Conditions : >2 s de lecture effective, video
+                    # active, duree totale connue. Sinon on retente a la
+                    # prochaine iteration (1 s) sans consommer le saut.
+                    try:
+                        if (
+                            play_time > 2.0
+                            and player.isPlayingVideo()
+                            and player.getTotalTime() > 0
+                        ):
+                            log.debug("SkipIntroMonitor auto skip")
+                            player.seekTime(intro_end_sec)
+                            # On saute UNE seule fois puis on sort : sinon, si
+                            # le buffer tarde a rafraichir play_time, on
+                            # relancerait un seek a chaque iteration (tempete
+                            # de seek qui bloque la lecture).
+                            break
+                    except Exception:
+                        # lecture indisponible pendant le test -> sortie propre
+                        break
                 else:
                     log.debug("SkipIntroMonitor show dialog")
                     skip_intro_dialog = SkipIntroDialog(

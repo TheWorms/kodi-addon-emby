@@ -393,7 +393,13 @@ class CacheManagerThread(threading.Thread):
 
                 log.debug("CacheManagerThread : Sending container refresh")
                 time.sleep(1)
-                xbmc.executebuiltin("Container.Refresh")
+                # EmbyCon FR: jamais de refresh pendant une lecture ni si le
+                # container affiche n'est pas EmbyCon (anti-race GUI depuis un
+                # thread de fond).
+                if not xbmc.Player().isPlaying():
+                    folder_path = xbmc.getInfoLabel("Container.FolderPath")
+                    if folder_path and "plugin.video.embycon" in folder_path:
+                        xbmc.executebuiltin("Container.Refresh")
 
             else:
                 self.cached_item.date_last_used = time.time()
