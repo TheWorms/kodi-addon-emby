@@ -539,7 +539,10 @@ def check_server(force: bool = False, change_user: bool = False) -> None:
                 useDetails=True,
             )
 
-            if return_value > -1 and return_value != selected_id:
+            if return_value > -1:
+                # v1.14 : re-selectionner l'utilisateur courant n'est plus un
+                # no-op : cela declenche un re-login et permet de ressaisir
+                # le mot de passe (utile apres purge par la garde 401).
                 something_changed = True
                 selected_user = users[return_value]
                 secured = selected_user.getProperty("secure") == "true"

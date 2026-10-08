@@ -37,8 +37,13 @@ def do_user_change(menu_params: dict[str, str]) -> None:
     user_name = menu_params.get("user")
     user_id = menu_params.get("userid")
 
-    if current_username != user_name:
+    # v1.14 : re-selectionner l'utilisateur courant declenche un re-login
+    # (ressaisie du mot de passe) au lieu d'etre ignore (no-op silencieux).
+    if current_username == user_name:
+        log.info("Re-login as current user: {0}", user_name)
+    else:
         log.info("Changing user to: {0}", user_name)
+    if user_name is not None:
 
         # looking up new user details
         du = DownloadUtils()
