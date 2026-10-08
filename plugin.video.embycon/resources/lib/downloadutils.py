@@ -11,6 +11,7 @@ import ssl
 from io import BytesIO
 import gzip
 import json
+import re
 from urllib.parse import urlparse
 import urllib.parse
 from base64 import b64encode
@@ -27,6 +28,41 @@ from .tracking import timer
 from .hardware_profile import av1_transcodage_force
 
 log = SimpleLogging(__name__)
+
+
+# v1.14 : masquage des données sensibles — le mot de passe et les jetons
+# ne doivent jamais apparaître en clair dans kodi.log, même en mode debug
+def _masque_donnees_sensibles(donnees: str | bytes) -> str:
+    """Masque les mots de passe et jetons avant écriture dans le log."""
+    if isinstance(donnees, bytes):
+        texte = donnees.decode("utf-8", errors="replace")
+    else:
+        texte = donnees
+    # paires formulaire (pw=..., password=..., api_key=...)
+    texte = re.sub(r"(?i)\b(pw|password|api_key)=[^&\s]*", r"\1=****", texte)
+    # champs JSON ("AccessToken":"...", "Password":"...")
+    texte = re.sub(
+        r'(?i)("(?:accesstoken|password|api_key)"\s*:\s*")[^"]*(")',
+        r"\1****\2",
+        texte,
+    )
+    return texte
+
+
+def _masque_token(token: str | None) -> str:
+    """Jeton jamais loggé en clair : on ne garde que le préfixe."""
+    if not token:
+        return str(token or "")
+    return token[:4] + "****"
+
+
+def _masque_entetes(entetes: dict) -> dict:
+    """Copie les en-têtes en masquant les jetons avant écriture dans le log."""
+    copie = dict(entetes)
+    for cle in ("X-MediaBrowser-Token", "Authorization"):
+        if copie.get(cle):
+            copie[cle] = _masque_token(copie[cle])
+    return copie
 
 
 # v1.14 : anti-doublon des bulles d'erreur réseau — quand le serveur tombe,
@@ -690,7 +726,8 @@ class DownloadUtils:
         token = window.get_property("AccessToken")
         if token is not None and token != "":
             log.debug(
-                "EmbyCon DownloadUtils -> Returning saved AccessToken: {0}", token
+                "EmbyCon DownloadUtils -> Returning saved AccessToken: {0}",
+                _masque_token(token),
             )
             return token
 
@@ -720,7 +757,7 @@ class DownloadUtils:
             suppress=True,
             authenticate=False,
         )
-        log.debug("AuthenticateByName: {0}", resp)
+        log.debug("AuthenticateByName: {0}", _masque_donnees_sensibles(resp))
 
         access_token = None
         userid = None
@@ -735,7 +772,7 @@ class DownloadUtils:
             pass
 
         if access_token is not None:
-            log.debug("User Authenticated: {0}", access_token)
+            log.debug("User Authenticated: {0}", _masque_token(access_token))
             log.debug("User Id: {0}", userid)
             window.set_property("AccessToken", access_token)
             window.set_property("userid", userid or "")
@@ -807,7 +844,7 @@ class DownloadUtils:
         if auth_token != "":
             headers["X-MediaBrowser-Token"] = auth_token
 
-        log.debug("EmbyCon Authentication Header: {0}", headers)
+        log.debug("EmbyCon Authentication Header: {0}", _masque_entetes(headers))
         return headers
 
     @timer
@@ -935,7 +972,7 @@ class DownloadUtils:
                 if reponse_cachee is not None:
                     head["If-None-Match"] = reponse_cachee[0]
 
-                log.debug("HEADERS: {0}", head)
+                log.debug("HEADERS: {0}", _masque_entetes(head))
 
                 if post_body is not None:
                     if isinstance(post_body, dict):
@@ -947,7 +984,7 @@ class DownloadUtils:
                     head["Content-Type"] = content_type
                     log.debug("Content-Type: {0}", content_type)
 
-                    log.debug("POST DATA: {0}", post_body)
+                    log.debug("POST DATA: {0}", _masque_donnees_sensibles(post_body))
                     conn.request(method=method, url=url_path, body=post_body, headers=head)
                 else:
                     conn.request(method=method, url=url_path, headers=head)
@@ -977,7 +1014,13 @@ class DownloadUtils:
                     log.debug("Data Len After: {0}", len(return_data))
                     log.debug("====== 200 returned =======")
                     log.debug("Content-Type: {0}", content_type)
-                    log.debug("{0}", return_data)
+                    # v1.14 : la réponse d'auth contient l'AccessToken — on la
+                    # masque ; les autres corps n'ont pas de secrets (et on
+                    # évite une regex sur les réponses de 400 Ko+)
+                    if "AuthenticateByName" in url:
+                        log.debug("{0}", _masque_donnees_sensibles(return_data))
+                    else:
+                        log.debug("{0}", return_data)
                     log.debug("====== 200 finished ======")
 
                 elif int(data.status) == 304 and reponse_cachee is not None:
