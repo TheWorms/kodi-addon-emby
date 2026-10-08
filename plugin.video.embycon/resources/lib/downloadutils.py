@@ -87,6 +87,53 @@ def notifier_erreur_reseau(titre: str, message: str) -> None:
     )
 
 
+# v1.14 : garde anti-verrouillage Emby — le serveur verrouille un compte
+# après 5 tentatives d'authentification échouées (verrou ~60 s). Le fond de
+# l'addon (widgets, speed test, service) pouvant marteler le login tout seul
+# avec un mot de passe invalide, on gèle les tentatives automatiques après
+# 2 échecs consécutifs avec le même mot de passe. Le compteur repart à
+# zéro dès que le mot de passe stocké change (nouvelle saisie, injection)
+# ou qu'une authentification réussit. L'addon ne peut ainsi plus
+# déclencher le verrouillage du compte Emby tout seul.
+_garde_auth_lock = threading.Lock()
+_garde_auth_echecs = 0
+_garde_auth_mdp_refuse = None
+
+
+def _garde_auth_echec(mdp: str) -> None:
+    """Enregistre un échec de login pour la garde anti-verrouillage."""
+    global _garde_auth_echecs, _garde_auth_mdp_refuse
+    m = hashlib.md5()
+    m.update(mdp.encode("utf-8"))
+    with _garde_auth_lock:
+        _garde_auth_echecs += 1
+        _garde_auth_mdp_refuse = m.hexdigest()
+
+
+def _garde_auth_succes() -> None:
+    """Un login a réussi : compteur remis à zéro."""
+    global _garde_auth_echecs, _garde_auth_mdp_refuse
+    with _garde_auth_lock:
+        _garde_auth_echecs = 0
+        _garde_auth_mdp_refuse = None
+
+
+def _garde_auth_bloque(mdp: str) -> bool:
+    """True si les tentatives automatiques doivent être gelées."""
+    global _garde_auth_echecs, _garde_auth_mdp_refuse
+    m = hashlib.md5()
+    m.update(mdp.encode("utf-8"))
+    with _garde_auth_lock:
+        if _garde_auth_echecs < 2:
+            return False
+        if _garde_auth_mdp_refuse != m.hexdigest():
+            # mot de passe différent : nouvelles coordonnées, on repart de zéro
+            _garde_auth_echecs = 0
+            _garde_auth_mdp_refuse = None
+            return False
+        return True
+
+
 def save_user_details(
     settings: xbmcaddon.Addon, user_name: str, user_password: str
 ) -> None:
@@ -748,6 +795,15 @@ class DownloadUtils:
         user_name = urllib.parse.quote(user_name)
         pwd_text = urllib.parse.quote(user_details.get("password", ""))
 
+        # v1.14 : garde anti-verrouillage — après des échecs consécutifs
+        # avec le même mot de passe, on ne martèle plus le serveur
+        if _garde_auth_bloque(user_details.get("password", "")):
+            log.debug(
+                "Garde auth : échecs consécutifs avec ce mot de passe, "
+                "tentative annulée sans requête réseau"
+            )
+            return ""
+
         message_data = "username=" + user_name + "&pw=" + pwd_text
 
         resp = self.download_url(
@@ -772,6 +828,7 @@ class DownloadUtils:
             pass
 
         if access_token is not None:
+            _garde_auth_succes()
             log.debug("User Authenticated: {0}", _masque_token(access_token))
             log.debug("User Id: {0}", userid)
             window.set_property("AccessToken", access_token)
@@ -1029,8 +1086,10 @@ class DownloadUtils:
                     log.debug("HTTP 304 : reponse servie depuis le cache HTTP (ETag)")
 
                 elif int(data.status) >= 400:
-                    if int(data.status) == 401:
-                        # remove any saved password
+                    if int(data.status) == 401 and "AuthenticateByName" in url:
+                        # v1.14 : la purge ne s'applique qu'à un échec de
+                        # login ; un 401 sur une autre requête ne touche
+                        # plus aux identifiants stockés
                         m = hashlib.md5()
                         m.update(username.encode("utf-8"))
                         hashed_username = m.hexdigest()
@@ -1039,11 +1098,27 @@ class DownloadUtils:
                             hashed_username,
                         )
                         settings.setSetting("saved_user_password_" + hashed_username, "")
-                        # purge complète du mot de passe (settings et HomeWindow)
                         if settings.getSetting("save_user_to_settings") == "true":
                             settings.setSetting("password", "")
                         else:
                             HomeWindow().set_property("password", "")
+                        _garde_auth_echec(user_details.get("password", ""))
+                    elif int(data.status) == 401:
+                        # v1.14 : 401 sur une requête normale = jeton
+                        # invalide, on le vide pour forcer une re-auth
+                        HomeWindow().set_property("AccessToken", "")
+                        log.error(
+                            "HTTP response error 401 on request, clearing saved AccessToken"
+                        )
+                    elif int(data.status) == 403 and "AuthenticateByName" in url:
+                        # v1.14 : compte verrouillé côté serveur (échecs
+                        # répétés) : on gèle les tentatives, sans purger
+                        # le mot de passe (il peut être correct, le verrou
+                        # l'ignore)
+                        _garde_auth_echec(user_details.get("password", ""))
+                        log.error(
+                            "HTTP response 403 on login: compte verrouillé par le serveur, tentatives gelées"
+                        )
 
                     log.error("HTTP response error: {0} {1}", data.status, data.reason)
                     # v1.14 v5 : les réponses HTTP d'erreur (4xx/5xx, ex. le 400
