@@ -1186,3 +1186,11 @@ msgstr "缓存时长（小时）"
 msgctxt "#30514"
 msgid "How long list caches are kept in the local SQLite database. 0 disables the cache."
 msgstr "列表缓存在本地 SQLite 数据库中的保留时长。0 表示禁用缓存。"
+
+msgctxt "#30515"
+msgid "WebSocket heartbeat interval (seconds)"
+msgstr "WebSocket 心跳间隔（秒）"
+
+msgctxt "#30516"
+msgid "Interval between WebSocket heartbeat pings. A lower value detects a dead connection faster but sends more pings."
+msgstr "WebSocket 心跳 ping 之间的间隔。值越低，检测断线越快，但发送的 ping 更多。"

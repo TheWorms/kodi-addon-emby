@@ -918,6 +918,18 @@
 						<popup>false</popup>
 					</control>
 				</setting>
+				<setting id="websocket_ping_interval" type="integer" label="30515" help="30516">
+					<level>0</level>
+					<default>20</default>
+					<constraints>
+						<minimum>5</minimum>
+						<step>5</step>
+						<maximum>120</maximum>
+					</constraints>
+					<control type="slider" format="integer">
+						<popup>false</popup>
+					</control>
+				</setting>
 				<setting id="use_cache" type="boolean" label="30345" help="">
 				<level>0</level>
 				<default>true</default>

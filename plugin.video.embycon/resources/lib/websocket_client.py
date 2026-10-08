@@ -5,8 +5,10 @@ from __future__ import annotations
 
 import json
 import threading
+import time
 
 import xbmc
+import xbmcaddon
 import xbmcgui
 
 from .functions import play_action
@@ -271,16 +273,36 @@ class WebSocketClient(threading.Thread):
         )
         log.debug("Starting WebSocketClient")
 
+        # v1.14 phase 2c : heartbeat reglable via le reglage websocket_ping_interval
+        # (defaut 20 s, plancher 5 s) au lieu des 10 s codes en dur
+        try:
+            ping_interval = int(xbmcaddon.Addon().getSetting("websocket_ping_interval"))
+        except (TypeError, ValueError):
+            ping_interval = 20
+        if ping_interval < 5:
+            ping_interval = 5
+
+        # v1.14 phase 2c : backoff exponentiel 1 -> 2 -> 4 s ... plafonne a 60 s,
+        # remis a 1 apres 5 minutes de connexion stable
+        delai_reconnexion = 1
         while not self.monitor.abortRequested():
-            self._client.run_forever(ping_interval=10)
+            debut_connexion = time.monotonic()
+            self._client.run_forever(ping_interval=ping_interval)
 
             if self._stop_websocket:
                 break
 
-            if self.monitor.waitForAbort(20):
+            # connexion tenue au moins 5 min : plus courte attente a la reprise
+            if time.monotonic() - debut_connexion >= 300:
+                delai_reconnexion = 1
+                log.debug("Connexion websocket stable, delai de reconnexion remis a 1s")
+
+            log.debug("Reconnexion websocket dans {0}s", delai_reconnexion)
+            if self.monitor.waitForAbort(delai_reconnexion):
                 # Abort was requested, exit
                 break
 
+            delai_reconnexion = min(delai_reconnexion * 2, 60)
             log.debug("Reconnecting WebSocket")
 
         log.debug("WebSocketClient Stopped")

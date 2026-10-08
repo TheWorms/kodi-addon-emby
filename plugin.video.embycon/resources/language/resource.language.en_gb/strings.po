@@ -1359,3 +1359,11 @@ msgstr "Cache duration (hours)"
 msgctxt "#30514"
 msgid "How long list caches are kept in the local SQLite database. 0 disables the cache."
 msgstr "How long list caches are kept in the local SQLite database. 0 disables the cache."
+
+msgctxt "#30515"
+msgid "WebSocket heartbeat interval (seconds)"
+msgstr "WebSocket heartbeat interval (seconds)"
+
+msgctxt "#30516"
+msgid "Interval between WebSocket heartbeat pings. A lower value detects a dead connection faster but sends more pings."
+msgstr "Interval between WebSocket heartbeat pings. A lower value detects a dead connection faster but sends more pings."
