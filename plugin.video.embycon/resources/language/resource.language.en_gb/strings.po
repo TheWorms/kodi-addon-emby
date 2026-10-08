@@ -1351,3 +1351,11 @@ msgstr "Number of attempts before showing an error message (1 = no retry). A sho
 msgctxt "#30512"
 msgid "Connection failed, retrying (%s/%s)"
 msgstr "Connection failed, retrying (%s/%s)"
+
+msgctxt "#30513"
+msgid "Cache duration (hours)"
+msgstr "Cache duration (hours)"
+
+msgctxt "#30514"
+msgid "How long list caches are kept in the local SQLite database. 0 disables the cache."
+msgstr "How long list caches are kept in the local SQLite database. 0 disables the cache."

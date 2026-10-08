@@ -9,6 +9,7 @@ import xbmc
 import xbmcaddon
 import xbmcgui
 
+from resources.lib import cache_db
 from resources.lib.downloadutils import DownloadUtils
 from resources.lib.simple_logging import SimpleLogging
 from resources.lib.play_utils import (
@@ -80,6 +81,9 @@ if kodi_monitor.abortRequested():
 log.debug("Service starting up")
 
 check_server()
+
+# v1.14 : purge des entrees de cache SQLite expirees au demarrage du service
+cache_db.purge_expire()
 
 download_utils = DownloadUtils()
 
@@ -277,6 +281,9 @@ if chapter_dialog_monitor:
 
 # stop the WebSocket Client
 websocket_client.stop_client()
+
+# v1.14 : purge des entrees de cache SQLite expirees a l'arret du service
+cache_db.purge_expire()
 
 # clear user and token when loggin off
 home_window.clear_property("userid")

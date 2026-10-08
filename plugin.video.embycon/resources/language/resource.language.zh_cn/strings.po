@@ -1178,3 +1178,11 @@ msgstr "显示错误消息前的尝试次数（1 = 不重试）。每次尝试�
 msgctxt "#30512"
 msgid "Connection failed, retrying (%s/%s)"
 msgstr "连接失败，正在重试（%s/%s）"
+
+msgctxt "#30513"
+msgid "Cache duration (hours)"
+msgstr "缓存时长（小时）"
+
+msgctxt "#30514"
+msgid "How long list caches are kept in the local SQLite database. 0 disables the cache."
+msgstr "列表缓存在本地 SQLite 数据库中的保留时长。0 表示禁用缓存。"

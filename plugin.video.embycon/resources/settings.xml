@@ -923,6 +923,18 @@
 				<default>true</default>
 				<control type="toggle"/>
 				</setting>
+				<setting id="cache_duration" type="integer" label="30513" help="30514">
+					<level>0</level>
+					<default>24</default>
+					<constraints>
+						<minimum>0</minimum>
+						<step>1</step>
+						<maximum>168</maximum>
+					</constraints>
+					<control type="slider" format="integer">
+						<popup>false</popup>
+					</control>
+				</setting>
 				<setting id="showLoadProgress" type="boolean" label="30120" help="">
 				<level>0</level>
 				<default>false</default>

@@ -1365,3 +1365,11 @@ msgstr "Nombre de tentatives avant l'affichage d'un message d'erreur (1 = aucune
 msgctxt "#30512"
 msgid "Connection failed, retrying (%s/%s)"
 msgstr "Connexion échouée, nouvelle tentative (%s/%s)"
+
+msgctxt "#30513"
+msgid "Cache duration (hours)"
+msgstr "Durée du cache (heures)"
+
+msgctxt "#30514"
+msgid "How long list caches are kept in the local SQLite database. 0 disables the cache."
+msgstr "Durée de conservation des caches de listes dans la base SQLite locale. 0 désactive le cache."

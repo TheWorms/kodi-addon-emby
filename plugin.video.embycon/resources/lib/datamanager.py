@@ -8,16 +8,15 @@ from collections import defaultdict
 import threading
 import hashlib
 import os
-import pickle
 import time
 
+from . import cache_db
 from .downloadutils import DownloadUtils
 from .simple_logging import SimpleLogging
 from .item_functions import GuiOptions, extract_item_info
 from .kodi_utils import HomeWindow
 from .translation import string_load
 from .tracking import timer
-from .filelock import FileLock
 from .data_models import (
     DataSet,
     Item,
@@ -79,18 +78,8 @@ def process_json_data(json_raw_data: str) -> DataSet:
     new_dataset = DataSet(Items=items)
 
     log.info("process_json_data : {0}", new_dataset)
-
-    m = hashlib.md5()
-    m.update(json_raw_data.encode("utf-8"))
-    file_name = m.hexdigest()
-    file_name = os.path.join("C:\\Temp\\test_pickle_files", file_name + ".pickle")
-    with open(file_name, "wb") as handle:
-        pickle.dump(new_dataset, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-    # loaded_data = None
-    # with open(file_name, 'rb') as handle:
-    #    loaded_data = pickle.load(handle)
-    # log.info("process_json_data reloaded : {0}", loaded_data)
+    # v1.14 : bloc de debug upstream supprime ( il ecrivait un pickle dans
+    # "C:\Temp\test_pickle_files" a chaque chargement de dataset )
 
     return new_dataset
 
@@ -99,7 +88,7 @@ def process_json_data(json_raw_data: str) -> DataSet:
 class GetItemsResult:
     """Result from get_items containing cache file path, items, total count, and cache thread."""
 
-    cache_file: str
+    cache_id: str
     item_list: List[Any]
     total_records: int
     cache_thread: CacheManagerThread | None
@@ -113,9 +102,20 @@ class CacheItem:
         self.date_last_used: float | None = None
         self.last_action: str | None = None
         self.items_url: str | None = None
-        self.file_path: str
+        self.id_cache: str | None = None
         self.user_id: str | None = None
         self.total_records: int | None = None
+
+
+def _duree_cache_secondes() -> int:
+    """v1.14 : duree de vie du cache de listes ( reglage cache_duration, heures )."""
+    try:
+        heures = int(xbmcaddon.Addon().getSetting("cache_duration"))
+    except (TypeError, ValueError):
+        heures = 24
+    if heures <= 0:
+        return 0
+    return heures * 3600
 
 
 class DataManager:
@@ -142,18 +142,19 @@ class DataManager:
         json_data = du.download_url(url)
         return self.load_json_data(json_data)
 
-    def get_cache_filename(self, url: str) -> str:
+    def get_cache_id(self, url: str) -> str:
+        """v1.14 : identifiant stable du cache pour cette URL ( base SQLite )."""
         download_utils = DownloadUtils()
-        addon_dir = xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo("profile"))
         user_id = download_utils.get_user_id()
         server = download_utils.get_server()
         m = hashlib.md5()
         line = user_id + "|" + str(server) + "|" + url
         m.update(line.encode("utf-8"))
-        url_hash = m.hexdigest()
-        cache_path = os.path.join(addon_dir, "cache")
-        xbmcvfs.mkdirs(cache_path)
-        return os.path.join(cache_path, "cache_" + url_hash + ".pickle")
+        return m.hexdigest()
+
+    def supprime_cache(self, url: str) -> None:
+        """v1.14 : supprime l'entree de cache d'une URL ( base SQLite )."""
+        cache_db.supprime_item(self.get_cache_id(url))
 
     @timer
     def get_items(
@@ -165,7 +166,7 @@ class DataManager:
 
         download_utils = DownloadUtils()
         user_id = download_utils.get_user_id()
-        cache_file = self.get_cache_filename(url)
+        id_cache = self.get_cache_id(url)
 
         item_list = None
         total_records = 0
@@ -173,14 +174,17 @@ class DataManager:
         cache_thread = CacheManagerThread()
         cache_thread.gui_options = gui_options
 
-        home_window.set_property(cache_file, "true")
+        home_window.set_property("cache_" + id_cache, "true")
+
+        # v1.14 : cache desactive ( cache_duration = 0 ) -> toujours du neuf
+        if _duree_cache_secondes() <= 0:
+            use_cache = False
 
         clear_cache = home_window.get_property("skip_cache_for_" + url)
-        if clear_cache and os.path.isfile(cache_file):
+        if clear_cache:
             log.debug("Clearing cache data and loading new data")
             home_window.clear_property("skip_cache_for_" + url)
-            with FileLock(cache_file, timeout=5):
-                xbmcvfs.delete(cache_file)
+            cache_db.supprime_item(id_cache)
 
         # EmbyCon FR: fenetre de fraicheur globale apres un marquage (vu/non-vu/
         # favori/suppression). Pendant quelques secondes, on ignore le cache pour
@@ -196,24 +200,17 @@ class DataManager:
                 within_window = False
             if within_window:
                 use_cache = False
-                if os.path.isfile(cache_file):
-                    with FileLock(cache_file, timeout=5):
-                        xbmcvfs.delete(cache_file)
+                cache_db.supprime_item(id_cache)
 
         # try to load the list item data from the cache
-        if os.path.isfile(cache_file) and use_cache:
-            log.debug("Loading url data from cached pickle data")
+        if use_cache:
+            log.debug("Loading url data from SQLite cache")
 
-            with FileLock(cache_file, timeout=5):
-                with open(cache_file, "rb") as handle:
-                    try:
-                        cache_item = pickle.load(handle)
-                        cache_thread.cached_item = cache_item
-                        item_list = cache_item.item_list
-                        total_records = cache_item.total_records
-                    except Exception as err:
-                        log.error("Pickle Data Load Failed : {0}", err)
-                        item_list = None
+            cache_item = cache_db.charge_item(id_cache)
+            if cache_item is not None:
+                cache_thread.cached_item = cache_item
+                item_list = cache_item.item_list
+                total_records = cache_item.total_records
 
         # we need to load the list item data form the server
         if item_list is None or len(item_list) == 0:
@@ -248,7 +245,7 @@ class DataManager:
 
             cache_item = CacheItem()
             cache_item.item_list = item_list
-            cache_item.file_path = cache_file
+            cache_item.id_cache = id_cache
             cache_item.items_url = url
             cache_item.user_id = user_id
             cache_item.last_action = "fresh_data"
@@ -263,7 +260,7 @@ class DataManager:
             cache_thread = None
 
         return GetItemsResult(
-            cache_file=cache_file,
+            cache_id=id_cache,
             item_list=item_list,
             total_records=total_records,
             cache_thread=cache_thread,
@@ -327,11 +324,9 @@ class CacheManagerThread(threading.Thread):
             self.cached_item.date_saved = time.time()
             self.cached_item.date_last_used = time.time()
 
-            with FileLock(self.cached_item.file_path, timeout=5):
-                with open(str(self.cached_item.file_path), "wb") as handle:
-                    pickle.dump(
-                        self.cached_item, handle, protocol=pickle.HIGHEST_PROTOCOL
-                    )
+            cache_db.sauve_item(
+                self.cached_item.id_cache, self.cached_item, _duree_cache_secondes()
+            )
 
         else:
             log.debug("CacheManagerThread : Reloading to recheck data hashes")
@@ -385,11 +380,9 @@ class CacheManagerThread(threading.Thread):
                 self.cached_item.date_last_used = time.time()
                 self.cached_item.total_records = total_records
 
-                with FileLock(self.cached_item.file_path, timeout=5):
-                    with open(str(self.cached_item.file_path), "wb") as handle:
-                        pickle.dump(
-                            self.cached_item, handle, protocol=pickle.HIGHEST_PROTOCOL
-                        )
+                cache_db.sauve_item(
+                    self.cached_item.id_cache, self.cached_item, _duree_cache_secondes()
+                )
 
                 log.debug("CacheManagerThread : Sending container refresh")
                 time.sleep(1)
@@ -403,30 +396,32 @@ class CacheManagerThread(threading.Thread):
 
             else:
                 self.cached_item.date_last_used = time.time()
-                with FileLock(self.cached_item.file_path, timeout=5):
-                    with open(str(self.cached_item.file_path), "wb") as handle:
-                        pickle.dump(
-                            self.cached_item, handle, protocol=pickle.HIGHEST_PROTOCOL
-                        )
+                cache_db.sauve_item(
+                    self.cached_item.id_cache, self.cached_item, _duree_cache_secondes()
+                )
                 log.debug("CacheManagerThread : Updating last used date for cache data")
 
         log.debug("CacheManagerThread : Exited")
 
 
 def _delete_content_cache_files(delete_locks: bool = False) -> int:
-    """Supprime les caches pickle EmbyCon. Retourne le nombre de fichiers effaces."""
+    """Vide le cache de listes. Retourne le nombre d'entrees supprimees.
+
+    v1.14 : les entrees vivent dans la base SQLite ( cache.db ) ; on ramasse
+    aussi les anciens fichiers pickle/lock du cache fichier ( < v1.14 ).
+    """
+    del_count = cache_db.purge_tout()
+
     addon_dir = xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo("profile"))
     cache_path = os.path.join(addon_dir, "cache")
-    if not xbmcvfs.exists(cache_path):
-        return 0
-    _dirs, files = xbmcvfs.listdir(cache_path)
-    del_count = 0
-    for filename in files:
-        if delete_locks and filename.endswith(".lock"):
-            xbmcvfs.delete(os.path.join(cache_path, filename))
-        if filename.startswith("cache_") and filename.endswith(".pickle"):
-            xbmcvfs.delete(os.path.join(cache_path, filename))
-            del_count += 1
+    if xbmcvfs.exists(cache_path):
+        _dirs, files = xbmcvfs.listdir(cache_path)
+        for filename in files:
+            if (delete_locks and filename.endswith(".lock")) or (
+                filename.startswith("cache_") and filename.endswith(".pickle")
+            ):
+                xbmcvfs.delete(os.path.join(cache_path, filename))
+                del_count += 1
     return del_count
 
 
@@ -453,52 +448,17 @@ def invalidate_content_cache() -> None:
 
 
 def clear_old_cache_data() -> None:
+    """v1.14 : purge des entrees expirees de la base + residus de l'ancien cache."""
     log.debug("clear_old_cache_data() : called")
-
-    addon_dir = xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo("profile"))
-    cache_path = os.path.join(addon_dir, "cache")
-    _dirs, files = xbmcvfs.listdir(cache_path)
-
-    del_count = 0
-    for filename in files:
-        if filename.startswith("cache_") and filename.endswith(".pickle"):
-            log.debug("clear_old_cache_data() : Checking CacheFile : {0}", filename)
-
-            cache_item = None
-            for _x in range(0, 5):
-                try:
-                    data_file = os.path.join(cache_path, filename)
-                    with FileLock(data_file, timeout=5):
-                        with open(data_file, "rb") as handle:
-                            cache_item = pickle.load(handle)
-                    break
-                except Exception as error:
-                    log.debug("clear_old_cache_data() : Pickle load error : {0}", error)
-                    cache_item = None
-                    xbmc.sleep(1000)
-
-            if cache_item is not None:
-                item_last_used = -1
-                if cache_item.date_last_used is not None:
-                    item_last_used = time.time() - cache_item.date_last_used
-
-                log.debug(
-                    "clear_old_cache_data() : Cache item last used : {0} sec ago",
-                    item_last_used,
-                )
-                if item_last_used == -1 or item_last_used > (3600 * 24 * 7):
-                    log.debug(
-                        "clear_old_cache_data() : Deleting cache item age : {0}",
-                        item_last_used,
-                    )
-                    data_file = os.path.join(cache_path, filename)
-                    with FileLock(data_file, timeout=5):
-                        xbmcvfs.delete(data_file)
-                    del_count += 1
-            else:
-                log.debug("clear_old_cache_data() : Deleting unloadable cache item")
-                data_file = os.path.join(cache_path, filename)
-                with FileLock(data_file, timeout=5):
-                    xbmcvfs.delete(data_file)
-
-    log.debug("clear_old_cache_data() : Cache items deleted : {0}", del_count)
+    purge = cache_db.purge_expire()
+    try:
+        addon_dir = xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo("profile"))
+        cache_path = os.path.join(addon_dir, "cache")
+        if xbmcvfs.exists(cache_path):
+            _dirs, files = xbmcvfs.listdir(cache_path)
+            for filename in files:
+                if filename.startswith("cache_") and filename.endswith(".pickle"):
+                    xbmcvfs.delete(os.path.join(cache_path, filename))
+    except Exception as e:
+        log.error("clear_old_cache_data() ancien cache : {0}", e)
+    log.debug("clear_old_cache_data() : entrees expirees supprimees : {0}", purge)

@@ -4,11 +4,9 @@ from __future__ import annotations
 import xbmcaddon
 import xbmcplugin
 import xbmcgui
-import xbmcvfs
 
 import urllib.parse
 import sys
-import os
 import re
 import base64
 from dataclasses import dataclass
@@ -31,7 +29,6 @@ from .item_functions import (
 )
 from .utils import send_event_notification
 from .tracking import timer
-from .filelock import FileLock
 
 log = SimpleLogging(__name__)
 
@@ -215,11 +212,8 @@ def get_content(url: str, params: dict[str, str]) -> int:
     except Exception as e:
         log.debug("There was an error processing the URL : {0}", e)
         data_manager = DataManager()
-        cache_file_path = data_manager.get_cache_filename(url)
-        if os.path.isfile(cache_file_path):
-            log.debug("Clearing cache data file of failed process_directory : {0}", url)
-            with FileLock(cache_file_path, timeout=5):
-                xbmcvfs.delete(cache_file_path)
+        log.debug("Clearing cache data of failed process_directory : {0}", url)
+        data_manager.supprime_cache(url)
         raise
 
     if result is None:
