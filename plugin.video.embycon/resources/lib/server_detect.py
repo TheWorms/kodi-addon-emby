@@ -587,42 +587,65 @@ def check_server(force: bool = False, change_user: bool = False) -> None:
                                 "saved_user_password_" + hashed_username, ""
                             )
 
+                    mdp_candidat = None
                     if saved_password:
+                        # v1.14 : verifier le mot de passe sauvegarde AVANT
+                        # de l'utiliser ; s'il est refuse on propose la saisie
                         log.debug(
-                            "Saving username and password: {0}", selected_user_name
+                            "Verifying stored password for user: {0}", hashed_username
                         )
-                        log.debug(
-                            "Using stored password for user: {0}", hashed_username
-                        )
-                        save_user_details(settings, selected_user_name, saved_password)
+                        if du.authenticate(selected_user_name, saved_password) != "":
+                            mdp_candidat = saved_password
 
-                    else:
+                    if mdp_candidat is None:
+                        afficher_mdp = xbmcgui.Dialog().yesno(
+                            string_load(30316),
+                            "Afficher le mot de passe pendant la saisie ?",
+                        )
                         kb = xbmc.Keyboard()
                         kb.setHeading(string_load(30006))
-                        kb.setHiddenInput(True)
+                        kb.setHiddenInput(not afficher_mdp)
                         kb.doModal()
                         if kb.isConfirmed():
+                            mdp_saisi = kb.getText()
                             log.debug(
-                                "Saving username and password: {0}", selected_user_name
+                                "Verifying entered password for user: {0}",
+                                selected_user_name,
                             )
-                            save_user_details(
-                                settings, selected_user_name, kb.getText()
-                            )
-
-                            # should we save the password
-                            if allow_password_saving:
-                                save_password = xbmcgui.Dialog().yesno(
-                                    string_load(30363), string_load(30364)
+                            if du.authenticate(selected_user_name, mdp_saisi) != "":
+                                mdp_candidat = mdp_saisi
+                            else:
+                                # v1.14 : rien n'est ecrase tant que le mot
+                                # de passe n'est pas valide par le serveur
+                                xbmcgui.Dialog().ok(
+                                    string_load(30316),
+                                    "Mot de passe refusé.\n"
+                                    "L'ancien mot de passe est conservé.",
                                 )
-                                if save_password:
-                                    log.debug(
-                                        "Saving password for fast user switching: {0}",
-                                        hashed_username,
-                                    )
-                                    settings.setSetting(
-                                        "saved_user_password_" + hashed_username,
-                                        kb.getText(),
-                                    )
+                                return
+                        else:
+                            return
+
+                    log.debug(
+                        "Saving username and verified password: {0}",
+                        selected_user_name,
+                    )
+                    save_user_details(settings, selected_user_name, mdp_candidat)
+
+                    # should we save the password
+                    if allow_password_saving:
+                        save_password = xbmcgui.Dialog().yesno(
+                            string_load(30363), string_load(30364)
+                        )
+                        if save_password:
+                            log.debug(
+                                "Saving password for fast user switching: {0}",
+                                hashed_username,
+                            )
+                            settings.setSetting(
+                                "saved_user_password_" + hashed_username,
+                                mdp_candidat,
+                            )
                 else:
                     log.debug(
                         "Saving username with no password: {0}", selected_user_name

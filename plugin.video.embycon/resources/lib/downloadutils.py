@@ -99,6 +99,11 @@ _garde_auth_lock = threading.Lock()
 _garde_auth_echecs = 0
 _garde_auth_mdp_refuse = None
 
+# v1.14 : mot de passe teste par l'authentification de verification en
+# cours (thread courant) ; le gestionnaire 401 compte l'echec sur LE mot
+# de passe teste et ne purge pas les identifiants stockes
+_probe_auth = threading.local()
+
 
 def _garde_auth_echec(mdp: str) -> None:
     """Enregistre un échec de login pour la garde anti-verrouillage."""
@@ -763,15 +768,21 @@ class DownloadUtils:
         return userid
 
     @timer
-    def authenticate(self) -> str:
+    def authenticate(
+        self, verif_username: str | None = None, verif_password: str | None = None
+    ) -> str:
         log.debug("authenticate called")
+        # v1.14 : verif = authentification de verification (saisie ou
+        # changement du mot de passe via l'addon) : on teste les
+        # identifiants fournis, sans toucher au jeton en cache
+        verif = verif_username is not None and verif_password is not None
         # import traceback
         # log.debug("StackTrace : \n{0}", ''.join(traceback.format_stack()))
 
         window = HomeWindow()
 
         token = window.get_property("AccessToken")
-        if token is not None and token != "":
+        if token is not None and token != "" and not verif:
             log.debug(
                 "EmbyCon DownloadUtils -> Returning saved AccessToken: {0}",
                 _masque_token(token),
@@ -786,18 +797,25 @@ class DownloadUtils:
 
         url = "{server}/emby/Users/AuthenticateByName?format=json"
 
-        user_details = load_user_details(settings)
-        user_name = user_details.get("username", "")
-        user_name = user_name.strip()
+        if verif:
+            # v1.14 : identifiants fournis pour verification (changement de
+            # mot de passe) : rien n'est lu ni ecrit dans les reglages
+            mdp_brut = verif_password
+            user_name = verif_username.strip()
+        else:
+            user_details = load_user_details(settings)
+            user_name = user_details.get("username", "")
+            user_name = user_name.strip()
+            mdp_brut = user_details.get("password", "")
         if user_name == "":
             return ""
 
         user_name = urllib.parse.quote(user_name)
-        pwd_text = urllib.parse.quote(user_details.get("password", ""))
+        pwd_text = urllib.parse.quote(mdp_brut)
 
         # v1.14 : garde anti-verrouillage — après des échecs consécutifs
         # avec le même mot de passe, on ne martèle plus le serveur
-        if _garde_auth_bloque(user_details.get("password", "")):
+        if _garde_auth_bloque(mdp_brut):
             log.debug(
                 "Garde auth : échecs consécutifs avec ce mot de passe, "
                 "tentative annulée sans requête réseau"
@@ -806,13 +824,19 @@ class DownloadUtils:
 
         message_data = "username=" + user_name + "&pw=" + pwd_text
 
-        resp = self.download_url(
-            url,
-            post_body=message_data,
-            method="POST",
-            suppress=True,
-            authenticate=False,
-        )
+        # v1.14 : signale au gestionnaire 401 que cette requete teste des
+        # identifiants non stockes : pas de purge de l'ancien mot de passe
+        _probe_auth.mdp = mdp_brut if verif else None
+        try:
+            resp = self.download_url(
+                url,
+                post_body=message_data,
+                method="POST",
+                suppress=True,
+                authenticate=False,
+            )
+        finally:
+            _probe_auth.mdp = None
         log.debug("AuthenticateByName: {0}", _masque_donnees_sensibles(resp))
 
         access_token = None
@@ -1090,19 +1114,42 @@ class DownloadUtils:
                         # v1.14 : la purge ne s'applique qu'à un échec de
                         # login ; un 401 sur une autre requête ne touche
                         # plus aux identifiants stockés
-                        m = hashlib.md5()
-                        m.update(username.encode("utf-8"))
-                        hashed_username = m.hexdigest()
-                        log.error(
-                            "HTTP response error 401 auth error, removing any saved passwords for user: {0}",
-                            hashed_username,
-                        )
-                        settings.setSetting("saved_user_password_" + hashed_username, "")
-                        if settings.getSetting("save_user_to_settings") == "true":
-                            settings.setSetting("password", "")
+                        mdp_teste = getattr(_probe_auth, "mdp", None)
+                        if mdp_teste is None:
+                            # echec avec les identifiants stockes : purge
+                            # (comportement historique)
+                            m = hashlib.md5()
+                            m.update(username.encode("utf-8"))
+                            hashed_username = m.hexdigest()
+                            log.error(
+                                "HTTP response error 401 auth error, removing any saved passwords for user: {0}",
+                                hashed_username,
+                            )
+                            settings.setSetting("saved_user_password_" + hashed_username, "")
+                            if settings.getSetting("save_user_to_settings") == "true":
+                                settings.setSetting("password", "")
+                            else:
+                                HomeWindow().set_property("password", "")
+                            _garde_auth_echec(user_details.get("password", ""))
                         else:
-                            HomeWindow().set_property("password", "")
-                        _garde_auth_echec(user_details.get("password", ""))
+                            # v1.14 : verification refusee : l'echec est
+                            # compte sur le mot de passe teste, l'ancien mot
+                            # de passe stocke est conserve (pas de purge)
+                            _garde_auth_echec(mdp_teste)
+                        # v1.14 : diagnostic typo — md5 du mot de passe
+                        # refuse, jamais le mot de passe lui-meme
+                        m_diag = hashlib.md5()
+                        m_diag.update(
+                            (
+                                mdp_teste
+                                if mdp_teste is not None
+                                else user_details.get("password", "")
+                            ).encode("utf-8")
+                        )
+                        log.error(
+                            "401 login refuse, md5 du mot de passe teste : {0}",
+                            m_diag.hexdigest(),
+                        )
                     elif int(data.status) == 401:
                         # v1.14 : 401 sur une requête normale = jeton
                         # invalide, on le vide pour forcer une re-auth
@@ -1115,7 +1162,11 @@ class DownloadUtils:
                         # répétés) : on gèle les tentatives, sans purger
                         # le mot de passe (il peut être correct, le verrou
                         # l'ignore)
-                        _garde_auth_echec(user_details.get("password", ""))
+                        _garde_auth_echec(
+                            mdp_teste
+                            if mdp_teste is not None
+                            else user_details.get("password", "")
+                        )
                         log.error(
                             "HTTP response 403 on login: compte verrouillé par le serveur, tentatives gelées"
                         )
