@@ -30,18 +30,20 @@ log = SimpleLogging(__name__)
 
 
 # v1.14 : anti-doublon des bulles d'erreur réseau — quand le serveur tombe,
-# plusieurs requêtes de la même page échouent en même temps et chacune
-# affichait sa bulle ; on limite à une bulle toutes les 5 secondes.
-_derniere_notif_reseau = 0.0
+# plusieurs requêtes de la même page échouent en même temps. Le throttle est
+# par message : la progression « Essai 1/3 », « 2/3 », « 3/3 » et l'erreur
+# finale restent visibles ; seuls les doublons du même message en moins de
+# 5 s sont supprimés.
+_dernieres_notifs_reseau: dict[str, float] = {}
 
 
 def notifier_erreur_reseau(titre: str, message: str) -> None:
-    """Affiche une bulle d'erreur réseau, au maximum une toutes les 5 s."""
-    global _derniere_notif_reseau
+    """Affiche une bulle d'erreur réseau — même message max toutes les 5 s."""
     maintenant = time.monotonic()
-    if maintenant - _derniere_notif_reseau < 5.0:
+    cle = titre + "|" + message
+    if maintenant - _dernieres_notifs_reseau.get(cle, 0.0) < 5.0:
         return
-    _derniere_notif_reseau = maintenant
+    _dernieres_notifs_reseau[cle] = maintenant
     xbmcgui.Dialog().notification(
         titre,
         message,
