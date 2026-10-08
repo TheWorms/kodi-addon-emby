@@ -16,14 +16,36 @@ import urllib.parse
 from base64 import b64encode
 from collections import defaultdict
 import threading
+import time
 
 from .kodi_utils import HomeWindow
 from .clientinfo import ClientInformation
 from .simple_logging import SimpleLogging
 from .translation import string_load
 from .tracking import timer
+from .hardware_profile import av1_transcodage_force
 
 log = SimpleLogging(__name__)
+
+
+# v1.14 : anti-doublon des bulles d'erreur réseau — quand le serveur tombe,
+# plusieurs requêtes de la même page échouent en même temps et chacune
+# affichait sa bulle ; on limite à une bulle toutes les 5 secondes.
+_derniere_notif_reseau = 0.0
+
+
+def notifier_erreur_reseau(titre: str, message: str) -> None:
+    """Affiche une bulle d'erreur réseau, au maximum une toutes les 5 s."""
+    global _derniere_notif_reseau
+    maintenant = time.monotonic()
+    if maintenant - _derniere_notif_reseau < 5.0:
+        return
+    _derniere_notif_reseau = maintenant
+    xbmcgui.Dialog().notification(
+        titre,
+        message,
+        icon="special://home/addons/plugin.video.embycon/icon.png",
+    )
 
 
 def save_user_details(
@@ -181,7 +203,12 @@ class DownloadUtils:
             filtered_codecs.append("msmpeg4v3")
         if addon_settings.getSetting("force_transcode_mpeg4") == "true":
             filtered_codecs.append("mpeg4")
-        if addon_settings.getSetting("force_transcode_av1") == "true":
+        # v1.14 : profil matériel — sur ODROID-N2+ le S922X ne décode pas
+        # l'AV1 matériellement, il faut demander son transcodage au serveur
+        if (
+            addon_settings.getSetting("force_transcode_av1") == "true"
+            or av1_transcodage_force()
+        ):
             filtered_codecs.append("av1")
 
         playback_bitrate = addon_settings.getSetting("max_stream_bitrate")
@@ -494,12 +521,15 @@ class DownloadUtils:
                 % (server, item_id, art_type, index, maxwidth, image_tag)
             )
         else:
-            artwork = "%s/emby/Items/%s/Images/%s/%s?Format=original&Tag=%s" % (
-                server,
-                item_id,
-                art_type,
-                index,
-                image_tag,
+            # v1.14 : largeur par défaut pour alléger les listes —
+            # 300 pour les vignettes, 1000 pour les fanarts/arrière-plans
+            if art_type == "Backdrop":
+                largeur_defaut = 1000
+            else:
+                largeur_defaut = 300
+            artwork = (
+                "%s/emby/Items/%s/Images/%s/%s?MaxWidth=%s&Tag=%s"
+                % (server, item_id, art_type, index, largeur_defaut, image_tag)
             )
 
         if self.use_https and not self.verify_cert:
@@ -830,134 +860,165 @@ class DownloadUtils:
         log.debug("After: {0}", url)
         conn = None
 
-        try:
-            url_bits = urlparse(url.strip())
-
-            protocol = url_bits.scheme
-            host_name = url_bits.hostname
-            port = url_bits.port
-            user_name = url_bits.username
-            user_password = url_bits.password
-            url_path = url_bits.path
-            url_puery = url_bits.query
-
-            if not host_name or host_name == "<none>":
-                return return_data
-
-            local_use_https = False
-            if protocol.lower() == "https":
-                local_use_https = True
-
-            server = "%s:%s" % (host_name, port)
-            url_path = url_path + "?" + url_puery
-
-            if local_use_https and self.verify_cert:
-                log.debug("Connection: HTTPS, Cert checked")
-                conn = http.client.HTTPSConnection(server, timeout=http_timeout)
-            elif local_use_https and not self.verify_cert:
-                log.debug("Connection: HTTPS, Cert NOT checked")
-                ssl_context = ssl.create_default_context()
-                ssl_context.check_hostname = False
-                ssl_context.verify_mode = ssl.CERT_NONE
-                conn = http.client.HTTPSConnection(
-                    server,
-                    timeout=http_timeout,
-                    context=ssl_context,
-                )
-            else:
-                log.debug("Connection: HTTP")
-                conn = http.client.HTTPConnection(server, timeout=http_timeout)
-
-            head = self.get_auth_header(authenticate)
-
-            if user_name and user_password:
-                # add basic auth headers
-                user_and_pass = b64encode(b"%s:%s" % (user_name, user_password)).decode(
-                    "ascii"
-                )
-                head["Authorization"] = "Basic %s" % user_and_pass
-
-            head["User-Agent"] = "EmbyCon-" + ClientInformation().get_version()
-            log.debug("HEADERS: {0}", head)
-
-            if post_body is not None:
-                if isinstance(post_body, dict):
-                    content_type = "application/json"
-                    post_body = json.dumps(post_body)
-                else:
-                    content_type = "application/x-www-form-urlencoded"
-
-                head["Content-Type"] = content_type
-                log.debug("Content-Type: {0}", content_type)
-
-                log.debug("POST DATA: {0}", post_body)
-                conn.request(method=method, url=url_path, body=post_body, headers=head)
-            else:
-                conn.request(method=method, url=url_path, headers=head)
-
-            data = conn.getresponse()
-            log.debug("HTTP response: {0} {1}", data.status, data.reason)
-            log.debug("GET URL HEADERS: {0}", data.getheaders())
-
-            if int(data.status) == 200:
-                ret_data: bytes = data.read()
-                content_type = data.getheader("content-encoding")
-                log.debug("Data Len Before: {0}", len(ret_data))
-                if content_type == "gzip":
-                    ret_data_io: BytesIO = BytesIO(ret_data)
-                    gzipper = gzip.GzipFile(fileobj=ret_data_io)
-                    return_data = gzipper.read()
-                else:
-                    return_data = ret_data
-                if headers is not None and isinstance(headers, dict):
-                    headers.update(data.getheaders())
-                log.debug("Data Len After: {0}", len(return_data))
-                log.debug("====== 200 returned =======")
-                log.debug("Content-Type: {0}", content_type)
-                log.debug("{0}", return_data)
-                log.debug("====== 200 finished ======")
-
-            elif int(data.status) >= 400:
-                if int(data.status) == 401:
-                    # remove any saved password
-                    m = hashlib.md5()
-                    m.update(username.encode("utf-8"))
-                    hashed_username = m.hexdigest()
-                    log.error(
-                        "HTTP response error 401 auth error, removing any saved passwords for user: {0}",
-                        hashed_username,
-                    )
-                    settings.setSetting("saved_user_password_" + hashed_username, "")
-                    # purge complète du mot de passe (settings et HomeWindow)
-                    if settings.getSetting("save_user_to_settings") == "true":
-                        settings.setSetting("password", "")
-                    else:
-                        HomeWindow().set_property("password", "")
-
-                log.error("HTTP response error: {0} {1}", data.status, data.reason)
-                if suppress is False:
-                    xbmcgui.Dialog().notification(
-                        string_load(30316),
-                        string_load(30200) % str(data.reason),
-                        icon="special://home/addons/plugin.video.embycon/icon.png",
-                    )
-
-        except Exception as msg:
-            log.error("Unable to connect to {0} : {1}", server, msg)
-            if suppress is False:
-                xbmcgui.Dialog().notification(
-                    string_load(30316),
-                    str(msg),
-                    icon="special://home/addons/plugin.video.embycon/icon.png",
-                )
-
-        finally:
+        # v1.14 : tentatives paramétrables — réglage "network_attempts"
+        # (défaut 3), backoff 1 s, 2 s, 4 s… plafonné à 10 s sur erreur réseau
+        nb_tentatives = int(settings.getSetting("network_attempts") or 3)
+        if nb_tentatives < 1:
+            nb_tentatives = 1
+        tentative = 0
+        while tentative < nb_tentatives:
+            tentative += 1
             try:
-                log.debug("Closing HTTP connection: {0}", conn)
-                if conn is not None:
-                    conn.close()
-            except Exception:
-                pass
+                url_bits = urlparse(url.strip())
+
+                protocol = url_bits.scheme
+                host_name = url_bits.hostname
+                port = url_bits.port
+                user_name = url_bits.username
+                user_password = url_bits.password
+                url_path = url_bits.path
+                url_puery = url_bits.query
+
+                if not host_name or host_name == "<none>":
+                    return return_data
+
+                local_use_https = False
+                if protocol.lower() == "https":
+                    local_use_https = True
+
+                server = "%s:%s" % (host_name, port)
+                url_path = url_path + "?" + url_puery
+
+                if local_use_https and self.verify_cert:
+                    log.debug("Connection: HTTPS, Cert checked")
+                    conn = http.client.HTTPSConnection(server, timeout=http_timeout)
+                elif local_use_https and not self.verify_cert:
+                    log.debug("Connection: HTTPS, Cert NOT checked")
+                    ssl_context = ssl.create_default_context()
+                    ssl_context.check_hostname = False
+                    ssl_context.verify_mode = ssl.CERT_NONE
+                    conn = http.client.HTTPSConnection(
+                        server,
+                        timeout=http_timeout,
+                        context=ssl_context,
+                    )
+                else:
+                    log.debug("Connection: HTTP")
+                    conn = http.client.HTTPConnection(server, timeout=http_timeout)
+
+                head = self.get_auth_header(authenticate)
+
+                if user_name and user_password:
+                    # add basic auth headers
+                    user_and_pass = b64encode(b"%s:%s" % (user_name, user_password)).decode(
+                        "ascii"
+                    )
+                    head["Authorization"] = "Basic %s" % user_and_pass
+
+                head["User-Agent"] = "EmbyCon-" + ClientInformation().get_version()
+                log.debug("HEADERS: {0}", head)
+
+                if post_body is not None:
+                    if isinstance(post_body, dict):
+                        content_type = "application/json"
+                        post_body = json.dumps(post_body)
+                    else:
+                        content_type = "application/x-www-form-urlencoded"
+
+                    head["Content-Type"] = content_type
+                    log.debug("Content-Type: {0}", content_type)
+
+                    log.debug("POST DATA: {0}", post_body)
+                    conn.request(method=method, url=url_path, body=post_body, headers=head)
+                else:
+                    conn.request(method=method, url=url_path, headers=head)
+
+                data = conn.getresponse()
+                log.debug("HTTP response: {0} {1}", data.status, data.reason)
+                log.debug("GET URL HEADERS: {0}", data.getheaders())
+
+                if int(data.status) == 200:
+                    ret_data: bytes = data.read()
+                    content_type = data.getheader("content-encoding")
+                    log.debug("Data Len Before: {0}", len(ret_data))
+                    if content_type == "gzip":
+                        ret_data_io: BytesIO = BytesIO(ret_data)
+                        gzipper = gzip.GzipFile(fileobj=ret_data_io)
+                        return_data = gzipper.read()
+                    else:
+                        return_data = ret_data
+                    if headers is not None and isinstance(headers, dict):
+                        headers.update(data.getheaders())
+                    log.debug("Data Len After: {0}", len(return_data))
+                    log.debug("====== 200 returned =======")
+                    log.debug("Content-Type: {0}", content_type)
+                    log.debug("{0}", return_data)
+                    log.debug("====== 200 finished ======")
+
+                elif int(data.status) >= 400:
+                    if int(data.status) == 401:
+                        # remove any saved password
+                        m = hashlib.md5()
+                        m.update(username.encode("utf-8"))
+                        hashed_username = m.hexdigest()
+                        log.error(
+                            "HTTP response error 401 auth error, removing any saved passwords for user: {0}",
+                            hashed_username,
+                        )
+                        settings.setSetting("saved_user_password_" + hashed_username, "")
+                        # purge complète du mot de passe (settings et HomeWindow)
+                        if settings.getSetting("save_user_to_settings") == "true":
+                            settings.setSetting("password", "")
+                        else:
+                            HomeWindow().set_property("password", "")
+
+                    log.error("HTTP response error: {0} {1}", data.status, data.reason)
+                    # v1.14 v5 : les réponses HTTP d'erreur (4xx/5xx, ex. le 400
+                    # renvoyé par le proxy quand le serveur Emby est coupé) passent
+                    # par le même throttle anti-doublon que les erreurs réseau
+                    if suppress is False:
+                        notifier_erreur_reseau(
+                            string_load(30316),
+                            string_load(30200) % str(data.reason),
+                        )
+                if int(data.status) in (502, 503, 504) and tentative < nb_tentatives:
+                    delai = min(2 ** (tentative - 1), 10)
+                    log.debug("Erreur {0}, nouvelle tentative dans {1}s", data.status, delai)
+                    time.sleep(delai)
+                    continue
+                break
+            except (OSError, http.client.HTTPException) as msg:
+                log.error(
+                    "Tentative {0}/{1} : connexion à {2} échouée : {3}",
+                    tentative,
+                    nb_tentatives,
+                    server,
+                    msg,
+                )
+                if tentative >= nb_tentatives:
+                    if suppress is False:
+                        notifier_erreur_reseau(string_load(30316), str(msg))
+                else:
+                    # v1.14 : bulle visible à chaque relance (pas seulement à la fin)
+                    if suppress is False:
+                        notifier_erreur_reseau(
+                            string_load(30316),
+                            string_load(30512) % (tentative, nb_tentatives),
+                        )
+                    time.sleep(min(2 ** (tentative - 1), 10))
+            except Exception as msg:
+                log.error("Unable to connect to {0} : {1}", server, msg)
+                # v1.14 v5 : exception imprévue — même throttle que le reste
+                if suppress is False:
+                    notifier_erreur_reseau(string_load(30316), str(msg))
+            finally:
+                try:
+                    log.debug("Closing HTTP connection: {0}", conn)
+                    if conn is not None:
+                        conn.close()
+                except Exception:
+                    pass
+
 
         if return_data is not None and isinstance(return_data, bytes):
             return return_data.decode("utf-8")

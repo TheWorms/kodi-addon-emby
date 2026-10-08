@@ -154,6 +154,20 @@
 				<default>false</default>
 				<control type="toggle"/>
 				</setting>
+				<setting id="hardware_profile" type="integer" label="30505" help="30509">
+					<level>0</level>
+					<default>0</default>
+					<constraints>
+						<options>
+							<option label="30506">0</option>
+							<option label="30507">1</option>
+							<option label="30508">2</option>
+						</options>
+					</constraints>
+					<control type="list" format="string">
+						<heading>30505</heading>
+					</control>
+					</setting>
 				<setting id="force_transcode_h265" type="boolean" label="30236" help="">
 				<level>0</level>
 				<default>false</default>
@@ -891,6 +905,18 @@
 				<control type="slider" format="integer">
 				<popup>false</popup>
 				</control>
+				</setting>
+				<setting id="network_attempts" type="integer" label="30510" help="30511">
+					<level>0</level>
+					<default>3</default>
+					<constraints>
+						<minimum>1</minimum>
+						<step>1</step>
+						<maximum>10</maximum>
+					</constraints>
+					<control type="slider" format="integer">
+						<popup>false</popup>
+					</control>
 				</setting>
 				<setting id="use_cache" type="boolean" label="30345" help="">
 				<level>0</level>

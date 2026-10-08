@@ -1319,3 +1319,35 @@ msgstr ""
 msgctxt "#30504"
 msgid "Credits fallback: offer skip X s before the end (0 = off)"
 msgstr ""
+
+msgctxt "#30505"
+msgid "Hardware playback profile"
+msgstr "Hardware playback profile"
+
+msgctxt "#30506"
+msgid "Auto"
+msgstr "Auto"
+
+msgctxt "#30507"
+msgid "ODROID-N2+ (AV1 transcoded)"
+msgstr "ODROID-N2+ (AV1 transcoded)"
+
+msgctxt "#30508"
+msgid "Manual (advanced settings)"
+msgstr "Manual (advanced settings)"
+
+msgctxt "#30509"
+msgid "Decides which codecs are direct-played or transcoded. On ODROID-N2+ (no AV1 hardware decoding), AV1 is transcoded."
+msgstr "Decides which codecs are direct-played or transcoded. On ODROID-N2+ (no AV1 hardware decoding), AV1 is transcoded."
+
+msgctxt "#30510"
+msgid "Connection retry attempts"
+msgstr "Connection retry attempts"
+
+msgctxt "#30511"
+msgid "Number of attempts before showing an error message (1 = no retry). A short pause occurs between attempts."
+msgstr "Number of attempts before showing an error message (1 = no retry). A short pause occurs between attempts."
+
+msgctxt "#30512"
+msgid "Connection failed, retrying (%s/%s)"
+msgstr "Connection failed, retrying (%s/%s)"

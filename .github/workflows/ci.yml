@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  qualite:
+    name: Ruff + tests unitaires
+    runs-on: ubuntu-latest
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Configurer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Installer les outils
+        run: pip install ruff pytest
+
+      - name: Ruff (lint)
+        run: ruff check plugin.video.embycon
+
+      - name: Tests unitaires
+        run: pytest tests -v
+
+  # pyright : à activer une fois kodistubs validé contre pyrightconfig.json
+  # (brief v1.14, tâche #22) — ne pas activer en obligatoire avant cela.

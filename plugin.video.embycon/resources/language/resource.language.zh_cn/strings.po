@@ -1146,3 +1146,35 @@ msgstr "确认"
 msgctxt "#30458"
 msgid "Are you sure you want to hide this item?"
 msgstr "您确定要隐藏此项目吗？"
+
+msgctxt "#30505"
+msgid "Hardware playback profile"
+msgstr "硬件播放配置"
+
+msgctxt "#30506"
+msgid "Auto"
+msgstr "自动"
+
+msgctxt "#30507"
+msgid "ODROID-N2+ (AV1 transcoded)"
+msgstr "ODROID-N2+（AV1 转码）"
+
+msgctxt "#30508"
+msgid "Manual (advanced settings)"
+msgstr "手动（高级设置）"
+
+msgctxt "#30509"
+msgid "Decides which codecs are direct-played or transcoded. On ODROID-N2+ (no AV1 hardware decoding), AV1 is transcoded."
+msgstr "决定哪些编解码器直接播放或转码。在 ODROID-N2+（无 AV1 硬件解码）上，AV1 将被转码。"
+
+msgctxt "#30510"
+msgid "Connection retry attempts"
+msgstr "连接重试次数"
+
+msgctxt "#30511"
+msgid "Number of attempts before showing an error message (1 = no retry). A short pause occurs between attempts."
+msgstr "显示错误消息前的尝试次数（1 = 不重试）。每次尝试之间有短暂停顿。"
+
+msgctxt "#30512"
+msgid "Connection failed, retrying (%s/%s)"
+msgstr "连接失败，正在重试（%s/%s）"

@@ -1078,3 +1078,35 @@ msgstr "Reproducir siguiente"
 msgctxt "#30448"
 msgid "Force transcode av1"
 msgstr "Forzar transcodificación av1"
+
+msgctxt "#30505"
+msgid "Hardware playback profile"
+msgstr "Perfil de reproducción del hardware"
+
+msgctxt "#30506"
+msgid "Auto"
+msgstr "Auto"
+
+msgctxt "#30507"
+msgid "ODROID-N2+ (AV1 transcoded)"
+msgstr "ODROID-N2+ (AV1 transcodificado)"
+
+msgctxt "#30508"
+msgid "Manual (advanced settings)"
+msgstr "Manual (ajustes avanzados)"
+
+msgctxt "#30509"
+msgid "Decides which codecs are direct-played or transcoded. On ODROID-N2+ (no AV1 hardware decoding), AV1 is transcoded."
+msgstr "Determina qué códecs se reproducen directamente o se transcodifican. En ODROID-N2+ (sin decodificación AV1 por hardware), AV1 se transcodifica."
+
+msgctxt "#30510"
+msgid "Connection retry attempts"
+msgstr "Intentos de conexión"
+
+msgctxt "#30511"
+msgid "Number of attempts before showing an error message (1 = no retry). A short pause occurs between attempts."
+msgstr "Número de intentos antes de mostrar un mensaje de error (1 = sin reintentos). Hay una breve pausa entre intentos."
+
+msgctxt "#30512"
+msgid "Connection failed, retrying (%s/%s)"
+msgstr "Conexión fallida, reintentando (%s/%s)"

@@ -1333,3 +1333,35 @@ msgstr "Repli intro : sauter les X premières secondes (0 = désactivé)"
 msgctxt "#30504"
 msgid "Credits fallback: offer skip X s before the end (0 = off)"
 msgstr "Repli générique : saut proposé X s avant la fin (0 = désactivé)"
+
+msgctxt "#30505"
+msgid "Hardware playback profile"
+msgstr "Profil de lecture matérielle"
+
+msgctxt "#30506"
+msgid "Auto"
+msgstr "Auto"
+
+msgctxt "#30507"
+msgid "ODROID-N2+ (AV1 transcoded)"
+msgstr "ODROID-N2+ (AV1 transcodé)"
+
+msgctxt "#30508"
+msgid "Manual (advanced settings)"
+msgstr "Manuel (réglages avancés)"
+
+msgctxt "#30509"
+msgid "Decides which codecs are direct-played or transcoded. On ODROID-N2+ (no AV1 hardware decoding), AV1 is transcoded."
+msgstr "Détermine quels codecs sont lus directement ou transcodés selon le matériel. Sur ODROID-N2+ (pas de décodage AV1 matériel), l'AV1 est transcodé."
+
+msgctxt "#30510"
+msgid "Connection retry attempts"
+msgstr "Nombre de tentatives de connexion"
+
+msgctxt "#30511"
+msgid "Number of attempts before showing an error message (1 = no retry). A short pause occurs between attempts."
+msgstr "Nombre de tentatives avant l'affichage d'un message d'erreur (1 = aucune relance). Une courte pause s'écoule entre chaque tentative."
+
+msgctxt "#30512"
+msgid "Connection failed, retrying (%s/%s)"
+msgstr "Connexion échouée, nouvelle tentative (%s/%s)"
