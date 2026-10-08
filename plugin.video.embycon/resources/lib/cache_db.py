@@ -160,3 +160,65 @@ def purge_tout() -> int:
     except Exception as erreur:
         log.error("cache_db : purge_tout echoue : {0}", erreur)
     return total
+
+
+def _duree_cache_http() -> int:
+    """v1.14 phase 2b : duree du cache HTTP ( reglage cache_duration, heures )."""
+    try:
+        heures = int(xbmcaddon.Addon().getSetting("cache_duration"))
+    except (TypeError, ValueError):
+        heures = 24
+    if heures <= 0:
+        return 0
+    return heures * 3600
+
+
+def charge_reponse(url_hash: str) -> tuple[str, bytes] | None:
+    """Retourne ( etag, corps ) de la reponse HTTP cachee, ou None.
+
+    v1.14 phase 2b : sert a envoyer If-None-Match et a reutiliser le corps
+    tel quel si le serveur repond 304 ( non modifie ).
+    """
+    if _duree_cache_http() <= 0:
+        return None
+    try:
+        with _lock:
+            conn = _connexion()
+            if conn is None:
+                return None
+            ligne = conn.execute(
+                "SELECT etag, body, expires_at FROM http_responses WHERE url_hash = ?",
+                (url_hash,),
+            ).fetchone()
+            if ligne is None:
+                return None
+            if ligne[2] is not None and ligne[2] < time.time():
+                conn.execute(
+                    "DELETE FROM http_responses WHERE url_hash = ?", (url_hash,)
+                )
+                conn.commit()
+                return None
+            return ligne[0], ligne[1]
+    except Exception as erreur:
+        log.error("cache_db : charge_reponse echoue : {0}", erreur)
+        return None
+
+
+def sauve_reponse(url_hash: str, etag: str, corps: bytes) -> None:
+    """Enregistre une reponse HTTP ( ETag + corps ) pour revalidation future."""
+    duree = _duree_cache_http()
+    if duree <= 0:
+        return
+    try:
+        with _lock:
+            conn = _connexion()
+            if conn is None:
+                return
+            conn.execute(
+                "INSERT OR REPLACE INTO http_responses"
+                " (url_hash, etag, body, expires_at) VALUES (?, ?, ?, ?)",
+                (url_hash, etag, corps, int(time.time() + duree)),
+            )
+            conn.commit()
+    except Exception as erreur:
+        log.error("cache_db : sauve_reponse echoue : {0}", erreur)

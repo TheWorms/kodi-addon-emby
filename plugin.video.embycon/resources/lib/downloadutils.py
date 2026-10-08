@@ -18,6 +18,7 @@ from collections import defaultdict
 import threading
 import time
 
+from . import cache_db
 from .kodi_utils import HomeWindow
 from .clientinfo import ClientInformation
 from .simple_logging import SimpleLogging
@@ -858,6 +859,17 @@ class DownloadUtils:
             url = url.replace("{field_filters}", filter_string)
 
         log.debug("After: {0}", url)
+
+        # v1.14 phase 2b : cache HTTP ETag ( GET uniquement ). Si une reponse
+        # est deja memorisee, on enverra If-None-Match pour obtenir un 304.
+        cle_http = None
+        reponse_cachee = None
+        if method == "GET" and post_body is None:
+            m_http = hashlib.md5()
+            m_http.update(url.strip().encode("utf-8"))
+            cle_http = m_http.hexdigest()
+            reponse_cachee = cache_db.charge_reponse(cle_http)
+
         conn = None
 
         # v1.14 : tentatives paramétrables — réglage "network_attempts"
@@ -916,6 +928,11 @@ class DownloadUtils:
                     head["Authorization"] = "Basic %s" % user_and_pass
 
                 head["User-Agent"] = "EmbyCon-" + ClientInformation().get_version()
+
+                # v1.14 phase 2b : revalidation ETag ( le serveur peut repondre 304 )
+                if reponse_cachee is not None:
+                    head["If-None-Match"] = reponse_cachee[0]
+
                 log.debug("HEADERS: {0}", head)
 
                 if post_body is not None:
@@ -949,11 +966,22 @@ class DownloadUtils:
                         return_data = ret_data
                     if headers is not None and isinstance(headers, dict):
                         headers.update(data.getheaders())
+
+                    # v1.14 phase 2b : memorise la reponse avec son ETag
+                    if cle_http is not None:
+                        etag_http = data.getheader("ETag")
+                        if etag_http:
+                            cache_db.sauve_reponse(cle_http, etag_http, return_data)
                     log.debug("Data Len After: {0}", len(return_data))
                     log.debug("====== 200 returned =======")
                     log.debug("Content-Type: {0}", content_type)
                     log.debug("{0}", return_data)
                     log.debug("====== 200 finished ======")
+
+                elif int(data.status) == 304 and reponse_cachee is not None:
+                    # v1.14 phase 2b : reponse inchangee, on sert le corps cache
+                    return_data = reponse_cachee[1]
+                    log.debug("HTTP 304 : reponse servie depuis le cache HTTP (ETag)")
 
                 elif int(data.status) >= 400:
                     if int(data.status) == 401:
