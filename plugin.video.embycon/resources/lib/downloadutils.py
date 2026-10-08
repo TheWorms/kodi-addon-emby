@@ -928,7 +928,11 @@ class DownloadUtils:
                         hashed_username,
                     )
                     settings.setSetting("saved_user_password_" + hashed_username, "")
-                    # save_user_details(settings, "", "")
+                    # purge complète du mot de passe (settings et HomeWindow)
+                    if settings.getSetting("save_user_to_settings") == "true":
+                        settings.setSetting("password", "")
+                    else:
+                        HomeWindow().set_property("password", "")
 
                 log.error("HTTP response error: {0} {1}", data.status, data.reason)
                 if suppress is False:

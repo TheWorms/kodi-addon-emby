@@ -15,7 +15,7 @@ from . import clientinfo
 from . import downloadutils
 from .jsonrpc import JsonRpc
 from .kodi_utils import HomeWindow
-from .websocket import WebSocketApp, enableTrace
+from .websocket import WebSocketApp
 from .library_change_monitor import LibraryChangeMonitor
 
 log = SimpleLogging(__name__)
@@ -228,11 +228,20 @@ class WebSocketClient(threading.Thread):
         download_utils = downloadutils.DownloadUtils()
 
         token = None
+        auth_attempts = 0
+        auth_retry_delay = 10
         while token is None or token == "":
+            auth_attempts += 1
             download_utils.set_host_domain()
             token = download_utils.authenticate()
-            if self.monitor.waitForAbort(10):
-                return
+            if token is None or token == "":
+                if auth_attempts >= 6:
+                    log.error("WebSocketClient: auth failed after {0} attempts, giving up", auth_attempts)
+                    return
+                log.debug("WebSocketClient: auth attempt {0} failed, retrying in {1}s", auth_attempts, auth_retry_delay)
+                if self.monitor.waitForAbort(auth_retry_delay):
+                    return
+                auth_retry_delay = min(auth_retry_delay * 2, 60)
 
         # Get the appropriate prefix for the websocket
         download_utils.set_host_domain()
@@ -251,9 +260,7 @@ class WebSocketClient(threading.Thread):
             token,
             self.device_id,
         )
-        log.debug("websocket url: {0}", websocket_url)
-
-        enableTrace(True)
+        log.debug("websocket url: {0}/embywebsocket?api_key=****&deviceId={1}", server, self.device_id)
 
         self._client = WebSocketApp(
             websocket_url,

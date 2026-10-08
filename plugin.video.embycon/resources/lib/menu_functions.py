@@ -390,7 +390,7 @@ def show_movie_pages(menu_params: dict[str, str]) -> None:
     total_results = result.get("TotalRecordCount", 0)
     log.debug("showMoviePages TotalRecordCount {0}", total_results)
 
-    if result == 0:
+    if total_results == 0:
         return
 
     page_limit = int(settings.getSetting("itemsPerPage"))
@@ -746,7 +746,7 @@ def show_tvshow_pages(menu_params: dict[str, str]) -> None:
     total_results = result.get("TotalRecordCount", 0)
     log.debug("showMoviePages TotalRecordCount {0}", total_results)
 
-    if result == 0:
+    if total_results == 0:
         return
 
     page_limit = int(settings.getSetting("itemsPerPage"))

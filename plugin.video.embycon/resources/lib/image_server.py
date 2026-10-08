@@ -11,6 +11,7 @@ from random import shuffle
 import threading
 import http.client
 import io
+import ssl
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
 from .simple_logging import SimpleLogging
@@ -126,7 +127,18 @@ def build_image(path: str) -> bytes:
             )
 
             try:
-                conn = http.client.HTTPConnection(server)
+                use_https = url_bits.scheme.lower() == "https"
+                if use_https:
+                    verify_cert = xbmcaddon.Addon().getSetting("verify_cert") == "true"
+                    if verify_cert:
+                        conn = http.client.HTTPSConnection(server)
+                    else:
+                        ssl_context = ssl.create_default_context()
+                        ssl_context.check_hostname = False
+                        ssl_context.verify_mode = ssl.CERT_NONE
+                        conn = http.client.HTTPSConnection(server, context=ssl_context)
+                else:
+                    conn = http.client.HTTPConnection(server)
                 conn.request("GET", url_full_path)
                 image_responce = conn.getresponse()
                 image_data = image_responce.read()
@@ -189,6 +201,14 @@ class HttpImageHandler(BaseHTTPRequestHandler):
         return
 
     def serve_image(self) -> None:
+        try:
+            self._serve_image_unsafe()
+        except Exception as serve_error:
+            log.error("HttpImageHandler: error serving image : {0}", str(serve_error))
+            self.send_response(500)
+            self.end_headers()
+
+    def _serve_image_unsafe(self) -> None:
         if pil_loaded:
             image_bytes = build_image(self.path)
             self.send_response(200)
@@ -232,7 +252,7 @@ class HttpImageServerThread(threading.Thread):
 
     def run(self) -> None:
         log.debug("HttpImageServerThread:started")
-        server = HTTPServer(("", PORT_NUMBER), HttpImageHandler)
+        server = HTTPServer(("127.0.0.1", PORT_NUMBER), HttpImageHandler)
 
         while self.keep_running:
             server.handle_request()

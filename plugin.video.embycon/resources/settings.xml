@@ -56,7 +56,7 @@
 				</setting>
 				<setting id="verify_cert" type="boolean" label="30003" help="">
 				<level>0</level>
-				<default>false</default>
+				<default>true</default>
 				<control type="toggle"/>
 				</setting>
 			</group>
