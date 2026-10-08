@@ -4,6 +4,7 @@ import xbmcvfs
 import xbmcaddon
 
 import base64
+import hashlib
 import re
 from urllib.parse import urlparse
 from random import shuffle
@@ -30,6 +31,94 @@ try:
 except Exception as err:
     pil_loaded = False
     log.debug("PIL not loaded : {0}", str(err))
+
+# v1.14 #6 : cache disque LRU des vignettes téléchargées par le serveur
+# d'images. Clé = URL complète de l'image (le paramètre "tag" ajouté par Emby
+# change quand l'image change, l'invalidation est donc naturelle). Quota en
+# Mo ; quand il est dépassé, les fichiers les plus anciens sont supprimés en
+# premier. Le collage reste recomposé à chaque requête pour préserver le
+# mélange aléatoire des vignettes.
+IMAGE_CACHE_QUOTA_MB = 100
+
+_image_cache_dir: str = ""
+_image_cache_store_count = 0
+
+
+def _get_image_cache_dir() -> str:
+    global _image_cache_dir
+    if _image_cache_dir == "":
+        base_dir = xbmcvfs.translatePath(
+            "special://userdata/addon_data/plugin.video.embycon/cache"
+        )
+        if not xbmcvfs.exists(base_dir):
+            xbmcvfs.mkdir(base_dir)
+        _image_cache_dir = xbmcvfs.translatePath(
+            "special://userdata/addon_data/plugin.video.embycon/cache/images"
+        )
+        if not xbmcvfs.exists(_image_cache_dir):
+            xbmcvfs.mkdir(_image_cache_dir)
+    return _image_cache_dir
+
+
+def _image_cache_path(image_url: str) -> str:
+    key = hashlib.md5(image_url.encode("utf-8")).hexdigest()
+    return "%s/%s.jpg" % (_get_image_cache_dir(), key)
+
+
+def _load_image_from_cache(image_url: str) -> bytes | None:
+    try:
+        cache_path = _image_cache_path(image_url)
+        if not xbmcvfs.exists(cache_path):
+            return None
+        cached_file = xbmcvfs.File(cache_path, "rb")
+        data = cached_file.readBytes()
+        cached_file.close()
+        # réécriture légère pour rafraîchir le mtime (vrai LRU)
+        refreshed_file = xbmcvfs.File(cache_path, "wb")
+        refreshed_file.write(data)
+        refreshed_file.close()
+        return data
+    except Exception:
+        return None
+
+
+def _store_image_in_cache(image_url: str, data: bytes) -> None:
+    global _image_cache_store_count
+    try:
+        cache_path = _image_cache_path(image_url)
+        cache_file = xbmcvfs.File(cache_path, "wb")
+        cache_file.write(data)
+        cache_file.close()
+        _image_cache_store_count += 1
+        if _image_cache_store_count >= 20:
+            _image_cache_store_count = 0
+            _purge_image_cache_if_needed()
+    except Exception as cache_error:
+        log.debug("Image cache write error : {0}", str(cache_error))
+
+
+def _purge_image_cache_if_needed() -> None:
+    entries: list[tuple[float, str, int]] = []
+    total_size = 0
+    _, files = xbmcvfs.listdir(_get_image_cache_dir())
+    for file_name in files:
+        file_path = "%s/%s" % (_get_image_cache_dir(), file_name)
+        try:
+            file_stat = xbmcvfs.Stat(file_path)
+            entries.append((file_stat.st_mtime(), file_path, file_stat.st_size()))
+            total_size += file_stat.st_size()
+        except Exception:
+            continue
+    quota_bytes = IMAGE_CACHE_QUOTA_MB * 1024 * 1024
+    if total_size <= quota_bytes:
+        return
+    log.debug("Image cache purge : {0} octets", str(total_size))
+    entries.sort(key=lambda entry: entry[0])
+    for file_mtime, file_path, file_size in entries:
+        if total_size <= quota_bytes * 0.9:
+            break
+        xbmcvfs.delete(file_path)
+        total_size -= file_size
 
 
 def get_image_links(url: str, maxwidth: int = 0) -> list[dict[str, str]]:
@@ -139,9 +228,17 @@ def build_image(path: str) -> bytes:
                         conn = http.client.HTTPSConnection(server, context=ssl_context)
                 else:
                     conn = http.client.HTTPConnection(server)
-                conn.request("GET", url_full_path)
-                image_responce = conn.getresponse()
-                image_data = image_responce.read()
+                cache_key_url = "%s://%s%s" % (
+                    url_bits.scheme.lower(),
+                    server,
+                    url_full_path,
+                )
+                image_data = _load_image_from_cache(cache_key_url)
+                if image_data is None:
+                    conn.request("GET", url_full_path)
+                    image_responce = conn.getresponse()
+                    image_data = image_responce.read()
+                    _store_image_in_cache(cache_key_url, image_data)
 
                 loaded_image = Image.open(io.BytesIO(image_data))  # type: ignore
                 image = ImageOps.fit(  # type: ignore
