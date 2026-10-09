@@ -104,6 +104,14 @@ _garde_auth_mdp_refuse = None
 # de passe teste et ne purge pas les identifiants stockes
 _probe_auth = threading.local()
 
+# v1.14 : mutex double spawn auth — au boot, widgets, service et speed
+# test demarrent en meme temps et declenchent chacun une authentification
+# avec le meme mot de passe (risque de verrouillage serveur en cascade si
+# le mot de passe est perime). Un verrou reentrant coalesce les appels :
+# le premier thread fait la requete, les suivants attendent sa fin puis
+# lisent le jeton deja memorise dans les proprietes window.
+_mutex_auth = threading.RLock()
+
 
 def _garde_auth_echec(mdp: str) -> None:
     """Enregistre un échec de login pour la garde anti-verrouillage."""
@@ -687,6 +695,14 @@ class DownloadUtils:
         return artwork
 
     def get_user_id(self) -> str:
+        # v1.14 : mutex double spawn — la resolution de l'utilisateur et
+        # le login partagent le meme verrou : un seul appel Users/Public
+        # et une seule authentification au boot, quel que soit le nombre
+        # de widgets demarres en meme temps.
+        with _mutex_auth:
+            return self._get_user_id()
+
+    def _get_user_id(self) -> str:
         window = HomeWindow()
         userid = window.get_property("userid")
         user_image = window.get_property("userimage")
@@ -769,6 +785,15 @@ class DownloadUtils:
 
     @timer
     def authenticate(
+        self, verif_username: str | None = None, verif_password: str | None = None
+    ) -> str:
+        # v1.14 : mutex double spawn — une seule authentification a la
+        # fois ; les autres threads attendent la fin du premier puis
+        # lisent le jeton memorise dans les proprietes window.
+        with _mutex_auth:
+            return self._authenticate(verif_username, verif_password)
+
+    def _authenticate(
         self, verif_username: str | None = None, verif_password: str | None = None
     ) -> str:
         log.debug("authenticate called")
