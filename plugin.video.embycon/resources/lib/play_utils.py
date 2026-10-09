@@ -12,7 +12,7 @@ import os
 import base64
 
 from .simple_logging import SimpleLogging
-from .downloadutils import DownloadUtils
+from .downloadutils import DownloadUtils, _masque_donnees_sensibles
 from .resume_dialog import ResumeDialog
 from .utils import PlayUtils, get_art, send_event_notification, convert_size
 from .kodi_utils import HomeWindow
@@ -91,7 +91,7 @@ def play_all_files(
         listitem_props = play_result.listitem_props
         log.info(
             "Play URL: {0} PlaybackType: {1} ListItem Properties: {2}",
-            playurl,
+            _masque_donnees_sensibles(playurl or ""),
             playback_type,
             listitem_props,
         )
@@ -325,7 +325,7 @@ def add_to_playlist(play_info: dict[str, str], monitor: PlaybackMonitorService) 
     listitem_props = play_result.listitem_props
     log.info(
         "Play URL: {0} PlaybackType: {1} ListItem Properties: {2}",
-        playurl,
+        _masque_donnees_sensibles(playurl or ""),
         playback_type,
         listitem_props,
     )
@@ -607,7 +607,7 @@ def play_file(
     listitem_props = play_result.listitem_props
     log.info(
         "Play URL: {0} Playback Type: {1} ListItem Properties: {2}",
-        playurl,
+        _masque_donnees_sensibles(playurl or ""),
         playback_type,
         listitem_props,
     )
@@ -665,7 +665,10 @@ def play_file(
             audio_stream_index or "",
             subtitle_stream_index or "",
         )
-        log.debug("New playurl for transcoding: {0}", playurl)
+        log.debug(
+            "New playurl for transcoding: {0}",
+            _masque_donnees_sensibles(playurl or ""),
+        )
 
     elif playback_type == "1":  # for direct stream add any streamable subtitles
         external_subs(selected_media_source, list_item, item_id)
@@ -1310,8 +1313,15 @@ def send_progress(monitor: PlaybackMonitorService) -> None:
     log.debug("Sending Progress Update")
 
     player = xbmc.Player()
-    play_time = player.getTime()
-    total_play_time = player.getTotalTime()
+    try:
+        play_time = player.getTime()
+        total_play_time = player.getTotalTime()
+    except Exception:
+        # v1.14.1 (audit T2) : la lecture peut s'arreter entre le test
+        # isPlaying() et la lecture de la position — ne pas propager
+        # l'exception aux callbacks (onPlayBackSeek/Paused/Resumed)
+        log.debug("send_progress : lecture arretee, progression non envoyee")
+        return
     play_data["currentPossition"] = play_time
     play_data["duration"] = total_play_time
     play_data["currently_playing"] = True
@@ -1753,7 +1763,13 @@ class PlaybackMonitorService(xbmc.Player):
                 skip_monitor = SkipIntroMonitor()
                 skip_monitor.set_times(intro_start, intro_end)
                 skip_monitor.set_auto_skip(skip_intros == "2")
-                skip_monitor.set_play_path(xbmc.Player().getPlayingFile())
+                # v1.14.1 (audit T4) : la lecture peut s'arreter dans la
+                # fenetre entre isPlaying() et getPlayingFile() — ne pas
+                # laisser l'exception tuer le demarrage des moniteurs
+                try:
+                    skip_monitor.set_play_path(xbmc.Player().getPlayingFile())
+                except Exception:
+                    log.debug("moniteur saut d'intro : lecture deja arretee")
                 skip_monitor.start()
 
         # start the skip credits (end of episode) monitor
@@ -1771,7 +1787,11 @@ class PlaybackMonitorService(xbmc.Player):
                 credits_monitor.set_credits_start(credits_start)
                 credits_monitor.set_before_end(fb_credits)
                 credits_monitor.set_auto_skip(skip_credits == "2")
-                credits_monitor.set_play_path(xbmc.Player().getPlayingFile())
+                # v1.14.1 (audit T4) : meme garde que le moniteur d'intro
+                try:
+                    credits_monitor.set_play_path(xbmc.Player().getPlayingFile())
+                except Exception:
+                    log.debug("moniteur saut de generique : lecture deja arretee")
                 credits_monitor.start()
 
     def onAVStarted(self) -> None:

@@ -152,8 +152,16 @@ class WebSocketClient(threading.Thread):
                 xbmc.executebuiltin("Mute")
 
             elif command == "SetVolume":
-                volume = arguments["Volume"]
-                xbmc.executebuiltin("SetVolume(%s[,showvolumebar])" % volume)
+                # v1.14.1 (audit S5) : la valeur vient du serveur — ne pas
+                # l'injecter telle quelle dans une commande Kodi
+                try:
+                    volume = max(0, min(100, int(arguments["Volume"])))
+                except (KeyError, TypeError, ValueError):
+                    log.error(
+                        "SetVolume websocket invalide : {0}", arguments.get("Volume")
+                    )
+                else:
+                    xbmc.executebuiltin("SetVolume(%s[,showvolumebar])" % volume)
 
             elif command == "SetAudioStreamIndex":
                 index = int(arguments["Index"])
@@ -164,8 +172,16 @@ class WebSocketClient(threading.Thread):
                 player.setSubtitleStream(index - 1)
 
             elif command == "SetRepeatMode":
-                mode = arguments["RepeatMode"]
-                xbmc.executebuiltin("PlayerControl(%s)" % mode)
+                # v1.14.1 (audit S5) : liste blanche — la valeur vient du
+                # serveur ; RepeatNone n'est pas une commande Kodi, son
+                # equivalent est RepeatOff
+                mode = {
+                    "RepeatNone": "RepeatOff",
+                    "RepeatAll": "RepeatAll",
+                    "RepeatOne": "RepeatOne",
+                }.get(arguments.get("RepeatMode"))
+                if mode is not None:
+                    xbmc.executebuiltin("PlayerControl(%s)" % mode)
 
         elif command == "DisplayMessage":
             # header = arguments['Header']

@@ -38,76 +38,82 @@ class PlayNextService(threading.Thread):
         is_playing = False
 
         while not xbmc.Monitor().abortRequested() and not self.stop_thread:
-            player = xbmc.Player()
-            if player.isPlaying():
-                if not is_playing:
-                    settings = xbmcaddon.Addon()
-                    play_next_trigger_time = int(
-                        settings.getSetting("play_next_trigger_time")
-                    )
-                    log.debug(
-                        "New play_next_trigger_time value: {0}", play_next_trigger_time
-                    )
-
-                duration = player.getTotalTime()
-                position = player.getTime()
-                trigger_time = play_next_trigger_time  # 300
-                time_to_end = duration - position
-
-                if (
-                    not play_next_triggered
-                    and (trigger_time > time_to_end)
-                    and play_next_dialog is None
-                ):
-                    play_next_triggered = True
-                    log.debug(
-                        "play_next_triggered duration: {0}, position: {1} time to end: {2} seconds from end",
-                        duration,
-                        position,
-                        time_to_end,
-                    )
-
-                    play_data = get_playing_data(self.monitor.played_information)
-                    log.debug("play_next_triggered play_data : {0}", play_data)
-
-                    if play_data is not None:
-                        next_episode = play_data.get("next_episode")
-                        item_type = play_data.get("item_type")
-                        show_dialog = (
-                            settings.getSetting("show_play_next_dialog") != "false"
+            try:
+                player = xbmc.Player()
+                if player.isPlaying():
+                    if not is_playing:
+                        settings = xbmcaddon.Addon()
+                        play_next_trigger_time = int(
+                            settings.getSetting("play_next_trigger_time")
                         )
-                        if (
-                            show_dialog
-                            and next_episode is not None
-                            and item_type == "Episode"
-                        ):
-                            settings = xbmcaddon.Addon()
-                            plugin_path = settings.getAddonInfo("path")
-                            plugin_path_real = xbmcvfs.translatePath(
-                                os.path.join(plugin_path)
+                        log.debug(
+                            "New play_next_trigger_time value: {0}", play_next_trigger_time
+                        )
+
+                    duration = player.getTotalTime()
+                    position = player.getTime()
+                    trigger_time = play_next_trigger_time  # 300
+                    time_to_end = duration - position
+
+                    if (
+                        not play_next_triggered
+                        and (trigger_time > time_to_end)
+                        and play_next_dialog is None
+                    ):
+                        play_next_triggered = True
+                        log.debug(
+                            "play_next_triggered duration: {0}, position: {1} time to end: {2} seconds from end",
+                            duration,
+                            position,
+                            time_to_end,
+                        )
+
+                        play_data = get_playing_data(self.monitor.played_information)
+                        log.debug("play_next_triggered play_data : {0}", play_data)
+
+                        if play_data is not None:
+                            next_episode = play_data.get("next_episode")
+                            item_type = play_data.get("item_type")
+                            show_dialog = (
+                                settings.getSetting("show_play_next_dialog") != "false"
                             )
+                            if (
+                                show_dialog
+                                and next_episode is not None
+                                and item_type == "Episode"
+                            ):
+                                settings = xbmcaddon.Addon()
+                                plugin_path = settings.getAddonInfo("path")
+                                plugin_path_real = xbmcvfs.translatePath(
+                                    os.path.join(plugin_path)
+                                )
 
-                            play_next_dialog = PlayNextDialog(
-                                "PlayNextDialog.xml",
-                                plugin_path_real,
-                                "default",
-                                "720p",
-                            )
-                            play_next_dialog.set_episode_info(next_episode)
-                            if play_next_dialog is not None:
-                                play_next_dialog.show()
+                                play_next_dialog = PlayNextDialog(
+                                    "PlayNextDialog.xml",
+                                    plugin_path_real,
+                                    "default",
+                                    "720p",
+                                )
+                                play_next_dialog.set_episode_info(next_episode)
+                                if play_next_dialog is not None:
+                                    play_next_dialog.show()
 
-                is_playing = True
+                    is_playing = True
 
-            else:
-                play_next_triggered = False
-                if play_next_dialog is not None:
-                    play_next_dialog.stop_auto_close()
-                    play_next_dialog.close()
-                    del play_next_dialog
-                    play_next_dialog = None
+                else:
+                    play_next_triggered = False
+                    if play_next_dialog is not None:
+                        play_next_dialog.stop_auto_close()
+                        play_next_dialog.close()
+                        del play_next_dialog
+                        play_next_dialog = None
 
-                is_playing = False
+                    is_playing = False
+            except Exception as err:
+                # v1.14.1 (audit T1) : la boucle ne doit jamais mourir —
+                # getTime()/getTotalTime() levent si la lecture
+                # s'arrete entre isPlaying() et la lecture de la position
+                log.error("PlayNextService : {0}", err)
 
             if xbmc.Monitor().waitForAbort(1):
                 break

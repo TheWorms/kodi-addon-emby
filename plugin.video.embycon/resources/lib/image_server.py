@@ -182,6 +182,16 @@ def build_image(path: str) -> bytes:
     decoded_url = base64.b64decode(request_path).decode("utf-8")
     log.debug("decoded_url : {0}", decoded_url)
 
+    # v1.14.1 (audit S6) : n'accepter que les URL du serveur Emby courant —
+    # sinon un processus local pouvait faire envoyer le jeton d'acces vers
+    # un hote arbitraire
+    server = DownloadUtils().get_server()
+    if not decoded_url.startswith(server):
+        log.error(
+            "serveur d'images : URL refusee (hors serveur Emby) : {0}", decoded_url
+        )
+        return bytes()
+
     settings = xbmcaddon.Addon()
     max_image_width = int(settings.getSetting("max_image_width"))
 

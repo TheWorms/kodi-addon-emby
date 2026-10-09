@@ -1161,19 +1161,17 @@ class DownloadUtils:
                             # compte sur le mot de passe teste, l'ancien mot
                             # de passe stocke est conserve (pas de purge)
                             _garde_auth_echec(mdp_teste)
-                        # v1.14 : diagnostic typo — md5 du mot de passe
-                        # refuse, jamais le mot de passe lui-meme
-                        m_diag = hashlib.md5()
-                        m_diag.update(
-                            (
-                                mdp_teste
-                                if mdp_teste is not None
-                                else user_details.get("password", "")
-                            ).encode("utf-8")
+                        # v1.14.1 (audit S2) : le md5 non sale d'un mot de
+                        # passe humain se retrouve dans les tables publiques —
+                        # on ne journalise plus que sa longueur
+                        mdp_diag = (
+                            mdp_teste
+                            if mdp_teste is not None
+                            else user_details.get("password", "")
                         )
                         log.error(
-                            "401 login refuse, md5 du mot de passe teste : {0}",
-                            m_diag.hexdigest(),
+                            "401 login refuse (longueur du mot de passe teste : {0})",
+                            len(mdp_diag or ""),
                         )
                     elif int(data.status) == 401:
                         # v1.14 : 401 sur une requête normale = jeton
