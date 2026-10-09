@@ -192,7 +192,7 @@ class PlayNextDialog(xbmcgui.WindowXMLDialog):
         epp_image: xbmcgui.ControlImage = cast(
             xbmcgui.ControlImage, self.getControl(3015)
         )
-        epp_image.setImage(self.episode_info["art"]["thumb"])
+        epp_image.setImage((self.episode_info.get("art") or {}).get("thumb", ""))
 
         runtime_ticks = self.episode_info.get("RunTimeTicks", 0)
         if runtime_ticks is None:
