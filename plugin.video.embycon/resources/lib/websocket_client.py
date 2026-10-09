@@ -226,6 +226,12 @@ class WebSocketClient(threading.Thread):
         log.error("Error: {0}", error)
 
     def run(self) -> None:
+        # v1.14 : rearmement du drapeau d'arret au demarrage du thread.
+        # Sans ceci, un client reconstruit apres un stop heriterait du
+        # drapeau True et mourrait a la premiere deconnexion. Sans risque de
+        # zombie : service.py joint l'ancien thread avant de relancer.
+        self._stop_websocket = False
+
         # websocket.enableTrace(True)
         download_utils = downloadutils.DownloadUtils()
 
@@ -286,6 +292,10 @@ class WebSocketClient(threading.Thread):
         # remis a 1 apres 5 minutes de connexion stable
         delai_reconnexion = 1
         while not self.monitor.abortRequested():
+            # v1.14 : ne pas ouvrir de connexion si un arret a deja ete demande
+            if self._stop_websocket:
+                break
+
             debut_connexion = time.monotonic()
             self._client.run_forever(ping_interval=ping_interval)
 
@@ -297,9 +307,20 @@ class WebSocketClient(threading.Thread):
                 delai_reconnexion = 1
                 log.debug("Connexion websocket stable, delai de reconnexion remis a 1s")
 
+            # v1.14 : backoff decoupe en pas de 1 s - un arret demande pendant
+            # l'attente est vu en 1 s (fini la reconnexion fantome apres stop)
             log.debug("Reconnexion websocket dans {0}s", delai_reconnexion)
-            if self.monitor.waitForAbort(delai_reconnexion):
-                # Abort was requested, exit
+            reste = delai_reconnexion
+            while reste > 0:
+                if self.monitor.waitForAbort(1):
+                    log.debug("WebSocketClient Stopped")
+                    return
+                if self._stop_websocket:
+                    break
+                reste -= 1
+
+            if self._stop_websocket:
+                log.debug("Arret demande pendant le backoff, pas de reconnexion")
                 break
 
             delai_reconnexion = min(delai_reconnexion * 2, 60)

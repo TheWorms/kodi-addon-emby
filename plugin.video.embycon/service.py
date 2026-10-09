@@ -236,8 +236,16 @@ while not kodi_monitor.abortRequested():
 
                 if remote_control and user_changed:
                     websocket_client.stop_client()
-                    websocket_client = WebSocketClient(library_change_monitor)
-                    websocket_client.start()
+                    # v1.14 : attendre la mort de l'ancien thread avant de
+                    # relancer (anti double spawn). L'ordre est obligatoire :
+                    # join AVANT de creer la nouvelle instance, sinon le borg
+                    # partagerait l'etat du thread entre les deux instances.
+                    websocket_client.join(10)
+                    if websocket_client.is_alive():
+                        log.error("Ancien client websocket toujours vivant, relance annulee")
+                    else:
+                        websocket_client = WebSocketClient(library_change_monitor)
+                        websocket_client.start()
 
                 if (
                     skin_checked is False
