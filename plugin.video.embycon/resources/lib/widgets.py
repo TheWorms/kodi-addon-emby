@@ -83,7 +83,11 @@ def set_background_image(force: bool = False) -> None:
 
         url_params = {}
         url_params["Recursive"] = True
-        # url_params["limit"] = 60
+        # v1.14 : limite le pool de fonds - sans elle, la requete ramene
+        # toute la mediatheque avec ses tags d'images (mesure : 1,4 Mo par
+        # cycle de background_interval). 60 items suffisent pour faire
+        # tourner les fonds.
+        url_params["limit"] = 60
         url_params["SortBy"] = "Random"
         url_params["IncludeItemTypes"] = "Movie,Series"
         url_params["ImageTypeLimit"] = 1

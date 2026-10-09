@@ -947,6 +947,18 @@
 						<popup>false</popup>
 					</control>
 				</setting>
+				<setting id="revalidation_interval" type="integer" label="30517" help="30518">
+					<level>0</level>
+					<default>10</default>
+					<constraints>
+						<minimum>0</minimum>
+						<step>1</step>
+						<maximum>120</maximum>
+					</constraints>
+					<control type="slider" format="integer">
+						<popup>false</popup>
+					</control>
+				</setting>
 				<setting id="showLoadProgress" type="boolean" label="30120" help="">
 				<level>0</level>
 				<default>false</default>

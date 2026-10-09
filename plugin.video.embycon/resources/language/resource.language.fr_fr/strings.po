@@ -1381,3 +1381,11 @@ msgstr "Intervalle du heartbeat WebSocket (secondes)"
 msgctxt "#30516"
 msgid "Interval between WebSocket heartbeat pings. A lower value detects a dead connection faster but sends more pings."
 msgstr "Intervalle entre les pings de heartbeat WebSocket. Une valeur plus basse détecte une connexion morte plus vite mais envoie plus de pings."
+
+msgctxt "#30517"
+msgid "Minimum interval between cache revalidations (minutes, 0 = disabled)"
+msgstr "Intervalle minimum entre deux revalidations du cache (minutes, 0 = désactivé)"
+
+msgctxt "#30518"
+msgid "A cached list is not re-downloaded in the background more than once per interval. 0 revalidates on every view (upstream behaviour)."
+msgstr "Une liste en cache n'est pas re-téléchargée en arrière-plan plus d'une fois par intervalle. 0 revalide à chaque consultation (comportement d'origine)."

@@ -118,6 +118,53 @@ def _duree_cache_secondes() -> int:
     return heures * 3600
 
 
+# v1.14 : throttle de revalidation. Un dict module serait perdu a chaque
+# invocation du plugin ( CPythonInvoker neuf ), la garde ne verrait jamais la
+# revalidation precedente : l'horodatage vit donc dans une propriete
+# HomeWindow ( Window 10000 ), qui survit aux invocations.
+_verrou_revalidation = threading.Lock()
+
+
+def _duree_revalidation_secondes() -> int:
+    """v1.14 : intervalle minimum entre deux revalidations d'une meme URL
+    ( reglage revalidation_interval, minutes, 0 = desactive )."""
+    try:
+        minutes = int(xbmcaddon.Addon().getSetting("revalidation_interval"))
+    except (TypeError, ValueError):
+        minutes = 10
+    if minutes <= 0:
+        return 0
+    return minutes * 60
+
+
+def _revalidation_trop_proche(url: str) -> bool:
+    """True si cette URL a deja ete revalidee il y a moins de l'intervalle.
+
+    Ecrit la date de revalidation dans HomeWindow : les proprietes Window
+    10000 sont partagees par toutes les instances du plugin dans la session
+    Kodi, la garde fonctionne donc aussi entre invocations.
+    """
+    duree = _duree_revalidation_secondes()
+    if duree <= 0 or not url:
+        return False
+
+    cle = "reval_" + hashlib.md5(url.encode("utf-8")).hexdigest()
+
+    with _verrou_revalidation:
+        home_window = HomeWindow()
+        derniere = home_window.get_property(cle)
+        maintenant = time.time()
+        if derniere:
+            try:
+                ecart = maintenant - float(derniere)
+            except ValueError:
+                ecart = -1.0
+            if ecart < duree:
+                return True
+        home_window.set_property(cle, str(maintenant))
+        return False
+
+
 class DataManager:
     def __init__(self) -> None:
         # log.debug("DataManager __init__")
@@ -329,6 +376,12 @@ class CacheManagerThread(threading.Thread):
             )
 
         else:
+            # v1.14 : pas plus d'une revalidation par URL par intervalle
+            # ( reglage revalidation_interval, 0 = comportement d'origine ).
+            if _revalidation_trop_proche(self.cached_item.items_url):
+                log.debug("CacheManagerThread : revalidation trop recente, skip")
+                return
+
             log.debug("CacheManagerThread : Reloading to recheck data hashes")
             cached_hash = self.cached_item.item_list_hash
             log.debug("CacheManagerThread : Cache Hash : {0}", cached_hash)
