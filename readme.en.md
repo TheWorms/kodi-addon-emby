@@ -27,6 +27,18 @@ Kodi add-on to browse and play the media library of an **[Emby](https://emby.med
 
 ---
 
+## 🚀 What's new in 1.14.0
+
+- **SQLite list cache + ETag** — libraries are cached locally with `ETag`/`If-None-Match` negotiation: browsing costs a few KB instead of tens of MB of JSON responses.
+- **Throttled cache revalidation** — a single server check per session (configurable delay) instead of a re-download on every list opening.
+- **Large list pagination** — big libraries load page by page (configurable page size) instead of thousands of items at once.
+- **Network robustness** — configurable retries, duplicate-free error notifications, lighter thumbnails, hardware profile detection (incl. AV1).
+- **Stabilized websocket** — capped exponential backoff and 1-second-step reconnection: no more ghost reconnect after service shutdown.
+- **401 authentication guard** — password rejected by the server? The previous one is kept until the new one is validated.
+- **Fixes & quality** — Play Next dialog crash when the episode artwork is missing; CI safety net (`ruff` lint + tests) on every push.
+
+---
+
 ## 📦 Installation
 
 ### Via the TheWorms repository (recommended, automatic updates)

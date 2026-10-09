@@ -27,6 +27,18 @@ Extension Kodi pour parcourir et lire la médiathèque d'un serveur **[Emby](htt
 
 ---
 
+## 🚀 Nouveautés de la version 1.14.0
+
+- **Cache des listes en base SQLite + ETag** — les médiathèques sont mises en cache localement avec négociation `ETag`/`If-None-Match` : la navigation consomme quelques Ko au lieu de dizaines de Mo de réponses JSON.
+- **Revalidation du cache throttlée** — une seule vérification serveur par session (délai configurable), au lieu d'un re-téléchargement à chaque ouverture de liste.
+- **Pagination des grandes listes** — les grandes médiathèques se chargent par pages (taille configurable) au lieu de plusieurs milliers d'éléments d'un coup.
+- **Robustesse réseau** — retries paramétrables, notifications d'erreur sans doublon, vignettes allégées, détection du profil matériel (notamment AV1).
+- **Websocket stabilisée** — backoff exponentiel plafonné et reconnexion en pas de 1 s : plus de reconnexion fantôme après l'arrêt du service.
+- **Garde 401 à l'authentification** — mot de passe refusé par le serveur ? L'ancien est conservé tant que le nouveau n'a pas été validé.
+- **Correctifs & qualité** — crash du dialogue « épisode suivant » si l'affiche de l'épisode est manquante ; filet CI (`ruff` + tests) joué à chaque push.
+
+---
+
 ## 📦 Installation
 
 ### Via le dépôt TheWorms (recommandé, mises à jour automatiques)
