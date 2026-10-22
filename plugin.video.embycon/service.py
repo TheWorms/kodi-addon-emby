@@ -32,6 +32,7 @@ from resources.lib.tracking import set_timing_enabled
 from resources.lib.image_server import HttpImageServerThread
 from resources.lib.playnext import PlayNextService
 from resources.lib.chapter_dialog import ChapterDialogMonitor
+from resources.lib.view_memory import ViewMonitor
 
 settings = xbmcaddon.Addon()
 
@@ -131,6 +132,10 @@ context_menu = settings.getSetting("override_contextmenu") == "true"
 if context_menu:
     context_monitor = ContextMonitor()
     context_monitor.start()
+
+# v1.16 : vues memorisees par categorie, appliquees une fois la liste chargee
+view_monitor = ViewMonitor()
+view_monitor.start()
 
 # Start the bookmark/chapter monitor
 chapter_dialog_monitor = None
@@ -289,6 +294,8 @@ if context_monitor:
 
 if chapter_dialog_monitor:
     chapter_dialog_monitor.stop_monitor()
+
+view_monitor.stop_monitor()
 
 # stop the WebSocket Client
 websocket_client.stop_client()

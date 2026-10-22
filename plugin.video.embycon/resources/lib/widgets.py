@@ -14,6 +14,7 @@ from .simple_logging import SimpleLogging
 from .kodi_utils import HomeWindow
 from .dir_functions import process_directory, DirectoryResult
 from .tracking import timer
+from .sort_options import recent_newest_first
 
 
 log = SimpleLogging(__name__)
@@ -242,6 +243,14 @@ def get_widget_content_cast(handle: int, params: dict) -> int:
     return 0
 
 
+# v1.16 : widget -> reglage d'ordre des listes « recents »
+_RECENT_KINDS = {
+    "recent_movies": "RecentMovies",
+    "recent_tvshows": "RecentSeries",
+    "recent_episodes": "RecentSeries",
+}
+
+
 @timer
 def get_widget_content(handle: int, params: dict) -> int:
     log.debug("getWigetContent Called: {0}", params)
@@ -298,17 +307,24 @@ def get_widget_content(handle: int, params: dict) -> int:
     elif widget_type == "recent_tvshows":
         xbmcplugin.setContent(handle, "tvshows")
         # EmbyCon FR: on utilise /Items (comme recent_movies) et NON /Items/Latest.
-        # L'endpoint /Items/Latest ignore le filtre serveur IsPlayed=false : les
-        # episodes deja vus y restaient affiches. /Items respecte le filtre et
-        # renvoie un statut "vu" correct par episode.
+        # L'endpoint /Items/Latest ignore le filtre serveur IsPlayed=false.
+        # v1.16 : « Series - Dernieres » liste des SERIES (une fois chacune),
+        # triees par date du dernier episode ajoute (DateLastContentAdded),
+        # et non plus des episodes (doublon du widget « Episodes recents »).
         url_params["Recursive"] = True
-        url_params["SortBy"] = "DateCreated"
+        url_params["SortBy"] = "DateLastContentAdded,SortName"
         url_params["SortOrder"] = "Descending"
-        url_params["Filters"] = "IsNotFolder"
         if hide_watched:
             url_params["IsPlayed"] = False
-        url_params["IsVirtualUnaired"] = False
-        url_params["IncludeItemTypes"] = "Episode"
+        url_params["IncludeItemTypes"] = "Series"
+
+    elif widget_type == "recent_boxsets":
+        # v1.16 : nouveau widget « Collections recentes »
+        xbmcplugin.setContent(handle, "sets")
+        url_params["Recursive"] = True
+        url_params["SortBy"] = "DateCreated,SortName"
+        url_params["SortOrder"] = "Descending"
+        url_params["IncludeItemTypes"] = "BoxSet"
 
     elif widget_type == "recent_episodes":
         xbmcplugin.setContent(handle, "episodes")
@@ -407,6 +423,12 @@ def get_widget_content(handle: int, params: dict) -> int:
     # ce qui garantit qu'un episode deja lu ne reste jamais dans la liste.
     if hide_watched and widget_type in ("recent_tvshows", "recent_episodes"):
         dir_items = [gi for gi in dir_items if gi.play_count == 0]
+
+    # v1.16 : ordre des widgets « recents » (reglage) — le serveur renvoie
+    # toujours les N plus recents ; « plus ancien d'abord » inverse la liste.
+    recent_kind = _RECENT_KINDS.get(widget_type)
+    if recent_kind and not recent_newest_first(settings.getSetting, recent_kind):
+        dir_items = list(reversed(dir_items))
 
     list_items = [item.as_tuple() for item in dir_items]
     detected_type = directory_result.detected_type

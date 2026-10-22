@@ -32,6 +32,10 @@ class GuiItem:
     list_item: xbmcgui.ListItem
     is_folder: bool
     play_count: int = 0
+    # v1.16 : cles de tri cote client (contexte « dans une serie »)
+    sort_date: str = ""
+    sort_name: str = ""
+    sort_index: tuple = (0, 0)
 
     def as_tuple(self) -> tuple[str, xbmcgui.ListItem, bool]:
         """Returns the item as a tuple for compatibility with xbmcplugin.addDirectoryItems."""
@@ -934,9 +938,18 @@ def add_gui_item(
     # log.debug("item_properties: {0}", item_properties)
     list_item.setProperties(item_properties)
 
+    sort_date = item_details.premiere_date or ""
+    if not sort_date and item_details.year:
+        sort_date = str(item_details.year)
     return GuiItem(
         url=u,
         list_item=list_item,
         is_folder=folder,
         play_count=item_details.play_count,
+        sort_date=sort_date,
+        sort_name=item_details.sort_name or item_details.name or "",
+        sort_index=(
+            item_details.season_sort_number or item_details.season_number or 0,
+            item_details.episode_sort_number or item_details.episode_number or 0,
+        ),
     )

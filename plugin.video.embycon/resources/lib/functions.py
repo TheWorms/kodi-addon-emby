@@ -50,6 +50,12 @@ from .custom_nodes import load_custom_nodes
 from .profile_utils import list_available_profiles, view_profile_details
 from .random_movie import choisir_film_au_hasard
 from .marker_info import show_marker_info
+from .view_memory import (
+    ViewStore,
+    current_folder_chain,
+    is_view_id,
+    skin_forced_view_active,
+)
 
 
 log = SimpleLogging(__name__)
@@ -181,6 +187,14 @@ def main_entry_point() -> None:
         film_id = choisir_film_au_hasard(params)
         if film_id:
             play_action({"item_id": film_id})
+    elif mode == "RESET_VIEWS":
+        # v1.16 : bouton « Oublier toutes les vues memorisees » des reglages
+        ViewStore().clear()
+        xbmcgui.Dialog().notification(
+            "EmbyCon",
+            string_load(30562),
+            icon="special://home/addons/plugin.video.embycon/icon.png",
+        )
     elif mode == "AUTO_BITRATE_NOW":
         # v1.15 : bouton « Mesurer maintenant » des reglages (qualite auto)
         measure_bitrate_now()
@@ -573,23 +587,22 @@ def show_menu(params: dict[str, str]) -> None:
         li.setProperty("menu_id", "marker_info")
         action_items.append(li)
 
+    # v1.16 : vue memorisee PAR CATEGORIE (mediatheque, contenu d'une
+    # collection, saisons, episodes...) et non plus par type de contenu
     window = xbmcgui.Window(xbmcgui.getCurrentWindowId())
-    container_view_id = str(window.getFocusId())
-    container_content_type = xbmc.getInfoLabel("Container.Content")
-    view_key = "view-" + container_content_type
-    current_default_view = settings.getSetting(view_key)
-    view_match = container_view_id == current_default_view
-    log.debug("View ID:{0} Content type:{1}", container_view_id, container_content_type)
+    container_view_id = window.getFocusId()
+    view_chain = current_folder_chain()
+    view_store = ViewStore()
+    log.debug("View ID:{0} categories:{1}", container_view_id, view_chain)
     downloadUtils = DownloadUtils()
 
-    if container_content_type in ["movies", "tvshows", "seasons", "episodes", "sets"]:
-        if view_match:
-            li = xbmcgui.ListItem("Unset as default view")
+    if view_chain and is_view_id(container_view_id):
+        li = xbmcgui.ListItem(string_load(30560))
+        li.setProperty("menu_id", "set_view")
+        action_items.append(li)
+        if view_store.lookup(view_chain[:1]):
+            li = xbmcgui.ListItem(string_load(30561))
             li.setProperty("menu_id", "unset_view")
-            action_items.append(li)
-        else:
-            li = xbmcgui.ListItem("Set as default view")
-            li.setProperty("menu_id", "set_view")
             action_items.append(li)
 
     # xbmcplugin.endOfDirectory(int(sys.argv[1]), cacheToDisc=False)
@@ -619,12 +632,17 @@ def show_menu(params: dict[str, str]) -> None:
         xbmcgui.Dialog().textviewer("Media Info", msg, usemono=True)
 
     elif selected_action == "set_view":
-        log.debug("Settign view type for {0} to {1}", view_key, container_view_id)
-        settings.setSetting(view_key, container_view_id)
+        view_store.save(view_chain, container_view_id)
+        if skin_forced_view_active():
+            xbmcgui.Dialog().notification(
+                "EmbyCon",
+                string_load(30559),
+                icon="special://home/addons/plugin.video.embycon/icon.png",
+                time=8000,
+            )
 
     elif selected_action == "unset_view":
-        log.debug("Un-Settign view type for {0} to {1}", view_key, container_view_id)
-        settings.setSetting(view_key, "")
+        view_store.forget(view_chain)
 
     elif selected_action == "refresh_server":
         url = (

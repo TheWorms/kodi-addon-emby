@@ -27,8 +27,8 @@ from .item_functions import (
     GuiOptions,
     DisplayOptions,
 )
-from .utils import send_event_notification
 from .tracking import timer
+from .sort_options import sort_context, server_sort, client_sort, sort_gui_items
 
 log = SimpleLogging(__name__)
 
@@ -112,13 +112,22 @@ def get_content(url: str, params: dict[str, str]) -> int:
     # Applique uniquement si l'URL ne porte pas deja de SortBy explicite (parcours
     # simple d'une mediatheque), afin de ne pas ecraser les noeuds speciaux
     # (Ajouts recents, En cours, Vus recemment...) qui fixent deja leur propre tri.
+    # v1.16 : contexte de tri (Films, Series, Collections, dans une
+    # collection, dans une serie) -> tri serveur ou client selon les reglages.
+    context = sort_context(media_type)
+    sorted_explicitly = False
+    client_sort_spec = None
     if default_sort != "none":
         library_sort = get_library_server_sort(settings, media_type)
         if library_sort is not None and not re.search(
             r"[?&]SortBy=", url, flags=re.IGNORECASE
         ):
             url += "&SortBy=" + library_sort[0] + "&SortOrder=" + library_sort[1]
+            sorted_explicitly = True
             log.debug("Applied library server sort: {0}", library_sort)
+        client_sort_spec = client_sort(settings.getSetting, context)
+        if client_sort_spec is not None:
+            sorted_explicitly = True
 
     # show a progress indicator if needed
     progress = None
@@ -228,6 +237,15 @@ def get_content(url: str, params: dict[str, str]) -> int:
     if re.search(r"IsPlayed=false", url, flags=re.IGNORECASE):
         dir_items = [gi for gi in dir_items if gi.play_count == 0]
 
+    # v1.16 : tri client (dans une serie : saisons / episodes)
+    if client_sort_spec is not None:
+        dir_items = sort_gui_items(dir_items, client_sort_spec[0], client_sort_spec[1])
+        log.debug("Applied client sort: {0}", client_sort_spec)
+
+    # v1.16 : listes « recents » en ordre « plus ancien d'abord »
+    if params.get("reverse") == "true":
+        dir_items = list(reversed(dir_items))
+
     detected_type = result.detected_type
     total_records = result.total_records
 
@@ -304,22 +322,17 @@ def get_content(url: str, params: dict[str, str]) -> int:
     if page_limit > 0 and media_type.lower() in ["movies", "movie", "tvshows"]:
         xbmcplugin.addSortMethod(pluginhandle, xbmcplugin.SORT_METHOD_UNSORTED)
     else:
-        set_sort(pluginhandle, view_type, default_sort)
+        set_sort(pluginhandle, view_type, default_sort, sorted_explicitly)
 
     # Convert GuiItem objects to tuples for Kodi API
     dir_item_tuples = [item.as_tuple() for item in dir_items]
     xbmcplugin.addDirectoryItems(pluginhandle, dir_item_tuples)
     xbmcplugin.endOfDirectory(pluginhandle, cacheToDisc=False)
 
-    # set the view based on saved value
-    view_key = "view-" + content_type
-    view_id = settings.getSetting(view_key)
-    if view_id:
-        log.debug("Setting view for type:{0} to id:{1}", view_key, view_id)
-        display_items_notification = {"view_id": view_id}
-        send_event_notification("set_view", display_items_notification)
-    else:
-        log.debug("No view id for view type:{0}", view_key)
+    # v1.16 : la vue memorisee n'est plus envoyee d'ici (trop tot : la liste
+    # n'etait pas encore affichee et Kodi/le skin reimposaient leur vue). Le
+    # moniteur de vues du service (view_memory.ViewMonitor) l'applique une
+    # fois la liste chargee, par categorie.
 
     # send display items event
     # display_items_notification = {"view_type": view_type}
@@ -336,46 +349,24 @@ def get_content(url: str, params: dict[str, str]) -> int:
 def get_library_server_sort(
     settings: xbmcaddon.Addon, media_type: str
 ) -> tuple[str, str] | None:
-    """Traduit le reglage de tri d'une mediatheque en couple Emby (SortBy, SortOrder).
+    """Traduit le reglage de tri d'un contexte en couple Emby (SortBy, SortOrder).
 
-    Ne concerne que les trois mediatheques parcourables cote serveur :
-    Films (Movies), Series (tvshows) et Collections (boxsets).
-    Renvoie None quand aucun critere utilisateur n'est configure (0=Non defini,
-    1=Par defaut), auquel cas l'ordre par defaut du serveur est conserve.
+    v1.16 : delegue a sort_options. Le contenu d'une collection (boxset) a
+    desormais son propre reglage (InBoxSet) au lieu d'heriter de celui de la
+    liste des collections. None = ordre par defaut du serveur conserve.
     """
-    mt = str(media_type).lower().strip()
-    if mt in ("movies", "movie"):
-        library_key = "Movies"
-    elif mt == "tvshows":
-        library_key = "Series"
-    elif mt in ("boxsets", "boxset"):
-        library_key = "BoxSets"
-    else:
-        return None
-
-    # Mapping critere de tri -> champ Emby SortBy (indices du reglage sort-<lib>)
-    sort_field_map = {
-        "2": "SortName",         # Titre
-        "3": "ProductionYear",   # Annee
-        "4": "DateCreated",      # Date d'ajout
-        "5": "Genres",           # Genre
-        "6": "SortName",         # Nom
-        "7": "CommunityRating",  # Note
-    }
-    sort_setting = settings.getSetting("sort-" + library_key)
-    sort_by = sort_field_map.get(sort_setting)
-    if not sort_by:
-        return None
-
-    descending = settings.getSetting("sort_order-" + library_key) == "1"
-    sort_order = "Descending" if descending else "Ascending"
-    return (sort_by, sort_order)
+    return server_sort(settings.getSetting, sort_context(media_type))
 
 
-def set_sort(pluginhandle: int, view_type: str, default_sort: str) -> None:
+def set_sort(
+    pluginhandle: int, view_type: str, default_sort: str, sorted_explicitly: bool = False
+) -> None:
     log.debug("SETTING_SORT for media type: {0}", view_type)
 
-    if default_sort == "none":
+    # v1.16 : liste deja triee (serveur ou client) selon les reglages -> Kodi
+    # doit afficher l'ordre recu ; la premiere methode ajoutee est la methode
+    # active. Les autres restent disponibles dans le menu de tri du skin.
+    if default_sort == "none" or sorted_explicitly:
         xbmcplugin.addSortMethod(pluginhandle, xbmcplugin.SORT_METHOD_UNSORTED)
 
     sorting_order_mapping = {
@@ -390,7 +381,9 @@ def set_sort(pluginhandle: int, view_type: str, default_sort: str) -> None:
     }
 
     settings = xbmcaddon.Addon()
-    preset_sort_order = settings.getSetting("sort-" + view_type)
+    preset_sort_order = ""
+    if not sorted_explicitly:
+        preset_sort_order = settings.getSetting("sort-" + view_type)
     log.debug("SETTING_SORT preset_sort_order: {0}", preset_sort_order)
     if preset_sort_order in sorting_order_mapping:
         xbmcplugin.addSortMethod(pluginhandle, sorting_order_mapping[preset_sort_order])
@@ -669,6 +662,9 @@ def process_directory(
 
         gui_item = add_gui_item(series_url, item_details, display_options, folder=True)
         if gui_item:
+            # v1.16 : pseudo-element, toujours en fin de liste quel que soit le tri
+            gui_item.sort_date = ""
+            gui_item.sort_name = ""
             dir_items.append(gui_item)
 
     if cache_thread is not None:

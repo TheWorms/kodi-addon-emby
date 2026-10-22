@@ -1499,3 +1499,67 @@ msgstr ""
 msgctxt "#30549"
 msgid "The bitrate used for playback is this percentage of the measured speed, to absorb line fluctuations without stuttering."
 msgstr ""
+
+msgctxt "#30550"
+msgid "Inside a collection"
+msgstr ""
+
+msgctxt "#30551"
+msgid "Inside a series (seasons and episodes)"
+msgstr ""
+
+msgctxt "#30552"
+msgid "Recent movies (widgets and lists)"
+msgstr ""
+
+msgctxt "#30553"
+msgid "Recent series and episodes (widgets and lists)"
+msgstr ""
+
+msgctxt "#30554"
+msgid "Release date"
+msgstr ""
+
+msgctxt "#30555"
+msgid "Newest first"
+msgstr ""
+
+msgctxt "#30556"
+msgid "Oldest first"
+msgstr ""
+
+msgctxt "#30557"
+msgid "Series order (numbers)"
+msgstr ""
+
+msgctxt "#30558"
+msgid "Collections - Recently added"
+msgstr ""
+
+msgctxt "#30559"
+msgid "The skin's forced views are on and override the view remembered by EmbyCon: turn them off in the skin settings."
+msgstr ""
+
+msgctxt "#30560"
+msgid "Remember this view here"
+msgstr ""
+
+msgctxt "#30561"
+msgid "Forget the view remembered here"
+msgstr ""
+
+msgctxt "#30562"
+msgid "All remembered views have been forgotten"
+msgstr ""
+
+msgctxt "#30563"
+msgid "Automatically remember the view chosen in each category"
+msgstr ""
+
+msgctxt "#30564"
+msgid "Each category (movie library, collection content, seasons, episodes...) keeps its own view. Changing the view through the skin remembers it for that category only."
+msgstr ""
+
+msgctxt "#30565"
+msgid "Forget all remembered views"
+msgstr ""

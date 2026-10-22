@@ -1513,3 +1513,67 @@ msgstr "Mesure en échec, débit précédent conservé"
 msgctxt "#30549"
 msgid "The bitrate used for playback is this percentage of the measured speed, to absorb line fluctuations without stuttering."
 msgstr "Le débit utilisé pour la lecture vaut ce pourcentage du débit mesuré, pour absorber les variations de la ligne sans coupure."
+
+msgctxt "#30550"
+msgid "Inside a collection"
+msgstr "Dans une collection"
+
+msgctxt "#30551"
+msgid "Inside a series (seasons and episodes)"
+msgstr "Dans une série (saisons et épisodes)"
+
+msgctxt "#30552"
+msgid "Recent movies (widgets and lists)"
+msgstr "Films récents (widgets et listes)"
+
+msgctxt "#30553"
+msgid "Recent series and episodes (widgets and lists)"
+msgstr "Séries et épisodes récents (widgets et listes)"
+
+msgctxt "#30554"
+msgid "Release date"
+msgstr "Date de sortie"
+
+msgctxt "#30555"
+msgid "Newest first"
+msgstr "Plus récent d'abord"
+
+msgctxt "#30556"
+msgid "Oldest first"
+msgstr "Plus ancien d'abord"
+
+msgctxt "#30557"
+msgid "Series order (numbers)"
+msgstr "Ordre de la série (numéros)"
+
+msgctxt "#30558"
+msgid "Collections - Recently added"
+msgstr "Collections - Ajouts récents"
+
+msgctxt "#30559"
+msgid "The skin's forced views are on and override the view remembered by EmbyCon: turn them off in the skin settings."
+msgstr "Les vues forcées du skin sont actives et écrasent la vue mémorisée par EmbyCon : désactivez-les dans les réglages du skin."
+
+msgctxt "#30560"
+msgid "Remember this view here"
+msgstr "Mémoriser cette vue ici"
+
+msgctxt "#30561"
+msgid "Forget the view remembered here"
+msgstr "Oublier la vue mémorisée ici"
+
+msgctxt "#30562"
+msgid "All remembered views have been forgotten"
+msgstr "Toutes les vues mémorisées ont été oubliées"
+
+msgctxt "#30563"
+msgid "Automatically remember the view chosen in each category"
+msgstr "Mémoriser automatiquement la vue choisie dans chaque catégorie"
+
+msgctxt "#30564"
+msgid "Each category (movie library, collection content, seasons, episodes...) keeps its own view. Changing the view through the skin remembers it for that category only."
+msgstr "Chaque catégorie (médiathèque Films, contenu d'une collection, saisons, épisodes…) garde sa propre vue. Changer de vue via le skin la mémorise pour cette catégorie uniquement."
+
+msgctxt "#30565"
+msgid "Forget all remembered views"
+msgstr "Oublier toutes les vues mémorisées"

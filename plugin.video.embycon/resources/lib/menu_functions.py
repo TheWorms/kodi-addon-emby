@@ -23,6 +23,7 @@ from .translation import string_load
 from .datamanager import DataManager
 from .utils import get_art, get_emby_url
 from .custom_nodes import CustomNode, load_custom_nodes
+from .sort_options import recent_newest_first
 
 log = SimpleLogging(__name__)
 
@@ -36,6 +37,13 @@ def random_movie_path(parent_id: str | None = None, genre_id: str | None = None)
     if genre_id:
         path += "&genre_ids=" + genre_id
     return path
+
+
+def _recent_reverse_param(settings: xbmcaddon.Addon, kind: str) -> str:
+    """v1.16 : « plus ancien d'abord » sur une liste de recents -> &reverse=true."""
+    if recent_newest_first(settings.getSetting, kind):
+        return ""
+    return "&reverse=true"
 
 
 def do_user_change(menu_params: dict[str, str]) -> None:
@@ -1160,22 +1168,24 @@ def display_tvshow_type(_menu_params: dict[str, str], view: dict[str, str]) -> N
         view_name + string_load(30267) + " (" + show_x_filtered_items + ")", url
     )
 
-    # Latest Episodes
+    # Latest (v1.16 : series triees par date du dernier episode ajoute, via
+    # /Items qui respecte IsPlayed, au lieu de /Items/Latest)
     params: dict[str, object] = {}
     params.update(base_params)
     params["Limit"] = "{ItemLimit}"
-    params["SortBy"] = "DateCreated"
+    params["SortBy"] = "DateLastContentAdded,SortName"
     params["SortOrder"] = "Descending"
-    params["IncludeItemTypes"] = "Episode"
+    params["IncludeItemTypes"] = "Series"
     if hide_watched:
         params["IsPlayed"] = False
-    path = get_emby_url("{server}/emby/Users/{userid}/Items/Latest", params)
+    path = get_emby_url("{server}/emby/Users/{userid}/Items", params)
     url = (
         sys.argv[0]
         + "?url="
         + urllib.parse.quote(path)
         + "&mode=GET_CONTENT&media_type=tvshows&sort=none"
     )
+    url += _recent_reverse_param(settings, "RecentSeries")
     add_menu_directory_item(
         view_name + string_load(30288) + " (" + show_x_filtered_items + ")", url
     )
@@ -1198,6 +1208,7 @@ def display_tvshow_type(_menu_params: dict[str, str], view: dict[str, str]) -> N
         + "&mode=GET_CONTENT&media_type=Episodes&sort=none"
     )
     url += "&name_format=" + urllib.parse.quote("Episode|episode_name_format")
+    url += _recent_reverse_param(settings, "RecentSeries")
     add_menu_directory_item(
         view_name + string_load(30268) + " (" + show_x_filtered_items + ")", url
     )
@@ -1555,6 +1566,7 @@ def display_movies_type(_menu_params: dict[str, str], view: dict[str, str]) -> N
         + urllib.parse.quote(path)
         + "&mode=GET_CONTENT&media_type=movies&sort=none"
     )
+    url += _recent_reverse_param(settings, "RecentMovies")
     add_menu_directory_item(
         view_name + string_load(30268) + " (" + show_x_filtered_items + ")", url
     )
@@ -1790,6 +1802,11 @@ def show_widgets() -> None:
     add_menu_directory_item(
         string_load(30403) + " (" + show_x_filtered_items + ")",
         "plugin://plugin.video.embycon/?mode=WIDGET_CONTENT&type=movie_recommendations&reload=$INFO[Window(Home).Property(plugin.video.embycon-embycon_widget_reload)]",
+    )
+
+    add_menu_directory_item(
+        string_load(30558) + " (" + show_x_filtered_items + ")",
+        "plugin://plugin.video.embycon/?mode=WIDGET_CONTENT&type=recent_boxsets&reload=$INFO[Window(Home).Property(plugin.video.embycon-embycon_widget_reload)]",
     )
 
     add_menu_directory_item(
