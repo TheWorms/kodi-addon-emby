@@ -149,8 +149,10 @@ prev_user_id = home_window.get_property("userid")
 refresh_grace = 0
 
 # EmbyCon FR: mesure periodique du debit en mode qualite auto (arriere-plan).
+# v1.15 : 2 mesures de 8 Mo -> toutes les 30 min (au lieu de 15) et jamais
+# pendant l'economiseur d'ecran ; une mesure part des la sortie de veille.
 last_bitrate_check = 0.0
-bitrate_auto_interval = 15 * 60
+bitrate_auto_interval = 30 * 60
 
 while not kodi_monitor.abortRequested():
     try:
@@ -200,8 +202,9 @@ while not kodi_monitor.abortRequested():
             # EmbyCon FR: qualite auto - mesure periodique du debit en arriere-plan
             # (thread dedie, ne bloque jamais l'interface ni la lecture).
             if (
-                settings.getSetting("bitrate_mode") == "1"
+                xbmcaddon.Addon().getSetting("bitrate_mode") == "1"
                 and (time.time() - last_bitrate_check) > bitrate_auto_interval
+                and not xbmc.getCondVisibility("System.ScreenSaverActive")
             ):
                 last_bitrate_check = time.time()
                 threading.Thread(

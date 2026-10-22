@@ -119,7 +119,7 @@
 				</setting>
 				<setting id="auto_bitrate_test_size" type="integer" label="30467" help="">
 				<level>0</level>
-				<default>2</default>
+				<default>8</default>
 				<dependencies>
 				<dependency type="visible">
 				<condition operator="is" setting="bitrate_mode">1</condition>
@@ -132,6 +132,75 @@
 				</constraints>
 				<control type="slider" format="integer">
 				<heading>30467</heading>
+				</control>
+				</setting>
+				<setting id="auto_bitrate_margin" type="integer" label="30533" help="30549">
+				<level>0</level>
+				<default>80</default>
+				<dependencies>
+				<dependency type="visible">
+				<condition operator="is" setting="bitrate_mode">1</condition>
+				</dependency>
+				</dependencies>
+				<constraints>
+				<minimum>50</minimum>
+				<step>5</step>
+				<maximum>100</maximum>
+				</constraints>
+				<control type="slider" format="integer">
+				<popup>false</popup>
+				</control>
+				</setting>
+				<setting id="auto_bitrate_min" type="integer" label="30534" help="">
+				<level>0</level>
+				<default>2000</default>
+				<dependencies>
+				<dependency type="visible">
+				<condition operator="is" setting="bitrate_mode">1</condition>
+				</dependency>
+				</dependencies>
+				<control type="edit" format="integer">
+				<heading>30534</heading>
+				</control>
+				</setting>
+				<setting id="auto_bitrate_max" type="integer" label="30535" help="">
+				<level>0</level>
+				<default>0</default>
+				<dependencies>
+				<dependency type="visible">
+				<condition operator="is" setting="bitrate_mode">1</condition>
+				</dependency>
+				</dependencies>
+				<control type="edit" format="integer">
+				<heading>30535</heading>
+				</control>
+				</setting>
+				<setting id="auto_bitrate_last" type="string" label="30536" help="">
+				<level>0</level>
+				<default></default>
+				<constraints>
+				<allowempty>true</allowempty>
+				</constraints>
+				<dependencies>
+				<dependency type="visible">
+				<condition operator="is" setting="bitrate_mode">1</condition>
+				</dependency>
+				<dependency type="enable" on="property" name="infobool">false</dependency>
+				</dependencies>
+				<control type="edit" format="string">
+				<heading>30536</heading>
+				</control>
+				</setting>
+				<setting id="auto_bitrate_measure_now" type="action" label="30537" help="">
+				<level>0</level>
+				<dependencies>
+				<dependency type="visible">
+				<condition operator="is" setting="bitrate_mode">1</condition>
+				</dependency>
+				</dependencies>
+				<data>RunScript(plugin.video.embycon,0,?mode=AUTO_BITRATE_NOW)</data>
+				<control type="button" format="action">
+				<close>true</close>
 				</control>
 				</setting>
 				<setting id="max_stream_bitrate" type="number" label="30208" help="">
@@ -454,6 +523,39 @@
 				<level>0</level>
 				<default>false</default>
 				<control type="toggle"/>
+				</setting>
+				<setting id="collection_play_order" type="integer" label="30528" help="">
+				<level>0</level>
+				<default>0</default>
+				<constraints>
+				<options>
+				<option label="30529">0</option>
+				<option label="30530">1</option>
+				<option label="30531">2</option>
+				</options>
+				</constraints>
+				<control type="list" format="string">
+				<heading>30528</heading>
+				</control>
+				</setting>
+			</group>
+			<group id="5" label="30519">
+				<setting id="random_movie_unplayed" type="boolean" label="30525" help="">
+				<level>0</level>
+				<default>true</default>
+				<control type="toggle"/>
+				</setting>
+				<setting id="random_movie_max_minutes" type="integer" label="30526" help="">
+				<level>0</level>
+				<default>0</default>
+				<constraints>
+				<minimum>0</minimum>
+				<step>10</step>
+				<maximum>240</maximum>
+				</constraints>
+				<control type="slider" format="integer">
+				<popup>false</popup>
+				</control>
 				</setting>
 			</group>
 		</category>

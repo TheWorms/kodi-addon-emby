@@ -21,7 +21,7 @@ from .profile_utils import get_profile_data, remove_old_profiles
 from .kodi_utils import HomeWindow
 from .clientinfo import ClientInformation
 from .datamanager import DataManager, clear_cached_server_data, invalidate_content_cache
-from .server_detect import check_server, check_connection_speed
+from .server_detect import check_server, check_connection_speed, measure_bitrate_now
 from .simple_logging import SimpleLogging
 from .menu_functions import (
     display_main_menu,
@@ -48,9 +48,14 @@ from .skin_cloner import clone_default_skin
 from .item_functions import extract_media_info
 from .custom_nodes import load_custom_nodes
 from .profile_utils import list_available_profiles, view_profile_details
+from .random_movie import choisir_film_au_hasard
+from .marker_info import show_marker_info
 
 
 log = SimpleLogging(__name__)
+
+# v1.15 : types de conteneurs lisibles d'un bloc via « Tout lire »
+PLAY_ALL_TYPES = ("Season", "MusicAlbum", "Playlist", "BoxSet")
 
 
 @timer
@@ -171,6 +176,14 @@ def main_entry_point() -> None:
         item_count = get_content(param_url, params)
     elif mode == "PLAY":
         play_action(params)
+    elif mode == "RANDOM_MOVIE":
+        # v1.15 : tirage d'un film + dialogue Lire / Autre tirage / Annuler
+        film_id = choisir_film_au_hasard(params)
+        if film_id:
+            play_action({"item_id": film_id})
+    elif mode == "AUTO_BITRATE_NOW":
+        # v1.15 : bouton « Mesurer maintenant » des reglages (qualite auto)
+        measure_bitrate_now()
     else:
         check_server()
         display_main_menu()
@@ -466,9 +479,14 @@ def show_menu(params: dict[str, str]) -> None:
         li.setProperty("menu_id", "play")
         action_items.append(li)
 
-    if result["Type"] in ["Season", "MusicAlbum", "Playlist"]:
+    # v1.15 : « Tout lire » aussi pour les collections (BoxSet), + version
+    # aleatoire pour tous les conteneurs lisibles d'un bloc
+    if result["Type"] in PLAY_ALL_TYPES:
         li = xbmcgui.ListItem(string_load(30317))
         li.setProperty("menu_id", "play_all")
+        action_items.append(li)
+        li = xbmcgui.ListItem(string_load(30527))
+        li.setProperty("menu_id", "play_all_shuffle")
         action_items.append(li)
 
     if result["Type"] in ["Episode", "Movie", "Video", "TvChannel", "Program"]:
@@ -549,6 +567,10 @@ def show_menu(params: dict[str, str]) -> None:
     if result["Type"] in ("Movie", "Episode"):
         li = xbmcgui.ListItem("Media Info")
         li.setProperty("menu_id", "media_info")
+        action_items.append(li)
+        # v1.15 : diagnostic des marqueurs intro / generique
+        li = xbmcgui.ListItem(string_load(30532))
+        li.setProperty("menu_id", "marker_info")
         action_items.append(li)
 
     window = xbmcgui.Window(xbmcgui.getCurrentWindowId())
@@ -643,6 +665,13 @@ def show_menu(params: dict[str, str]) -> None:
 
     elif selected_action == "play_all":
         play_action(params)
+
+    elif selected_action == "play_all_shuffle":
+        params["shuffle"] = "true"
+        play_action(params)
+
+    elif selected_action == "marker_info":
+        show_marker_info(item_id)
 
     elif selected_action == "play_trailer":
         play_item_trailer(item_id)
@@ -1040,6 +1069,9 @@ def play_action(params: dict[str, str]) -> None:
 
     action = params.get("action", "play")
 
+    # v1.15 : lecture aleatoire d'un conteneur (Tout lire (aleatoire))
+    shuffle = params.get("shuffle", "") == "true"
+
     # set the current playing item id
     # set all the playback info, this will be picked up by the service
     # the service will then start the playback
@@ -1054,6 +1086,8 @@ def play_action(params: dict[str, str]) -> None:
     play_info["media_source_id"] = media_source_id
     play_info["subtitle_stream_index"] = subtitle_stream_index
     play_info["audio_stream_index"] = audio_stream_index
+    if shuffle:
+        play_info["shuffle"] = True
     log.info("Sending embycon_play_action : {0}", play_info)
     send_event_notification("embycon_play_action", play_info)
 

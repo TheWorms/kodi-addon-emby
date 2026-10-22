@@ -34,6 +34,287 @@ from .skip_intro_dialog import SkipIntroMonitor, SkipCreditsMonitor
 
 log = SimpleLogging(__name__)
 
+# v1.15 : ordre de lecture d'une collection (reglage collection_play_order)
+_ORDRES_COLLECTION = {
+    "0": ("PremiereDate,ProductionYear,SortName", "Ascending"),
+    "1": ("PremiereDate,ProductionYear,SortName", "Descending"),
+    "2": ("SortName", "Ascending"),
+}
+
+
+def build_play_all_url(
+    parent_id: str, parent_type: str, shuffle: bool, collection_order: str
+) -> str:
+    """URL des elements d'un conteneur a lire d'un bloc.
+
+    - Fields=Chapters pour que le saut d'intro/generique marche aussi en
+      « Tout lire » (avant v1.15 les marqueurs etaient ignores).
+    - Collection : uniquement le lisible (films, episodes, videos), dans
+      l'ordre du reglage (date de sortie croissante par defaut).
+    - Aleatoire : tri Random cote serveur, quel que soit le conteneur.
+    """
+    parts = [
+        "{server}/emby/Users/{userid}/items",
+        "?ParentId=" + parent_id,
+        "&Fields=Chapters,{field_filters}",
+        "&IsMissing=false",
+    ]
+    if parent_type == "BoxSet":
+        parts.append("&IncludeItemTypes=Movie,Episode,Video,MusicVideo")
+    if shuffle:
+        parts.append("&SortBy=Random")
+    elif parent_type == "BoxSet":
+        sort_by, sort_order = _ORDRES_COLLECTION.get(
+            collection_order or "0", _ORDRES_COLLECTION["0"]
+        )
+        parts.append("&SortBy=" + sort_by + "&SortOrder=" + sort_order)
+    parts.append("&format=json")
+    return "".join(parts)
+
+
+def extract_markers(chapters: list) -> tuple[int, int, int]:
+    """(intro_start, intro_end, credits_start) en ticks, 0 si absent."""
+    intro_start = 0
+    intro_end = 0
+    credits_start = 0
+    for chapter in chapters or []:
+        marker = chapter.get("MarkerType")
+        ticks = chapter.get("StartPositionTicks") or 0
+        if not marker or marker == "Chapter":
+            continue
+        log.debug("Play Item Marker : {0} - {1}", marker, ticks)
+        if intro_start == 0 and marker == "IntroStart":
+            intro_start = ticks
+        elif intro_end == 0 and marker == "IntroEnd":
+            intro_end = ticks
+        elif credits_start == 0 and marker == "CreditsStart":
+            credits_start = ticks
+    return intro_start, intro_end, credits_start
+
+
+def _ticks_hms(ticks: int) -> str:
+    if not ticks:
+        return "-"
+    return str(timedelta(seconds=int(ticks / 10000000)))
+
+
+def log_markers(
+    name: str, intro_start: int, intro_end: int, credits_start: int
+) -> None:
+    """v1.15 : une ligne claire par lecture pour diagnostiquer le saut."""
+    if intro_end > intro_start:
+        intro = "intro %s -> %s" % (_ticks_hms(intro_start), _ticks_hms(intro_end))
+    else:
+        intro = "intro : aucun marqueur serveur"
+    if credits_start:
+        credits = "generique %s" % _ticks_hms(credits_start)
+    else:
+        credits = "generique : aucun marqueur serveur"
+    log.info("Marqueurs [{0}] : {1} | {2}", name, intro, credits)
+
+
+def _prepare_play_all_item(
+    item: dict,
+    download_utils: DownloadUtils,
+    server: str,
+    settings: xbmcaddon.Addon,
+    max_image_width: int,
+    monitor: PlaybackMonitorService,
+) -> tuple[str, xbmcgui.ListItem] | None:
+    """Prepare UN element de « Tout lire » : URL de lecture + ListItem.
+
+    Enregistre aussi les donnees de suivi (marqueurs intro/generique inclus,
+    v1.15) dans monitor.played_information. None si l'element est illisible.
+    """
+    item_id = item.get("Id")
+
+    # get playback info
+    playback_info = download_utils.get_item_playback_info(item_id, False)
+    if playback_info is None:
+        log.debug(
+            "playback_info was None, could not get MediaSources so can not play!"
+        )
+        return None
+    if playback_info.get("ErrorCode") is not None:
+        error_string = playback_info.get("ErrorCode", "code_unknown")
+        xbmcgui.Dialog().notification(
+            string_load(30316),
+            error_string,
+            icon="special://home/addons/plugin.video.embycon/icon.png",
+        )
+        return None
+
+    play_session_id = playback_info.get("PlaySessionId", "")
+    live_stream_id = playback_info.get("LiveStreamId", "")
+
+    # select the media source to use
+    sources = playback_info.get("MediaSources")
+    if sources is None or len(sources) == 0:
+        log.debug("Play Failed! There is no MediaSources data!")
+        return None
+
+    selected_media_source = sources[0]
+    source_id = selected_media_source.get("Id")
+
+    play_result = PlayUtils().get_play_url(selected_media_source)
+    playurl = play_result.playurl
+    playback_type = play_result.playback_type
+    listitem_props = play_result.listitem_props
+    log.info(
+        "Play URL: {0} PlaybackType: {1} ListItem Properties: {2}",
+        _masque_donnees_sensibles(playurl or ""),
+        playback_type,
+        listitem_props,
+    )
+
+    if playurl is None:
+        return None
+
+    playback_type_string = "DirectPlay"
+    if playback_type == "2":
+        playback_type_string = "Transcode"
+    elif playback_type == "1":
+        playback_type_string = "DirectStream"
+
+    # add the playback type into the overview
+    if item.get("Overview", None) is not None:
+        item["Overview"] = playback_type_string + "\n" + item.get("Overview")
+    else:
+        item["Overview"] = playback_type_string
+
+    # add title decoration is needed
+    item_title = item.get("Name", string_load(30280))
+
+    use_prem_date_for_added = settings.getSetting("use_prem_date_for_added") == "true"
+    gui_options = GuiOptions(
+        server=server,
+        name_format=None,
+        name_format_type="",
+        max_image_width=max_image_width,
+        use_prem_date_for_added=use_prem_date_for_added,
+    )
+    item_details = extract_item_info(item, gui_options, download_utils=download_utils)
+
+    # create ListItem
+    display_options = DisplayOptions()
+    display_options.addCounts = False
+    display_options.addResumePercent = False
+    display_options.addSubtitleAvailable = False
+
+    gui_item: GuiItem | None = add_gui_item("", item_details, display_options, False)
+    if gui_item is None:
+        log.debug("playAllFiles: gui_item was None, cannot play item")
+        return None
+
+    list_item: xbmcgui.ListItem = gui_item.list_item
+
+    # v1.15 : marqueurs -> le saut d'intro/generique marche aussi en Tout lire
+    intro_start, intro_end, credits_start = extract_markers(
+        item.get("Chapters") or []
+    )
+
+    # add playurl and data to the monitor
+    data = {}
+    data["item_id"] = item_id
+    data["source_id"] = source_id
+    data["playback_type"] = playback_type_string
+    data["play_session_id"] = play_session_id
+    data["live_stream_id"] = live_stream_id
+    data["play_action_type"] = "play_all"
+    data["item_type"] = item.get("Type", None)
+    data["intro_start"] = intro_start
+    data["intro_end"] = intro_end
+    data["credits_start"] = credits_start
+    monitor.played_information[playurl] = data
+    log.debug("Add to played_information: {0}", monitor.played_information)
+
+    list_item.setPath(playurl)
+    list_item = set_list_item_props(
+        item_id,
+        list_item,
+        item,
+        server,
+        listitem_props,
+        item_title,
+        max_image_width,
+    )
+    return playurl, list_item
+
+
+def _playing_one_of(player: xbmc.Player, urls: set) -> bool:
+    """Vrai si le lecteur joue encore un des elements de NOTRE liste."""
+    try:
+        if not player.isPlaying():
+            return False
+        if player.getPlayingFile() in urls:
+            return True
+    except Exception:
+        return False
+    return xbmc.getInfoLabel("Player.Filenameandpath") in urls
+
+
+def _wait_for_playback(player: xbmc.Player, timeout_tenths: int) -> bool:
+    xbmc_monitor = xbmc.Monitor()
+    count = 0
+    while (
+        not player.isPlaying()
+        and not xbmc_monitor.abortRequested()
+        and count < timeout_tenths
+    ):
+        count = count + 1
+        xbmc.sleep(100)
+    return player.isPlaying() and not xbmc_monitor.abortRequested()
+
+
+def _resume_first_item(player: xbmc.Player, seek_time: float) -> bool:
+    """Reprise du premier element (auto_resume). False si la lecture a echoue."""
+    player.pause()
+    if not _wait_for_playback(player, 100):
+        log.info(
+            "PlaybackResumeAction : Playback item did not get to a play state in 10 seconds so exiting"
+        )
+        player.stop()
+        return False
+
+    log.info("PlaybackResumeAction : Playback is Running")
+    xbmc_monitor = xbmc.Monitor()
+    seek_to_time = seek_time
+    target_seek = seek_to_time - 10
+
+    count = 0
+    max_loops = 2 * 120
+    while not xbmc_monitor.abortRequested() and player.isPlaying() and count < max_loops:
+        log.info("PlaybackResumeAction : Seeking to : {0}", seek_to_time)
+        player.seekTime(seek_to_time)
+        current_position = player.getTime()
+        if current_position >= target_seek:
+            break
+        log.info(
+            "PlaybackResumeAction : target:{0} current:{1}",
+            target_seek,
+            current_position,
+        )
+        count = count + 1
+        xbmc.sleep(500)
+
+    if count == max_loops:
+        log.info("PlaybackResumeAction : Playback could not seek to required position")
+        player.stop()
+        return False
+
+    count = 0
+    while bool(xbmc.getCondVisibility("Player.Paused")) and count < 10:
+        log.info("PlaybackResumeAction : Unpausing playback")
+        player.pause()
+        xbmc.sleep(1000)
+        count = count + 1
+
+    if count == 10:
+        log.info("PlaybackResumeAction : Could not unpause")
+    else:
+        log.info("PlaybackResumeAction : Playback resumed")
+    return True
+
 
 def play_all_files(
     items: list,
@@ -41,7 +322,16 @@ def play_all_files(
     monitor: PlaybackMonitorService,
     play_items: bool = True,
 ) -> xbmc.PlayList | None:
-    log.debug("playAllFiles called with items: {0}", items)
+    """Lit (ou prepare, si play_items=False) une liste d'elements a la suite.
+
+    v1.15 : preparation AU FIL DE L'EAU. Avant, chaque element etait prepare
+    (une requete PlaybackInfo par element) avant de lancer le premier : 3 a 5 s
+    d'attente pour une collection de 10 films. Desormais la lecture demarre
+    des que le premier element est pret, les suivants sont ajoutes a la liste
+    pendant qu'il joue. Un element illisible est saute au lieu de tout annuler.
+    Si l'utilisateur arrete ou lance autre chose entre-temps, on s'arrete.
+    """
+    log.debug("playAllFiles called with {0} items", len(items))
     download_utils = DownloadUtils()
     server = download_utils.get_server()
     if server is None or server == "":
@@ -54,199 +344,62 @@ def play_all_files(
     settings = xbmcaddon.Addon()
     max_image_width = int(settings.getSetting("max_image_width"))
 
-    for item in items:
-        item_id = item.get("Id")
+    player = xbmc.Player()
+    our_urls: set = set()
+    started = False
 
-        # get playback info
-        playback_info = download_utils.get_item_playback_info(item_id, False)
-        if playback_info is None:
-            log.debug(
-                "playback_info was None, could not get MediaSources so can not play!"
+    for index, item in enumerate(items):
+        if started and not _playing_one_of(player, our_urls):
+            log.info(
+                "Tout lire : lecture arretee ou remplacee, preparation interrompue ({0}/{1})",
+                index,
+                len(items),
             )
-            return None
-        if playback_info.get("ErrorCode") is not None:
-            error_string = playback_info.get("ErrorCode", "code_unknown")
-            xbmcgui.Dialog().notification(
-                string_load(30316),
-                error_string,
-                icon="special://home/addons/plugin.video.embycon/icon.png",
-            )
-            return None
+            break
 
-        play_session_id = playback_info.get("PlaySessionId", "")
-        live_stream_id = playback_info.get("LiveStreamId", "")
-
-        # select the media source to use
-        sources = playback_info.get("MediaSources")
-        if sources is None or len(sources) == 0:
-            log.debug("Play Failed! There is no MediaSources data!")
-            return None
-
-        selected_media_source = sources[0]
-        source_id = selected_media_source.get("Id")
-
-        play_result = PlayUtils().get_play_url(selected_media_source)
-        playurl = play_result.playurl
-        playback_type = play_result.playback_type
-        listitem_props = play_result.listitem_props
-        log.info(
-            "Play URL: {0} PlaybackType: {1} ListItem Properties: {2}",
-            _masque_donnees_sensibles(playurl or ""),
-            playback_type,
-            listitem_props,
+        prepared = _prepare_play_all_item(
+            item, download_utils, server, settings, max_image_width, monitor
         )
-
-        if playurl is None:
-            return None
-
-        playback_type_string = "DirectPlay"
-        if playback_type == "2":
-            playback_type_string = "Transcode"
-        elif playback_type == "1":
-            playback_type_string = "DirectStream"
-
-        # add the playback type into the overview
-        if item.get("Overview", None) is not None:
-            item["Overview"] = playback_type_string + "\n" + item.get("Overview")
-        else:
-            item["Overview"] = playback_type_string
-
-        # add title decoration is needed
-        item_title = item.get("Name", string_load(30280))
-
-        use_prem_date_for_added = (
-            settings.getSetting("use_prem_date_for_added") == "true"
-        )
-        gui_options = GuiOptions(
-            server=server,
-            name_format=None,
-            name_format_type="",
-            max_image_width=max_image_width,
-            use_prem_date_for_added=use_prem_date_for_added,
-        )
-        item_details = extract_item_info(
-            item, gui_options, download_utils=download_utils
-        )
-
-        # create ListItem
-        display_options = DisplayOptions()
-        display_options.addCounts = False
-        display_options.addResumePercent = False
-        display_options.addSubtitleAvailable = False
-
-        gui_item: GuiItem | None = add_gui_item(
-            "", item_details, display_options, False
-        )
-        if gui_item is None:
-            log.debug("playAllFiles: gui_item was None, cannot play item")
+        if prepared is None:
+            if not play_items:
+                # liste d'intros cinema : comportement d'origine (tout ou rien)
+                return None
+            log.info("Tout lire : element {0} illisible, ignore", item.get("Id"))
             continue
 
-        list_item: xbmcgui.ListItem = gui_item.list_item
-        # list_item = xbmcgui.ListItem(label=item_title)
-
-        # add playurl and data to the monitor
-        data = {}
-        data["item_id"] = item_id
-        data["source_id"] = source_id
-        data["playback_type"] = playback_type_string
-        data["play_session_id"] = play_session_id
-        data["live_stream_id"] = live_stream_id
-        data["play_action_type"] = "play_all"
-        monitor.played_information[playurl] = data
-        log.debug("Add to played_information: {0}", monitor.played_information)
-
-        list_item.setPath(playurl)
-        list_item = set_list_item_props(
-            item_id,
-            list_item,
-            item,
-            server,
-            listitem_props,
-            item_title,
-            max_image_width,
-        )
-
+        playurl, list_item = prepared
+        our_urls.add(playurl)
         playlist.add(playurl, list_item)
 
-    if play_items:
-        # auto_resume = "9000000000" # 15 min
-        auto_resume_int: int = int(auto_resume)
-        seek_time = 0
-        # process user data for resume points
-        if auto_resume_int != -1:
-            seek_time = (auto_resume_int / 1000) / 10000
+        if not play_items:
+            continue
 
-        log.debug(
-            "play_all_files auto_resume : {0} seekto : {1}", auto_resume_int, seek_time
-        )
-
-        player = xbmc.Player()
-        player.play(playlist)
-
-        if seek_time != 0:
-            player.pause()
-            xbmc_monitor: xbmc.Monitor = xbmc.Monitor()
-            count = 0
-            while (
-                not player.isPlaying()
-                and not xbmc_monitor.abortRequested()
-                and count != 100
-            ):
-                count = count + 1
-                xbmc.sleep(100)
-
-            if count == 100 or not player.isPlaying() or xbmc_monitor.abortRequested():
-                log.info(
-                    "PlaybackResumeAction : Playback item did not get to a play state in 10 seconds so exiting"
-                )
-                player.stop()
+        if not started:
+            started = True
+            auto_resume_int: int = int(auto_resume)
+            seek_time = 0
+            if auto_resume_int != -1:
+                seek_time = (auto_resume_int / 1000) / 10000
+            log.debug(
+                "play_all_files auto_resume : {0} seekto : {1}", auto_resume_int, seek_time
+            )
+            player.play(playlist)
+            if seek_time != 0:
+                if not _resume_first_item(player, seek_time):
+                    return None
+            elif not _wait_for_playback(player, 300):
+                log.info("Tout lire : la lecture n'a pas demarre en 30 s, abandon")
                 return None
+        else:
+            # laisse Kodi traiter les callbacks en attente (onPlayBackStarted,
+            # onAVStarted...) entre deux preparations
+            xbmc.sleep(50)
 
-            log.info("PlaybackResumeAction : Playback is Running")
-
-            seek_to_time = seek_time
-            target_seek = seek_to_time - 10
-
-            count = 0
-            max_loops = 2 * 120
-            while (
-                not xbmc_monitor.abortRequested()
-                and player.isPlaying()
-                and count < max_loops
-            ):
-                log.info("PlaybackResumeAction : Seeking to : {0}", seek_to_time)
-                player.seekTime(seek_to_time)
-                current_position = player.getTime()
-                if current_position >= target_seek:
-                    break
-                log.info(
-                    "PlaybackResumeAction : target:{0} current:{1}",
-                    target_seek,
-                    current_position,
-                )
-                count = count + 1
-                xbmc.sleep(500)
-
-            if count == max_loops:
-                log.info(
-                    "PlaybackResumeAction : Playback could not seek to required position"
-                )
-                player.stop()
-            else:
-                count = 0
-                while bool(xbmc.getCondVisibility("Player.Paused")) and count < 10:
-                    log.info("PlaybackResumeAction : Unpausing playback")
-                    player.pause()
-                    xbmc.sleep(1000)
-                    count = count + 1
-
-                if count == 10:
-                    log.info("PlaybackResumeAction : Could not unpause")
-                else:
-                    log.info("PlaybackResumeAction : Playback resumed")
-
-        return None
-    return playlist
+    if not play_items:
+        return playlist
+    if not started:
+        log.info("Tout lire : aucun element lisible")
+    return None
 
 
 def play_list_of_items(
@@ -449,31 +602,33 @@ def play_file(
     )
     data_manager = DataManager()
     result = data_manager.get_content(url)
-    log.debug("Playfile item: {0}", dict(result))
 
-    if result is None:
+    if not result:
         log.debug("Playfile item was None, so can not play!")
         return None
+    log.debug("Playfile item: {0}", dict(result))
 
-    # if this is a season, playlist or album then play all items in that parent
-    if result.get("Type") in ["Season", "MusicAlbum", "Playlist"]:
+    # if this is a season, playlist, album or collection then play all items
+    # in that parent (v1.15 : collections + lecture aleatoire)
+    if result.get("Type") in ["Season", "MusicAlbum", "Playlist", "BoxSet"]:
         log.debug("PlayAllFiles for parent item id: {0}", item_id)
-        url = "".join(
-            [
-                "{server}/emby/Users/{userid}/items",
-                "?ParentId=%s",
-                "&Fields={field_filters}",
-                "&format=json",
-            ]
+        shuffle = bool(play_info.get("shuffle", False))
+        url = build_play_all_url(
+            item_id,
+            result.get("Type", ""),
+            shuffle,
+            settings.getSetting("collection_play_order"),
         )
-        url = url % (item_id,)
         result = data_manager.get_content(url)
         log.debug("PlayAllFiles items: {0}", result)
 
         # process each item
-        items = result["Items"]
+        items = (result or {}).get("Items")
         if items is None:
             items = []
+        log.info(
+            "Tout lire : {0} element(s), aleatoire={1}", len(items), shuffle
+        )
         return play_all_files(items, "-1", monitor)
 
     # if this is a program from live tv epg then play the actual channel
@@ -674,23 +829,10 @@ def play_file(
         external_subs(selected_media_source, list_item, item_id)
 
     # get chapters for skip intro action
-    chapters = result.get("Chapters", [])
-    intro_start = 0
-    intro_end = 0
-    credits_start = 0
-    for chapter in chapters:
-        log.debug(
-            "Play Item Chapter : {0} - {1} - {2}",
-            chapter["MarkerType"],
-            chapter["Name"],
-            chapter["StartPositionTicks"],
-        )
-        if intro_start == 0 and chapter["MarkerType"] == "IntroStart":
-            intro_start = chapter["StartPositionTicks"]
-        elif intro_end == 0 and chapter["MarkerType"] == "IntroEnd":
-            intro_end = chapter["StartPositionTicks"]
-        elif credits_start == 0 and chapter["MarkerType"] == "CreditsStart":
-            credits_start = chapter["StartPositionTicks"]
+    intro_start, intro_end, credits_start = extract_markers(
+        result.get("Chapters") or []
+    )
+    log_markers(result.get("Name", ""), intro_start, intro_end, credits_start)
 
     # add playurl and data to the monitor
     data = {}

@@ -27,6 +27,17 @@ from .custom_nodes import CustomNode, load_custom_nodes
 log = SimpleLogging(__name__)
 
 
+def random_movie_path(parent_id: str | None = None, genre_id: str | None = None) -> str:
+    """v1.15 : chemin plugin du « Film au hasard » (bibliotheque / genre)."""
+    path = "plugin://plugin.video.embycon/?mode=RANDOM_MOVIE"
+    # les listes globales passent parent_id=none : pas de filtre bibliotheque
+    if parent_id and parent_id != "none":
+        path += "&parent_id=" + parent_id
+    if genre_id:
+        path += "&genre_ids=" + genre_id
+    return path
+
+
 def do_user_change(menu_params: dict[str, str]) -> None:
     log.info("do_user_change: {0}", menu_params)
 
@@ -535,6 +546,12 @@ def show_genre_list(menu_params: dict[str, str]) -> None:
         item_data["art"] = art
 
         item_data["path"] = url
+        # v1.15 : « Film au hasard dans ce genre » (menu contextuel)
+        if emby_type == "Movie":
+            random_path = random_movie_path(parent_id, genre.get("Id"))
+            item_data["context"] = [
+                (string_load(30520), "RunPlugin(" + random_path + ")")
+            ]
         collections.append(item_data)
 
     for collection in collections:
@@ -552,7 +569,10 @@ def show_genre_list(menu_params: dict[str, str]) -> None:
             collection.get("art"),
         )
         add_menu_directory_item(
-            collection.get("title", string_load(30250)), url, art=collection.get("art")
+            collection.get("title", string_load(30250)),
+            url,
+            art=collection.get("art"),
+            context_items=collection.get("context"),
         )
 
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
@@ -1024,6 +1044,7 @@ def display_homevideos_type(_menu_params: dict[str, str], view: dict[str, str]) 
 
 
 def display_addon_menu(_params: dict[str, str]) -> None:
+    add_menu_directory_item(string_load(30519), random_movie_path(), folder=False)
     add_menu_directory_item(
         string_load(30246), "plugin://plugin.video.embycon/?mode=SEARCH"
     )
@@ -1468,6 +1489,14 @@ def display_movies_type(_menu_params: dict[str, str], view: dict[str, str]) -> N
     )
     add_menu_directory_item(view_name + string_load(30285), url)
 
+    # v1.15 : Film au hasard (lance directement un film tire au sort)
+    random_parent = view.get("Id") if view is not None else None
+    add_menu_directory_item(
+        view_name + string_load(30538),
+        random_movie_path(random_parent),
+        folder=False,
+    )
+
     # Recently Watched Movies
     params: dict[str, object] = {}
     params.update(base_params)
@@ -1756,6 +1785,8 @@ def show_widgets() -> None:
         string_load(30269) + " (" + show_x_filtered_items + ")",
         "plugin://plugin.video.embycon/?mode=WIDGET_CONTENT&type=random_movies&reload=$INFO[Window(Home).Property(plugin.video.embycon-embycon_widget_reload)]",
     )
+    # v1.15 : lance directement un film au hasard (raccourci de menu possible)
+    add_menu_directory_item(string_load(30519), random_movie_path(), folder=False)
     add_menu_directory_item(
         string_load(30403) + " (" + show_x_filtered_items + ")",
         "plugin://plugin.video.embycon/?mode=WIDGET_CONTENT&type=movie_recommendations&reload=$INFO[Window(Home).Property(plugin.video.embycon-embycon_widget_reload)]",

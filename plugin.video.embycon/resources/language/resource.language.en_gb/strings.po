@@ -1183,7 +1183,7 @@ msgid "Manual"
 msgstr ""
 
 msgctxt "#30466"
-msgid "Automatic (detect before playback)"
+msgid "Automatic (periodic measurement)"
 msgstr ""
 
 msgctxt "#30467"
@@ -1375,3 +1375,127 @@ msgstr "Minimum interval between cache revalidations (minutes, 0 = disabled)"
 msgctxt "#30518"
 msgid "A cached list is not re-downloaded in the background more than once per interval. 0 revalidates on every view (upstream behaviour)."
 msgstr "A cached list is not re-downloaded in the background more than once per interval. 0 revalidates on every view (upstream behaviour)."
+
+msgctxt "#30519"
+msgid "Random movie"
+msgstr ""
+
+msgctxt "#30520"
+msgid "Random movie in this genre"
+msgstr ""
+
+msgctxt "#30521"
+msgid "Play"
+msgstr ""
+
+msgctxt "#30522"
+msgid "Another pick"
+msgstr ""
+
+msgctxt "#30523"
+msgid "Cancel"
+msgstr ""
+
+msgctxt "#30524"
+msgid "No movie matches the criteria"
+msgstr ""
+
+msgctxt "#30525"
+msgid "Unwatched movies only"
+msgstr ""
+
+msgctxt "#30526"
+msgid "Maximum duration (minutes, 0 = no limit)"
+msgstr ""
+
+msgctxt "#30527"
+msgid "Play all (shuffle)"
+msgstr ""
+
+msgctxt "#30528"
+msgid "Collection play order"
+msgstr ""
+
+msgctxt "#30529"
+msgid "Release date, oldest first"
+msgstr ""
+
+msgctxt "#30530"
+msgid "Release date, newest first"
+msgstr ""
+
+msgctxt "#30531"
+msgid "Name"
+msgstr ""
+
+msgctxt "#30532"
+msgid "Intro / credits markers"
+msgstr ""
+
+msgctxt "#30533"
+msgid "Safety margin (% of measured speed)"
+msgstr ""
+
+msgctxt "#30534"
+msgid "Minimum bitrate (kbs)"
+msgstr ""
+
+msgctxt "#30535"
+msgid "Maximum bitrate (kbs, 0 = no limit)"
+msgstr ""
+
+msgctxt "#30536"
+msgid "Last measurement"
+msgstr ""
+
+msgctxt "#30537"
+msgid "Measure now"
+msgstr ""
+
+msgctxt "#30538"
+msgid " - Random movie"
+msgstr ""
+
+msgctxt "#30539"
+msgid "Intro start"
+msgstr ""
+
+msgctxt "#30540"
+msgid "Intro end"
+msgstr ""
+
+msgctxt "#30541"
+msgid "Credits start"
+msgstr ""
+
+msgctxt "#30542"
+msgid "server marker"
+msgstr ""
+
+msgctxt "#30543"
+msgid "none"
+msgstr ""
+
+msgctxt "#30544"
+msgid "fallback: {0} s"
+msgstr ""
+
+msgctxt "#30545"
+msgid "Emby only detects intros for TV episodes (Markers option of the TV library + 'Detect Episode Intros' scheduled task), never for movies. Credits markers require the EmbyCredits server plugin. Without a server marker, the fallback durations from the EmbyCon settings apply."
+msgstr ""
+
+msgctxt "#30546"
+msgid "Measuring connection speed..."
+msgstr ""
+
+msgctxt "#30547"
+msgid "measured {0} kb/s, applied {1} kb/s"
+msgstr ""
+
+msgctxt "#30548"
+msgid "Measurement failed, previous bitrate kept"
+msgstr ""
+
+msgctxt "#30549"
+msgid "The bitrate used for playback is this percentage of the measured speed, to absorb line fluctuations without stuttering."
+msgstr ""

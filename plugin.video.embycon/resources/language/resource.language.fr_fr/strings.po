@@ -1195,8 +1195,8 @@ msgid "Manual"
 msgstr "Manuel"
 
 msgctxt "#30466"
-msgid "Automatic (detect before playback)"
-msgstr "Automatique (détection avant lecture)"
+msgid "Automatic (periodic measurement)"
+msgstr "Automatique (mesure périodique)"
 
 msgctxt "#30467"
 msgid "Auto quality test size (MB)"
@@ -1389,3 +1389,127 @@ msgstr "Intervalle minimum entre deux revalidations du cache (minutes, 0 = désa
 msgctxt "#30518"
 msgid "A cached list is not re-downloaded in the background more than once per interval. 0 revalidates on every view (upstream behaviour)."
 msgstr "Une liste en cache n'est pas re-téléchargée en arrière-plan plus d'une fois par intervalle. 0 revalide à chaque consultation (comportement d'origine)."
+
+msgctxt "#30519"
+msgid "Random movie"
+msgstr "Film au hasard"
+
+msgctxt "#30520"
+msgid "Random movie in this genre"
+msgstr "Film au hasard dans ce genre"
+
+msgctxt "#30521"
+msgid "Play"
+msgstr "Lire"
+
+msgctxt "#30522"
+msgid "Another pick"
+msgstr "Autre tirage"
+
+msgctxt "#30523"
+msgid "Cancel"
+msgstr "Annuler"
+
+msgctxt "#30524"
+msgid "No movie matches the criteria"
+msgstr "Aucun film ne correspond aux critères"
+
+msgctxt "#30525"
+msgid "Unwatched movies only"
+msgstr "Films non vus uniquement"
+
+msgctxt "#30526"
+msgid "Maximum duration (minutes, 0 = no limit)"
+msgstr "Durée maximale (minutes, 0 = sans limite)"
+
+msgctxt "#30527"
+msgid "Play all (shuffle)"
+msgstr "Tout lire (aléatoire)"
+
+msgctxt "#30528"
+msgid "Collection play order"
+msgstr "Ordre de lecture d'une collection"
+
+msgctxt "#30529"
+msgid "Release date, oldest first"
+msgstr "Date de sortie, du plus ancien au plus récent"
+
+msgctxt "#30530"
+msgid "Release date, newest first"
+msgstr "Date de sortie, du plus récent au plus ancien"
+
+msgctxt "#30531"
+msgid "Name"
+msgstr "Nom"
+
+msgctxt "#30532"
+msgid "Intro / credits markers"
+msgstr "Marqueurs intro / générique"
+
+msgctxt "#30533"
+msgid "Safety margin (% of measured speed)"
+msgstr "Marge de sécurité (% du débit mesuré)"
+
+msgctxt "#30534"
+msgid "Minimum bitrate (kbs)"
+msgstr "Débit minimum (kb/s)"
+
+msgctxt "#30535"
+msgid "Maximum bitrate (kbs, 0 = no limit)"
+msgstr "Débit maximum (kb/s, 0 = sans limite)"
+
+msgctxt "#30536"
+msgid "Last measurement"
+msgstr "Dernière mesure"
+
+msgctxt "#30537"
+msgid "Measure now"
+msgstr "Mesurer maintenant"
+
+msgctxt "#30538"
+msgid " - Random movie"
+msgstr " - Film au hasard"
+
+msgctxt "#30539"
+msgid "Intro start"
+msgstr "Début de l'intro"
+
+msgctxt "#30540"
+msgid "Intro end"
+msgstr "Fin de l'intro"
+
+msgctxt "#30541"
+msgid "Credits start"
+msgstr "Début du générique"
+
+msgctxt "#30542"
+msgid "server marker"
+msgstr "marqueur serveur"
+
+msgctxt "#30543"
+msgid "none"
+msgstr "aucun"
+
+msgctxt "#30544"
+msgid "fallback: {0} s"
+msgstr "repli : {0} s"
+
+msgctxt "#30545"
+msgid "Emby only detects intros for TV episodes (Markers option of the TV library + 'Detect Episode Intros' scheduled task), never for movies. Credits markers require the EmbyCredits server plugin. Without a server marker, the fallback durations from the EmbyCon settings apply."
+msgstr "Emby ne détecte les intros que pour les épisodes de séries (option Marqueurs de la médiathèque Séries + tâche planifiée « Detect Episode Intros »), jamais pour les films. Les marqueurs de générique nécessitent le plugin serveur EmbyCredits. Sans marqueur serveur, ce sont les durées de repli des réglages EmbyCon qui s'appliquent."
+
+msgctxt "#30546"
+msgid "Measuring connection speed..."
+msgstr "Mesure du débit en cours…"
+
+msgctxt "#30547"
+msgid "measured {0} kb/s, applied {1} kb/s"
+msgstr "mesuré {0} kb/s, appliqué {1} kb/s"
+
+msgctxt "#30548"
+msgid "Measurement failed, previous bitrate kept"
+msgstr "Mesure en échec, débit précédent conservé"
+
+msgctxt "#30549"
+msgid "The bitrate used for playback is this percentage of the measured speed, to absorb line fluctuations without stuttering."
+msgstr "Le débit utilisé pour la lecture vaut ce pourcentage du débit mesuré, pour absorber les variations de la ligne sans coupure."

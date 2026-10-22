@@ -37,7 +37,11 @@ class HomeWindow:
 
 
 def add_menu_directory_item(
-    label: str, path: str, folder: bool = True, art: dict | None = None
+    label: str,
+    path: str,
+    folder: bool = True,
+    art: dict | None = None,
+    context_items: list | None = None,
 ) -> None:
     li: xbmcgui.ListItem = xbmcgui.ListItem(label, path=path)
     if art is None:
@@ -45,6 +49,10 @@ def add_menu_directory_item(
         addon = xbmcaddon.Addon()
         art["thumb"] = addon.getAddonInfo("icon")
     li.setArt(art)
+    # v1.15 : entrees de menu contextuel natives (ex. « Film au hasard dans
+    # ce genre » sur un dossier de genre, qui n'a pas d'id Emby)
+    if context_items:
+        li.addContextMenuItems(context_items)
 
     xbmcplugin.addDirectoryItem(
         handle=int(sys.argv[1]), url=path, listitem=li, isFolder=folder

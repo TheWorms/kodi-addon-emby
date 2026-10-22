@@ -8,6 +8,7 @@ import http.client
 import ssl
 import time
 import hashlib
+import threading
 from datetime import datetime
 
 import xbmcaddon
@@ -22,6 +23,11 @@ from .utils import datetime_from_string
 from .clientinfo import ClientInformation
 
 log = SimpleLogging(__name__)
+
+# v1.15 : qualite auto fiabilisee
+_WARMUP_BYTES = 1000000  # 1 Mo d'echauffement non chronometre
+_AUTO_BITRATE_SAMPLES = 2  # 2 mesures -> mediane
+_bitrate_lock = threading.Lock()  # une seule mesure a la fois (service + bouton)
 
 
 def check_connection_speed() -> int:
@@ -179,53 +185,153 @@ def measure_connection_speed_silent(data_size_mb: int) -> int:
         head["User-Agent"] = "EmbyCon-" + ClientInformation().get_version()
         conn.request(method="GET", url=url_path, headers=head)
 
-        total_data_read = 0
-        total_time = time.time()
         response = conn.getresponse()
         if int(response.status) != 200:
             log.error("Silent speed test HTTP error: {0}", response.status)
             return -1
-        data = response.read(10240)
+        # v1.15 : on ne chronometre qu'apres un echauffement (montee en
+        # charge TCP + latence du serveur distant), sinon la mesure sur un
+        # petit volume sous-estime nettement le debit reel.
+        warmup_bytes = min(_WARMUP_BYTES, test_data_size // 4)
+        total_data_read = 0
+        measured_bytes = 0
+        start_time = None
+        data = response.read(65536)
         while len(data) > 0:
             total_data_read += len(data)
-            data = response.read(10240)
-        total_time = time.time() - total_time
+            if start_time is None:
+                if total_data_read >= warmup_bytes:
+                    start_time = time.time()
+            else:
+                measured_bytes += len(data)
+            data = response.read(65536)
+        end_time = time.time()
         conn.close()
     except Exception as e:
         log.error("Silent speed test failed: {0}", e)
         return -1
 
-    if total_time <= 0 or total_data_read <= 0:
+    if start_time is None:
+        return -1
+    total_time = end_time - start_time
+    if total_time <= 0 or measured_bytes <= 0:
         return -1
 
-    total_data_read_kbits = (total_data_read * 8) / 1000
-    speed = int(total_data_read_kbits / total_time)
-    log.debug("Silent speed test result: {0} Kbs", speed)
+    speed = int((measured_bytes * 8) / 1000 / total_time)
+    log.debug(
+        "Silent speed test result: {0} Kbs ({1} bytes in {2:.2f}s after warmup)",
+        speed,
+        measured_bytes,
+        total_time,
+    )
     return speed
 
 
-def auto_detect_and_set_bitrate() -> None:
+def compute_auto_bitrate(
+    measures: list[int], margin_percent: int, floor_kbps: int, ceiling_kbps: int
+) -> int:
+    """Debit a appliquer : moyenne des mesures valides x marge, borne.
+
+    Avec 2 mesures, la moyenne est la mediane. Renvoie -1 si aucune mesure
+    n'est exploitable (on garde alors la valeur precedente).
+    """
+    valides = [m for m in measures if m and m > 0]
+    if not valides:
+        return -1
+    valides.sort()
+    milieu = len(valides) // 2
+    if len(valides) % 2:
+        mediane = valides[milieu]
+    else:
+        mediane = (valides[milieu - 1] + valides[milieu]) / 2.0
+    margin_percent = min(max(margin_percent, 10), 100)
+    applique = int(mediane * margin_percent / 100)
+    if floor_kbps > 0:
+        applique = max(applique, floor_kbps)
+    if ceiling_kbps > 0:
+        applique = min(applique, ceiling_kbps)
+    return applique
+
+
+def _int_setting(settings: xbmcaddon.Addon, key: str, default: int) -> int:
+    try:
+        return int(settings.getSetting(key))
+    except (TypeError, ValueError):
+        return default
+
+
+def auto_detect_and_set_bitrate(force: bool = False) -> tuple[int, int] | None:
     """Mode qualite automatique : mesure la connexion et fixe max_stream_bitrate.
 
     Concue pour tourner en arriere-plan (thread du service), jamais sur le
     chemin de lecture. Silencieuse et non bloquante en cas d'echec (on garde
     alors la derniere valeur connue).
-    """
-    settings = xbmcaddon.Addon()
-    if settings.getSetting("bitrate_mode") != "1":
-        return
-    data_size_mb = settings.getSetting("auto_bitrate_test_size")
-    try:
-        data_size_mb = int(data_size_mb)
-    except (TypeError, ValueError):
-        data_size_mb = 2
 
-    speed = measure_connection_speed_silent(data_size_mb)
-    if speed and speed > 0:
-        settings.setSetting("max_stream_bitrate", str(speed))
-        log.debug("Auto quality: max_stream_bitrate set to {0} Kbs", speed)
-    else:
-        log.debug("Auto quality: measurement failed, keeping previous bitrate")
+    v1.15 : 2 mesures (mediane), marge de securite (80 % par defaut),
+    plancher / plafond, et trace de la derniere mesure dans les reglages.
+    Renvoie (mesure, applique) en Kb/s, ou None si rien n'a ete applique.
+    """
+    if not _bitrate_lock.acquire(blocking=False):
+        log.debug("Auto quality: measurement already running")
+        return None
+    try:
+        settings = xbmcaddon.Addon()
+        if settings.getSetting("bitrate_mode") != "1" and not force:
+            return None
+        data_size_mb = _int_setting(settings, "auto_bitrate_test_size", 8)
+        margin = _int_setting(settings, "auto_bitrate_margin", 80)
+        floor_kbps = _int_setting(settings, "auto_bitrate_min", 2000)
+        ceiling_kbps = _int_setting(settings, "auto_bitrate_max", 0)
+
+        measures = []
+        for _ in range(_AUTO_BITRATE_SAMPLES):
+            measures.append(measure_connection_speed_silent(data_size_mb))
+        valides = [m for m in measures if m and m > 0]
+        applique = compute_auto_bitrate(measures, margin, floor_kbps, ceiling_kbps)
+        horodatage = datetime.now().strftime("%d/%m %H:%M")
+
+        if applique <= 0:
+            log.info("Qualite auto : mesure en echec, debit precedent conserve")
+            settings.setSetting(
+                "auto_bitrate_last", "%s  —  %s" % (horodatage, string_load(30548))
+            )
+            return None
+
+        mesure = int(sum(valides) / len(valides))
+        settings.setSetting("max_stream_bitrate", str(applique))
+        settings.setSetting(
+            "auto_bitrate_last",
+            "%s  —  %s"
+            % (horodatage, string_load(30547).format(_kbps(mesure), _kbps(applique))),
+        )
+        log.info(
+            "Qualite auto : mesures {0} Kb/s -> applique {1} Kb/s (marge {2} %)",
+            measures,
+            applique,
+            margin,
+        )
+        return mesure, applique
+    finally:
+        _bitrate_lock.release()
+
+
+def _kbps(value: int) -> str:
+    return "{0:,}".format(int(value)).replace(",", " ")
+
+
+def measure_bitrate_now() -> None:
+    """Bouton « Mesurer maintenant » des reglages (qualite auto)."""
+    icon = "special://home/addons/plugin.video.embycon/icon.png"
+    heading = string_load(30537)
+    xbmcgui.Dialog().notification(heading, string_load(30546), icon=icon, time=3000)
+    result = auto_detect_and_set_bitrate(force=True)
+    if result is None:
+        xbmcgui.Dialog().notification(heading, string_load(30548), icon=icon)
+        return
+    mesure, applique = result
+    xbmcgui.Dialog().notification(
+        heading, string_load(30547).format(_kbps(mesure), _kbps(applique)), icon=icon
+    )
 
 
 def get_server_details() -> list[dict]:

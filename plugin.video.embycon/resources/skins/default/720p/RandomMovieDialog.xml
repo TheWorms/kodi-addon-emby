@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- v1.15 : dialogue « Film au hasard » (Lire / Autre tirage / Annuler) -->
+<window id="3302" type="dialog">
+	<defaultcontrol always="true">4020</defaultcontrol>
+	<zorder>2</zorder>
+	<coordinates>
+		<system>1</system>
+		<left>190</left>
+		<top>150</top>
+	</coordinates>
+	<controls>
+
+		<!-- fond -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>900</width>
+			<height>400</height>
+			<texture border="40">bg.png</texture>
+		</control>
+
+		<!-- en-tete -->
+		<control type="label" id="4011">
+			<left>30</left>
+			<top>12</top>
+			<width>600</width>
+			<height>30</height>
+			<font>font12</font>
+			<textcolor>FFAAAAAA</textcolor>
+			<align>left</align>
+			<label></label>
+		</control>
+
+		<!-- affiche -->
+		<control type="image" id="4015">
+			<left>30</left>
+			<top>50</top>
+			<width>200</width>
+			<height>300</height>
+			<aspectratio>keep</aspectratio>
+			<texture></texture>
+		</control>
+
+		<!-- titre -->
+		<control type="label" id="4012">
+			<left>260</left>
+			<top>48</top>
+			<width>610</width>
+			<height>40</height>
+			<font>font14</font>
+			<align>left</align>
+			<scroll>true</scroll>
+			<label></label>
+		</control>
+
+		<!-- annee · duree · genres · note -->
+		<control type="label" id="4013">
+			<left>260</left>
+			<top>90</top>
+			<width>610</width>
+			<height>30</height>
+			<font>font12</font>
+			<textcolor>FFAAAAAA</textcolor>
+			<align>left</align>
+			<label></label>
+		</control>
+
+		<!-- resume -->
+		<control type="textbox" id="4014">
+			<left>260</left>
+			<top>128</top>
+			<width>610</width>
+			<height>180</height>
+			<font>font12</font>
+			<align>left</align>
+			<autoscroll delay="4000" time="2000" repeat="6000"></autoscroll>
+			<label></label>
+		</control>
+
+		<!-- Lire -->
+		<control type="button" id="4020">
+			<left>260</left>
+			<top>328</top>
+			<width>190</width>
+			<height>50</height>
+			<texturenofocus border="1" colordiffuse="ff161616">white.png</texturenofocus>
+			<texturefocus border="1" colordiffuse="ff525252">white.png</texturefocus>
+			<font>font13</font>
+			<align>center</align>
+			<aligny>center</aligny>
+			<onleft>4022</onleft>
+			<onright>4021</onright>
+			<label></label>
+		</control>
+
+		<!-- Autre tirage -->
+		<control type="button" id="4021">
+			<left>470</left>
+			<top>328</top>
+			<width>190</width>
+			<height>50</height>
+			<texturenofocus border="1" colordiffuse="ff161616">white.png</texturenofocus>
+			<texturefocus border="1" colordiffuse="ff525252">white.png</texturefocus>
+			<font>font13</font>
+			<align>center</align>
+			<aligny>center</aligny>
+			<onleft>4020</onleft>
+			<onright>4022</onright>
+			<label></label>
+		</control>
+
+		<!-- Annuler -->
+		<control type="button" id="4022">
+			<left>680</left>
+			<top>328</top>
+			<width>190</width>
+			<height>50</height>
+			<texturenofocus border="1" colordiffuse="ff161616">white.png</texturenofocus>
+			<texturefocus border="1" colordiffuse="ff525252">white.png</texturefocus>
+			<font>font13</font>
+			<align>center</align>
+			<aligny>center</aligny>
+			<onleft>4021</onleft>
+			<onright>4020</onright>
+			<label></label>
+		</control>
+
+	</controls>
+</window>
