@@ -1577,3 +1577,31 @@ msgstr "Chaque catégorie (médiathèque Films, contenu d'une collection, saison
 msgctxt "#30565"
 msgid "Forget all remembered views"
 msgstr "Oublier toutes les vues mémorisées"
+
+msgctxt "#30566"
+msgid "Next movie in a collection"
+msgstr "Film suivant d'une collection"
+
+msgctxt "#30567"
+msgid "At the end of a movie from a collection"
+msgstr "À la fin d'un film d'une collection"
+
+msgctxt "#30568"
+msgid "Do nothing"
+msgstr "Ne rien faire"
+
+msgctxt "#30569"
+msgid "Offer the next movie (dialog)"
+msgstr "Proposer le film suivant (dialogue)"
+
+msgctxt "#30570"
+msgid "Play the next movie automatically"
+msgstr "Enchaîner automatiquement le film suivant"
+
+msgctxt "#30571"
+msgid "Show the dialog X seconds before the end (when there is no credits marker)"
+msgstr "Afficher le dialogue X s avant la fin (sans marqueur de générique)"
+
+msgctxt "#30572"
+msgid "Next movie"
+msgstr "Film suivant"

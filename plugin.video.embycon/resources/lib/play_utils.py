@@ -34,6 +34,10 @@ from .skip_intro_dialog import SkipIntroMonitor, SkipCreditsMonitor
 
 log = SimpleLogging(__name__)
 
+# v1.17 : un film arrete au-dela de ce pourcentage (generique) est considere
+# comme termine pour l'enchainement automatique du film suivant
+NEXT_MOVIE_AUTO_PERCENT = 90
+
 # v1.15 : ordre de lecture d'une collection (reglage collection_play_order)
 _ORDRES_COLLECTION = {
     "0": ("PremiereDate,ProductionYear,SortName", "Ascending"),
@@ -948,6 +952,14 @@ def play_file(
                 log.info("PlaybackResumeAction : Playback resumed")
 
     next_episode = get_next_episode(result)
+    # v1.17 : film suivant d'une collection (meme mecanique que l'episode
+    # suivant : dialogue en fin de film, ou enchainement automatique)
+    if next_episode is None and result.get("Type") == "Movie":
+        try:
+            next_episode = find_next_movie(result)
+        except Exception as err:
+            log.error("Film suivant : recherche impossible ({0})", err)
+            next_episode = None
 
     if next_episode is not None:
         next_epp_art = get_art(
@@ -959,7 +971,8 @@ def play_file(
         next_episode["art"] = next_epp_art
 
     data["next_episode"] = next_episode
-    send_next_episode_details(result, next_episode)
+    if result.get("Type") == "Episode":
+        send_next_episode_details(result, next_episode)
     return None
 
 
@@ -1051,6 +1064,94 @@ def get_next_episode(item: dict) -> dict | None:
             log.debug("get_next_episode, found next episode: {0}", item)
             return item
 
+    return None
+
+
+def next_in_list(items: list, current_id: str | None) -> dict | None:
+    """Element qui suit current_id dans items (None si absent ou dernier)."""
+    for index, item in enumerate(items):
+        if item.get("Id") == current_id:
+            if index + 1 < len(items):
+                return items[index + 1]
+            return None
+    return None
+
+
+def _provider_id(item: dict, provider: str) -> str | None:
+    for key, value in (item.get("ProviderIds") or {}).items():
+        if str(key).lower() == provider.lower() and value:
+            return str(value)
+    return None
+
+
+def _candidate_boxsets(movie: dict) -> list[tuple[str, str]]:
+    """Collections susceptibles de contenir ce film, la plus probable d'abord.
+
+    1. la derniere collection parcourue (le film a ete lance depuis son
+       contenu) — memorisee par get_content ;
+    2. la collection TMDb du film (ProviderIds.TmdbCollection), retrouvee
+       parmi les collections du serveur (AnyProviderIdEquals).
+    Les collections creees a la main ne sont trouvees que par le cas 1.
+    """
+    candidates: list[tuple[str, str]] = []
+    home_window = HomeWindow()
+    context_id = home_window.get_property("embycon_last_boxset_id")
+    if context_id:
+        candidates.append((context_id, ""))
+
+    tmdb_collection = _provider_id(movie, "TmdbCollection")
+    if tmdb_collection:
+        url = (
+            "{server}/emby/Users/{userid}/Items?IncludeItemTypes=BoxSet"
+            "&Recursive=true&AnyProviderIdEquals=tmdb." + tmdb_collection + "&format=json"
+        )
+        result = DataManager().get_content(url)
+        for boxset in (result or {}).get("Items") or []:
+            boxset_id = boxset.get("Id")
+            if boxset_id and boxset_id != context_id:
+                candidates.append((boxset_id, boxset.get("Name") or ""))
+    return candidates
+
+
+def find_next_movie(movie: dict) -> dict | None:
+    """v1.17 : film qui suit `movie` dans sa collection, ou None.
+
+    Ordre = reglage « Ordre de lecture d'une collection » (date de sortie
+    croissante par defaut, la saga dans l'ordre).
+    """
+    settings = xbmcaddon.Addon()
+    if settings.getSetting("next_movie_mode") in ("", "0"):
+        return None
+    movie_id = movie.get("Id")
+    order = settings.getSetting("collection_play_order")
+    data_manager = DataManager()
+
+    for boxset_id, boxset_name in _candidate_boxsets(movie):
+        url = build_play_all_url(boxset_id, "BoxSet", False, order)
+        result = data_manager.get_content(url)
+        items = [
+            item
+            for item in (result or {}).get("Items") or []
+            if item.get("Type") == "Movie"
+        ]
+        if not any(item.get("Id") == movie_id for item in items):
+            continue
+        next_movie = next_in_list(items, movie_id)
+        if next_movie is None:
+            log.info("Film suivant : dernier film de la collection {0}", boxset_id)
+            return None
+        if not boxset_name:
+            boxset = data_manager.get_content(
+                "{server}/emby/Users/{userid}/Items/%s?format=json" % boxset_id
+            )
+            boxset_name = (boxset or {}).get("Name") or ""
+        next_movie["CollectionName"] = boxset_name
+        log.info(
+            "Film suivant : {0} (collection {1})", next_movie.get("Name"), boxset_name
+        )
+        return next_movie
+
+    log.debug("Film suivant : aucune collection trouvee pour {0}", movie_id)
     return None
 
 
@@ -1546,11 +1647,19 @@ def prompt_for_stop_actions(item_id: str, data: dict) -> None:
         settings.getSetting("promptDeleteMoviePercentage")
     )
 
+    # v1.17 : enchainement automatique du film suivant d'une collection
+    next_movie_auto = (
+        item_type == "Movie"
+        and next_episode is not None
+        and settings.getSetting("next_movie_mode") == "2"
+    )
+
     # everything is off so return
     if (
         prompt_next_percentage == 100
         and prompt_delete_episode_percentage == 100
         and prompt_delete_movie_percentage == 100
+        and not next_movie_auto
     ):
         return
 
@@ -1585,6 +1694,21 @@ def prompt_for_stop_actions(item_id: str, data: dict) -> None:
     if prompt_to_delete:
         log.debug("Prompting for delete")
         delete(item_id)
+
+    if next_movie_auto and percenatge_complete >= NEXT_MOVIE_AUTO_PERCENT:
+        next_item_id = next_episode.get("Id")
+        log.info("Film suivant (automatique) : {0}", next_episode.get("Name"))
+        xbmcgui.Dialog().notification(
+            string_load(30572),
+            next_episode.get("Name") or "",
+            icon="special://home/addons/plugin.video.embycon/icon.png",
+        )
+        play_info = {}
+        play_info["item_id"] = next_item_id
+        play_info["auto_resume"] = "-1"
+        play_info["force_transcode"] = False
+        send_event_notification("embycon_play_action", play_info)
+        return
 
     # prompt for next episode
     if (

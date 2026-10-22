@@ -1563,3 +1563,31 @@ msgstr ""
 msgctxt "#30565"
 msgid "Forget all remembered views"
 msgstr ""
+
+msgctxt "#30566"
+msgid "Next movie in a collection"
+msgstr ""
+
+msgctxt "#30567"
+msgid "At the end of a movie from a collection"
+msgstr ""
+
+msgctxt "#30568"
+msgid "Do nothing"
+msgstr ""
+
+msgctxt "#30569"
+msgid "Offer the next movie (dialog)"
+msgstr ""
+
+msgctxt "#30570"
+msgid "Play the next movie automatically"
+msgstr ""
+
+msgctxt "#30571"
+msgid "Show the dialog X seconds before the end (when there is no credits marker)"
+msgstr ""
+
+msgctxt "#30572"
+msgid "Next movie"
+msgstr ""

@@ -120,11 +120,10 @@ websocket_client = WebSocketClient(library_change_monitor)
 if remote_control:
     websocket_client.start()
 
-play_next_service = None
-play_next_trigger_time = int(settings.getSetting("play_next_trigger_time"))
-if play_next_trigger_time > 0:
-    play_next_service = PlayNextService(play_monitor_service)
-    play_next_service.start()
+# v1.17 : toujours demarre — il gere l'episode suivant ET le film suivant
+# d'une collection ; chaque cas lit son propre reglage a chaque lecture.
+play_next_service = PlayNextService(play_monitor_service)
+play_next_service.start()
 
 # Start the context menu monitor
 context_monitor = None

@@ -28,6 +28,7 @@ from .item_functions import (
     DisplayOptions,
 )
 from .tracking import timer
+from .kodi_utils import HomeWindow
 from .sort_options import sort_context, server_sort, client_sort, sort_gui_items
 
 log = SimpleLogging(__name__)
@@ -112,6 +113,13 @@ def get_content(url: str, params: dict[str, str]) -> int:
     # Applique uniquement si l'URL ne porte pas deja de SortBy explicite (parcours
     # simple d'une mediatheque), afin de ne pas ecraser les noeuds speciaux
     # (Ajouts recents, En cours, Vus recemment...) qui fixent deja leur propre tri.
+    # v1.17 : memorise la collection parcourue -> « film suivant » saura dans
+    # quelle collection chercher si un de ses films est lance depuis ici
+    if media_type == "boxset":
+        boxset_match = re.search(r"[?&]ParentId=([0-9a-fA-F]+)", url)
+        if boxset_match:
+            HomeWindow().set_property("embycon_last_boxset_id", boxset_match.group(1))
+
     # v1.16 : contexte de tri (Films, Series, Collections, dans une
     # collection, dans une serie) -> tri serveur ou client selon les reglages.
     context = sort_context(media_type)

@@ -601,6 +601,39 @@
 				<control type="toggle"/>
 				</setting>
 			</group>
+			<group id="9" label="30566">
+				<setting id="next_movie_mode" type="integer" label="30567" help="">
+				<level>0</level>
+				<default>1</default>
+				<constraints>
+				<options>
+				<option label="30568">0</option>
+				<option label="30569">1</option>
+				<option label="30570">2</option>
+				</options>
+				</constraints>
+				<control type="list" format="string">
+				<heading>30567</heading>
+				</control>
+				</setting>
+				<setting id="next_movie_trigger_time" type="integer" label="30571" help="">
+				<level>0</level>
+				<default>180</default>
+				<dependencies>
+				<dependency type="visible">
+				<condition operator="is" setting="next_movie_mode">1</condition>
+				</dependency>
+				</dependencies>
+				<constraints>
+				<minimum>30</minimum>
+				<step>30</step>
+				<maximum>900</maximum>
+				</constraints>
+				<control type="slider" format="integer">
+				<popup>false</popup>
+				</control>
+				</setting>
+			</group>
 			<group id="2" label="30499">
 				<setting id="promptDeleteEpisodePercentage" type="integer" label="30217" help="">
 				<level>0</level>
