@@ -101,3 +101,54 @@ def test_liste_sans_collection_aucune_requete(monkeypatch) -> None:
 
     monkeypatch.setattr(cd, "collection_release_dates", interdit)
     cd.apply_collection_dates([_details("m1", type_="Movie")])
+
+
+def test_perimee_utilisee_par_les_widgets_rafraichie_par_le_service(monkeypatch, tmp_path) -> None:
+    chemin = str(tmp_path / "collection_dates.json")
+    monkeypatch.setattr(cd, "_file_path", lambda: chemin)
+    cd._save(chemin, {"bs-sw": {"d": "2015-12-16", "t": 0}})  # tres ancienne
+    appels = []
+
+    def enfants(bid):
+        appels.append(bid)
+        return ENFANTS.get(bid, [])
+
+    # widget : la date perimee sert telle quelle, aucune attente
+    assert cd.collection_release_dates(["bs-sw"], enfants) == {"bs-sw": "2015-12-16"}
+    assert appels == []
+    # service : rafraichit
+    assert cd.collection_release_dates(["bs-sw"], enfants, allow_stale=False) == {"bs-sw": "2019-12-18"}
+    assert appels == ["bs-sw"]
+
+
+def test_date_de_sortie_comme_date_d_ajout(monkeypatch) -> None:
+    """v1.18.6 : un widget Arctic trie par date d'ajout suit la date de sortie."""
+    monkeypatch.setattr(
+        cd,
+        "collection_release_dates",
+        lambda ids, fetch_children=None: {"bs-sw": "2019-12-18", "bs-perso": "2012"},
+    )
+    sw = _details("bs-sw", 1977, "1977-05-25")
+    sw.date_added = "2024-03-01 10:00:00"
+    perso = _details("bs-perso")
+    perso.date_added = "2025-01-01 10:00:00"
+    cd.apply_collection_dates([sw, perso], release_as_date_added=True)
+    assert sw.date_added == "2019-12-18 00:00:00"
+    assert perso.date_added == "2012-01-01 00:00:00"
+    # sans l'option : la vraie date d'ajout est conservee
+    autre = _details("bs-sw")
+    autre.date_added = "2024-03-01 10:00:00"
+    cd.apply_collection_dates([autre])
+    assert autre.date_added == "2024-03-01 10:00:00"
+
+
+def test_quand_appliquer_la_date_de_sortie() -> None:
+    import lib.dir_functions as df
+
+    def reglages(valeurs):
+        return SimpleNamespace(getSetting=lambda k: valeurs.get(k, ""))
+
+    assert df._release_as_date_added(reglages({"sort-BoxSets": "9"}), {"media_type": "boxsets"})
+    assert not df._release_as_date_added(reglages({"sort-BoxSets": "4"}), {"media_type": "boxsets"})
+    assert df._release_as_date_added(reglages({"sort-RecentBoxSets": "9"}), {"type": "recent_boxsets"})
+    assert not df._release_as_date_added(reglages({"sort-BoxSets": "9"}), {"media_type": "movies"})

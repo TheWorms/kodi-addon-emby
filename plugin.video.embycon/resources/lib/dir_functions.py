@@ -428,6 +428,15 @@ def set_sort(
     xbmcplugin.addSortMethod(pluginhandle, xbmcplugin.SORT_METHOD_LABEL)
 
 
+def _release_as_date_added(settings: xbmcaddon.Addon, params: dict[str, str]) -> bool:
+    """v1.18.6 : liste / widget de collections trie par « Date de sortie » ?"""
+    if sort_context(params.get("media_type")) == "BoxSets":
+        return settings.getSetting("sort-BoxSets") == "9"
+    if params.get("type") == "recent_boxsets":
+        return settings.getSetting("sort-RecentBoxSets") == "9"
+    return False
+
+
 @timer
 def process_directory(
     url: str,
@@ -527,7 +536,7 @@ def process_directory(
     # v1.18.4 : collections -> annee / date de sortie du film le plus recent
     # (Emby n'en donne souvent aucune : tri « date de sortie » ou « Annee »
     # sans effet dans les listes et les widgets)
-    apply_collection_dates(item_list)
+    apply_collection_dates(item_list, _release_as_date_added(settings, params))
 
     display_options = DisplayOptions()
     display_options.addCounts = settings.getSetting("addCounts") == "true"

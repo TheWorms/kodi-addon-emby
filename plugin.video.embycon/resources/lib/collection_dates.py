@@ -125,15 +125,27 @@ def _all_boxset_ids() -> list:
     return [b.get("Id") for b in boxsets if b.get("Id")]
 
 
-def collection_release_dates(ids: list, fetch_children: Callable[[str], list] | None = None) -> dict:
-    """Dates (film le plus recent) des collections `ids`, depuis le cache disque ;
-    les absentes ou perimees sont lues sur le serveur (en parallele)."""
+def collection_release_dates(
+    ids: list,
+    fetch_children: Callable[[str], list] | None = None,
+    allow_stale: bool = True,
+) -> dict:
+    """Dates (film le plus recent) des collections `ids`, depuis le cache disque.
+
+    v1.18.6 : par defaut (widgets, listes), une date perimee est utilisee telle
+    quelle — seul le service la rafraichit (allow_stale=False) : un widget ne
+    bloque plus 20 s quand le cache expire. Seules les collections jamais
+    datees sont lues a la volee.
+    """
     fetch = fetch_children or _fetch_children
     path = _file_path()
     with _lock:
         entries = _load(path)
         now = time.time()
-        todo = missing_ids(entries, ids, now)
+        if allow_stale:
+            todo = [i for i in ids if i not in entries]
+        else:
+            todo = missing_ids(entries, ids, now)
         if todo:
             start = time.time()
             for boxset_id, date in compute_dates(todo, fetch).items():
@@ -156,17 +168,23 @@ def refresh_all_collection_dates() -> None:
     try:
         ids = _all_boxset_ids()
         if ids:
-            dates = collection_release_dates(ids)
+            dates = collection_release_dates(ids, allow_stale=False)
             log.info("Collections : {0}/{1} collections ont une date de sortie", len(dates), len(ids))
     except Exception as err:
         log.error("Collections : preparation des dates impossible ({0})", err)
 
 
-def apply_collection_dates(item_list: list) -> None:
+def apply_collection_dates(item_list: list, release_as_date_added: bool = False) -> None:
     """Renseigne annee + date de sortie des collections d'une liste d'ItemDetails.
 
     Donne a Kodi (tri « Annee » d'un widget Arctic) et au tri EmbyCon une
     vraie date : celle du film le plus recent de chaque collection.
+
+    v1.18.6 : release_as_date_added (tri EmbyCon des collections regle sur
+    « Date de sortie ») -> la date d'ajout transmise a Kodi devient aussi la
+    date de sortie. Un widget Arctic trie par « date d'ajout » (son reglage
+    par defaut, il n'a pas de tri « date de sortie ») suit alors la date de
+    sortie, sans rien changer dans le skin.
     """
     boxsets = [d for d in item_list if getattr(d, "item_type", None) == "BoxSet"]
     if not boxsets:
@@ -183,3 +201,6 @@ def apply_collection_dates(item_list: list) -> None:
         details.year = int(date[:4])
         # annee seule : on retire la date Emby pour rester coherent
         details.premiere_date = date if len(date) == 10 else None
+        if release_as_date_added:
+            full = date if len(date) == 10 else date + "-01-01"
+            details.date_added = full + " 00:00:00"
