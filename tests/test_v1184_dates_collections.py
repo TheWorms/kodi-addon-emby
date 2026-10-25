@@ -1,7 +1,8 @@
-"""v1.18.4 : date de sortie d'une collection = film le plus recent."""
+"""v1.18.4/5 : date de sortie d'une collection = film le plus recent."""
 
-import json
 import sys
+import threading
+import time
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -13,42 +14,66 @@ kodi_stubs.install()
 
 import lib.collection_dates as cd  # noqa: E402
 
-FILMS = [
-    {"Id": "sw4", "PremiereDate": "1977-05-25T00:00:00Z", "ProviderIds": {"TmdbCollection": "10"}},
-    {"Id": "sw9", "PremiereDate": "2019-12-18T00:00:00Z", "ProviderIds": {"TmdbCollection": "10"}},
-    {"Id": "hp1", "PremiereDate": "2001-11-16T00:00:00Z", "ProviderIds": {"tmdbcollection": "1241"}},
-    {"Id": "solo", "PremiereDate": "2015-01-01T00:00:00Z", "ProviderIds": {"Tmdb": "99"}},
-]
-COLLECTIONS = [
-    {"Id": "bs-sw", "ProviderIds": {"Tmdb": "10"}},
-    {"Id": "bs-hp", "ProviderIds": {"Tmdb": "1241"}, "PremiereDate": "2001-11-16T00:00:00Z"},
-    {"Id": "bs-perso", "ProviderIds": {}},
-    {"Id": "bs-vide", "ProviderIds": {}, "ProductionYear": 1990},
-]
 ENFANTS = {
+    "bs-sw": [
+        {"PremiereDate": "1977-05-25T00:00:00Z"},
+        {"PremiereDate": "2019-12-18T00:00:00Z"},
+    ],
     "bs-perso": [{"PremiereDate": "2008-01-01T00:00:00Z"}, {"ProductionYear": 2012}],
     "bs-vide": [],
 }
 
 
-def test_date_du_film_le_plus_recent() -> None:
-    dates = cd.compute_collection_dates(COLLECTIONS, FILMS, lambda bid: ENFANTS.get(bid, []))
-    assert dates["bs-sw"] == "2019-12-18"  # pas 1977 : le film le plus recent
-    assert dates["bs-hp"] == "2001-11-16"
-    assert dates["bs-perso"] == "2012"  # collection manuelle : lue via son contenu
-    assert dates["bs-vide"] == "1990"  # rien d'autre : annee propre de la collection
+def test_film_le_plus_recent() -> None:
+    assert cd.latest_release(ENFANTS["bs-sw"]) == "2019-12-18"
+    assert cd.latest_release(ENFANTS["bs-perso"]) == "2012"
+    assert cd.latest_release([]) == ""
 
 
-def test_plafond_de_requetes() -> None:
+def test_calcul_en_parallele() -> None:
+    actifs, pic = [0], [0]
+    verrou = threading.Lock()
+
+    def enfants(bid):
+        with verrou:
+            actifs[0] += 1
+            pic[0] = max(pic[0], actifs[0])
+        time.sleep(0.02)
+        with verrou:
+            actifs[0] -= 1
+        return ENFANTS.get(bid, [])
+
+    ids = ["bs-sw", "bs-perso", "bs-vide"] + ["x%d" % i for i in range(13)]
+    dates = cd.compute_dates(ids, enfants, workers=8)
+    assert dates["bs-sw"] == "2019-12-18" and dates["bs-vide"] == ""
+    assert pic[0] > 1  # vraiment en parallele
+
+
+def test_entrees_manquantes_ou_perimees() -> None:
+    now = 1_000_000.0
+    entrees = {"a": {"d": "2020", "t": now - 10}, "b": {"d": "", "t": now - 10}, "c": {"d": "2019", "t": 0}}
+    assert cd.missing_ids(entrees, ["a", "b", "c", "d"], now) == ["c", "d"]
+
+
+def test_cache_disque(monkeypatch, tmp_path) -> None:
+    chemin = str(tmp_path / "collection_dates.json")
+    monkeypatch.setattr(cd, "_file_path", lambda: chemin)
     appels = []
 
     def enfants(bid):
         appels.append(bid)
-        return []
+        return ENFANTS.get(bid, [])
 
-    perso = [{"Id": "p%d" % i, "ProviderIds": {}} for i in range(10)]
-    cd.compute_collection_dates(perso, [], enfants, max_child_queries=3)
-    assert len(appels) == 3
+    dates = cd.collection_release_dates(["bs-sw", "bs-perso", "bs-vide"], enfants)
+    assert dates == {"bs-sw": "2019-12-18", "bs-perso": "2012"}
+    assert sorted(appels) == ["bs-perso", "bs-sw", "bs-vide"]
+    # deuxieme appel : tout vient du disque, aucune requete (meme la vide)
+    appels.clear()
+    assert cd.collection_release_dates(["bs-sw", "bs-vide"], enfants) == {"bs-sw": "2019-12-18"}
+    assert appels == []
+    # nouvelle collection : seule elle est lue
+    cd.collection_release_dates(["bs-sw", "bs-neuve"], enfants)
+    assert appels == ["bs-neuve"]
 
 
 def _details(identifiant, annee=None, date=None, type_="BoxSet"):
@@ -56,18 +81,10 @@ def _details(identifiant, annee=None, date=None, type_="BoxSet"):
 
 
 def test_application_aux_elements(monkeypatch) -> None:
-    proprietes = {
-        cd._CACHE_PROPERTY: json.dumps(
-            {"t": cd.time.time(), "dates": {"bs-sw": "2019-12-18", "bs-perso": "2012"}}
-        )
-    }
     monkeypatch.setattr(
         cd,
-        "HomeWindow",
-        lambda: SimpleNamespace(
-            get_property=lambda k: proprietes.get(k, ""),
-            set_property=lambda k, v: proprietes.__setitem__(k, v),
-        ),
+        "collection_release_dates",
+        lambda ids, fetch_children=None: {"bs-sw": "2019-12-18", "bs-perso": "2012"},
     )
     sw = _details("bs-sw", 1977, "1977-05-25")
     perso = _details("bs-perso", None, "2008-01-01")
@@ -75,18 +92,12 @@ def test_application_aux_elements(monkeypatch) -> None:
     cd.apply_collection_dates([sw, perso, film])
     assert (sw.year, sw.premiere_date) == (2019, "2019-12-18")
     assert (perso.year, perso.premiere_date) == (2012, None)
-    assert (film.year, film.premiere_date) == (2000, "2000-01-01")  # films intacts
-
-
-def test_cache_relu_sans_requete(monkeypatch) -> None:
-    proprietes = {cd._CACHE_PROPERTY: json.dumps({"t": cd.time.time(), "dates": {"x": "2020-01-01"}})}
-    monkeypatch.setattr(
-        cd, "HomeWindow", lambda: SimpleNamespace(get_property=lambda k: proprietes.get(k, ""))
-    )
-    monkeypatch.setattr(cd, "_items", lambda _u: (_ for _ in ()).throw(AssertionError("requete")))
-    assert cd.collection_release_dates() == {"x": "2020-01-01"}
+    assert (film.year, film.premiere_date) == (2000, "2000-01-01")
 
 
 def test_liste_sans_collection_aucune_requete(monkeypatch) -> None:
-    monkeypatch.setattr(cd, "_items", lambda _u: (_ for _ in ()).throw(AssertionError("requete")))
+    def interdit(*_a, **_k):
+        raise AssertionError("requete")
+
+    monkeypatch.setattr(cd, "collection_release_dates", interdit)
     cd.apply_collection_dates([_details("m1", type_="Movie")])

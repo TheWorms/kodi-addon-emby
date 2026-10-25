@@ -1,36 +1,42 @@
 # Gnu General Public License - see LICENSE.TXT
-"""v1.18.4 : date de sortie d'une collection = celle de son film le plus recent.
+"""Date de sortie d'une collection = celle de son film le plus recent.
 
-Probleme : Emby ne renseigne souvent ni annee ni date de sortie sur une
-collection (BoxSet). Le tri « date de sortie » d'EmbyCon et le tri « Annee »
-d'un widget Arctic n'avaient donc rien sur quoi trier : l'ordre restait
-alphabetique ou aleatoire.
+v1.18.4 : Emby ne renseigne ni annee ni date de sortie sur les collections
+(BoxSet) : les tris « date de sortie » d'EmbyCon et « Annee » d'un widget
+Arctic n'avaient rien sur quoi trier.
 
-Solution : on calcule pour chaque collection la date de sortie de son film le
-plus recent, en 2 requetes au lieu d'une par collection :
-  1. toutes les collections (ProviderIds -> id de collection TMDb) ;
-  2. tous les films (ProviderIds.TmdbCollection + PremiereDate).
-Les collections sans id TMDb (creees a la main) sont completees en lisant
-leur contenu (nombre de requetes plafonne). Resultat garde 1 h dans une
-propriete de la fenetre d'accueil (partagee entre les appels du plugin).
+v1.18.5 : constate sur le serveur (240 collections) : le raccourci TMDb ne
+marche pas (aucun film n'expose l'id de sa collection) et seules 40
+collections etaient datees, en 11 s. Desormais :
+- le contenu de chaque collection est lu EN PARALLELE (8 requetes a la fois) ;
+- le resultat est garde SUR DISQUE (collection_dates.json, profil de
+  l'addon), valable 3 jours par collection : il survit aux redemarrages ;
+- le service le prepare en arriere-plan (au demarrage puis toutes les 12 h),
+  donc un widget n'attend normalement jamais ;
+- une collection inconnue (nouvelle) est datee a la volee.
 """
 
 from __future__ import annotations
 
 import json
+import os
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from typing import Callable
 
+import xbmcaddon
+import xbmcvfs
+
 from .datamanager import DataManager
-from .kodi_utils import HomeWindow
 from .simple_logging import SimpleLogging
 
 log = SimpleLogging(__name__)
 
-_CACHE_PROPERTY = "embycon_collection_dates"
-_CACHE_TTL = 3600
-_MIN_REFRESH_AGE = 60  # une collection inconnue relance le calcul apres 60 s
-_MAX_CHILD_QUERIES = 40
+_FILE_NAME = "collection_dates.json"
+ENTRY_MAX_AGE = 3 * 24 * 3600
+_WORKERS = 8
+_lock = threading.Lock()
 
 
 def release_date(item: dict) -> str:
@@ -42,45 +48,60 @@ def release_date(item: dict) -> str:
     return str(year) if year else ""
 
 
-def provider_id(item: dict, provider: str) -> str | None:
-    for key, value in (item.get("ProviderIds") or {}).items():
-        if str(key).lower() == provider.lower() and value:
-            return str(value)
-    return None
+def latest_release(children: list) -> str:
+    dates = [release_date(c) for c in children or []]
+    dates = [d for d in dates if d]
+    return max(dates) if dates else ""
 
 
-def compute_collection_dates(
-    boxsets: list,
-    movies: list,
-    fetch_children: Callable[[str], list],
-    max_child_queries: int = _MAX_CHILD_QUERIES,
-) -> dict:
-    """{id_collection: date du film le plus recent}. Fonction pure (testable)."""
-    latest_by_tmdb: dict = {}
-    for movie in movies:
-        collection = provider_id(movie, "TmdbCollection")
-        date = release_date(movie)
-        if collection and date and date > latest_by_tmdb.get(collection, ""):
-            latest_by_tmdb[collection] = date
+def missing_ids(entries: dict, ids: list, now: float, max_age: float = ENTRY_MAX_AGE) -> list:
+    """Collections sans date en cache, ou dont la date est trop ancienne."""
+    out = []
+    for boxset_id in ids:
+        entry = entries.get(boxset_id)
+        if not entry or now - float(entry.get("t", 0)) > max_age:
+            out.append(boxset_id)
+    return out
 
-    dates: dict = {}
-    queries = 0
-    for boxset in boxsets:
-        boxset_id = boxset.get("Id")
-        if not boxset_id:
-            continue
-        tmdb = provider_id(boxset, "Tmdb")
-        date = latest_by_tmdb.get(tmdb, "") if tmdb else ""
-        if not date and queries < max_child_queries:
-            queries += 1
-            children = [release_date(c) for c in fetch_children(boxset_id) or []]
-            children = [d for d in children if d]
-            date = max(children) if children else ""
-        if not date:
-            date = release_date(boxset)
-        if date:
-            dates[boxset_id] = date
-    return dates
+
+def compute_dates(ids: list, fetch_children: Callable[[str], list], workers: int = _WORKERS) -> dict:
+    """{id: date du film le plus recent ('' si inconnue)}, requetes en parallele."""
+    if not ids:
+        return {}
+    with ThreadPoolExecutor(max_workers=max(1, min(workers, len(ids)))) as pool:
+        results = list(pool.map(lambda bid: latest_release(fetch_children(bid)), ids))
+    return dict(zip(ids, results))
+
+
+# --------------------------------------------------------------- stockage ---
+
+
+def _file_path() -> str:
+    profile = xbmcvfs.translatePath(xbmcaddon.Addon().getAddonInfo("profile"))
+    return os.path.join(profile, _FILE_NAME)
+
+
+def _load(path: str) -> dict:
+    try:
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        entries = data.get("entries", {})
+        return entries if isinstance(entries, dict) else {}
+    except (OSError, ValueError):
+        return {}
+
+
+def _save(path: str, entries: dict) -> None:
+    folder = os.path.dirname(path)
+    if folder and not os.path.isdir(folder):
+        os.makedirs(folder, exist_ok=True)
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump({"v": 2, "entries": entries}, f)
+    os.replace(tmp, path)
+
+
+# ---------------------------------------------------------------- serveur ---
 
 
 def _items(url: str) -> list:
@@ -96,44 +117,49 @@ def _fetch_children(boxset_id: str) -> list:
     )
 
 
-def _read_cache() -> tuple[float, dict]:
-    raw = HomeWindow().get_property(_CACHE_PROPERTY)
-    if not raw:
-        return 0.0, {}
-    try:
-        data = json.loads(raw)
-        return float(data.get("t", 0)), dict(data.get("dates") or {})
-    except (ValueError, TypeError):
-        return 0.0, {}
-
-
-def collection_release_dates(force: bool = False) -> dict:
-    """Dates des collections (cache 1 h)."""
-    stamp, dates = _read_cache()
-    if not force and dates and time.time() - stamp < _CACHE_TTL:
-        return dates
-    start = time.time()
+def _all_boxset_ids() -> list:
     boxsets = _items(
         "{server}/emby/Users/{userid}/Items?IncludeItemTypes=BoxSet&Recursive=true"
-        "&Fields=ProviderIds,PremiereDate,ProductionYear&EnableImages=false"
-        "&EnableUserData=false&format=json"
+        "&EnableImages=false&EnableUserData=false&format=json"
     )
-    movies = _items(
-        "{server}/emby/Users/{userid}/Items?IncludeItemTypes=Movie&Recursive=true"
-        "&Fields=ProviderIds,PremiereDate,ProductionYear&EnableImages=false"
-        "&EnableUserData=false&format=json"
-    )
-    dates = compute_collection_dates(boxsets, movies, _fetch_children)
-    HomeWindow().set_property(
-        _CACHE_PROPERTY, json.dumps({"t": time.time(), "dates": dates})
-    )
-    log.info(
-        "Collections : date de sortie calculee pour {0}/{1} collections en {2:.1f} s",
-        len(dates),
-        len(boxsets),
-        time.time() - start,
-    )
-    return dates
+    return [b.get("Id") for b in boxsets if b.get("Id")]
+
+
+def collection_release_dates(ids: list, fetch_children: Callable[[str], list] | None = None) -> dict:
+    """Dates (film le plus recent) des collections `ids`, depuis le cache disque ;
+    les absentes ou perimees sont lues sur le serveur (en parallele)."""
+    fetch = fetch_children or _fetch_children
+    path = _file_path()
+    with _lock:
+        entries = _load(path)
+        now = time.time()
+        todo = missing_ids(entries, ids, now)
+        if todo:
+            start = time.time()
+            for boxset_id, date in compute_dates(todo, fetch).items():
+                entries[boxset_id] = {"d": date, "t": now}
+            try:
+                _save(path, entries)
+            except OSError as err:
+                log.error("Collections : cache des dates non enregistre ({0})", err)
+            log.info(
+                "Collections : {0} collection(s) datee(s) en {1:.1f} s ({2} deja en cache)",
+                len(todo),
+                time.time() - start,
+                len(ids) - len(todo),
+            )
+    return {i: entries[i]["d"] for i in ids if i in entries and entries[i].get("d")}
+
+
+def refresh_all_collection_dates() -> None:
+    """Service : prepare le cache pour toutes les collections du serveur."""
+    try:
+        ids = _all_boxset_ids()
+        if ids:
+            dates = collection_release_dates(ids)
+            log.info("Collections : {0}/{1} collections ont une date de sortie", len(dates), len(ids))
+    except Exception as err:
+        log.error("Collections : preparation des dates impossible ({0})", err)
 
 
 def apply_collection_dates(item_list: list) -> None:
@@ -146,11 +172,7 @@ def apply_collection_dates(item_list: list) -> None:
     if not boxsets:
         return
     try:
-        dates = collection_release_dates()
-        if any(d.id not in dates for d in boxsets):
-            stamp, _ = _read_cache()
-            if time.time() - stamp > _MIN_REFRESH_AGE:
-                dates = collection_release_dates(force=True)
+        dates = collection_release_dates([d.id for d in boxsets])
     except Exception as err:
         log.error("Collections : calcul des dates impossible ({0})", err)
         return
@@ -159,5 +181,5 @@ def apply_collection_dates(item_list: list) -> None:
         if not date:
             continue
         details.year = int(date[:4])
-        # annee seule : on retire la date Emby (premier film) pour rester coherent
+        # annee seule : on retire la date Emby pour rester coherent
         details.premiere_date = date if len(date) == 10 else None

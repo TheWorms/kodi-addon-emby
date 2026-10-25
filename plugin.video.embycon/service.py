@@ -33,6 +33,7 @@ from resources.lib.image_server import HttpImageServerThread
 from resources.lib.playnext import PlayNextService
 from resources.lib.chapter_dialog import ChapterDialogMonitor
 from resources.lib.view_memory import ViewMonitor
+from resources.lib.collection_dates import refresh_all_collection_dates
 
 settings = xbmcaddon.Addon()
 
@@ -135,6 +136,22 @@ if context_menu:
 # v1.16 : vues memorisees par categorie, appliquees une fois la liste chargee
 view_monitor = ViewMonitor()
 view_monitor.start()
+
+
+# v1.18.5 : dates de sortie des collections preparees en arriere-plan
+# (45 s apres le demarrage puis toutes les 12 h) -> les widgets n'attendent pas
+def _collection_dates_worker() -> None:
+    worker_monitor = xbmc.Monitor()
+    if worker_monitor.waitForAbort(45):
+        return
+    while not worker_monitor.abortRequested():
+        if home_window.get_property("userid"):
+            refresh_all_collection_dates()
+        if worker_monitor.waitForAbort(12 * 3600):
+            return
+
+
+threading.Thread(target=_collection_dates_worker, daemon=True).start()
 
 # Start the bookmark/chapter monitor
 chapter_dialog_monitor = None
