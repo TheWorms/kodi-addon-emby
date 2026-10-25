@@ -1591,3 +1591,11 @@ msgstr ""
 msgctxt "#30572"
 msgid "Next movie"
 msgstr ""
+
+msgctxt "#30573"
+msgid "Automatically show forced subtitles"
+msgstr ""
+
+msgctxt "#30574"
+msgid "Forced subtitles translate foreign-language passages and on-screen text. The forced track in the audio language (or the preferred subtitle language) is turned on, unless subtitles are already shown or chosen manually."
+msgstr ""

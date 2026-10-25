@@ -1886,6 +1886,76 @@ def _pick_subtitle(
     return match_full if match_full is not None else match_forced
 
 
+def _canonical_lang(lang: str) -> str | None:
+    """Code canonique (cle de _LANG_ALIASES) d'une langue de flux, ou None."""
+    if not lang:
+        return None
+    s = lang.strip().lower()
+    for code, aliases in _LANG_ALIASES.items():
+        for a in aliases:
+            if s == a or s.startswith(a):
+                return code
+    return s
+
+
+def pick_forced_subtitle(streams: list, audio_lang: str, pref_sub: str):
+    """v1.18 : index Kodi de la piste FORCEE a afficher, ou None.
+
+    Une piste forcee traduit les passages en langue etrangere et les textes a
+    l'ecran : elle doit etre dans la langue de l'audio. Ordre de preference :
+    1. piste forcee dans la langue de l'audio ;
+    2. piste forcee dans la langue de sous-titres preferee.
+    Jamais une forcee d'une autre langue (elle ne servirait a rien).
+    """
+    audio_code = _canonical_lang(audio_lang)
+    forced = [s for s in streams if s.get("isforced")]
+    if audio_code:
+        for s in forced:
+            if _canonical_lang(s.get("language", "")) == audio_code:
+                return s.get("index")
+    if pref_sub:
+        for s in forced:
+            if _lang_matches(s.get("language", ""), pref_sub):
+                return s.get("index")
+    return None
+
+
+def _wait_subtitle_streams() -> list:
+    # Attendre l'enumeration des pistes : les sous-titres embarques
+    # (notamment forced) apparaissent parfois un instant apres onAVStarted.
+    streams = []
+    for _ in range(20):  # ~2 s max
+        streams = _kodi_subtitle_streams()
+        if streams:
+            break
+        xbmc.sleep(100)
+    return streams
+
+
+def apply_forced_subtitle_only(play_data: dict, pref_sub: str) -> None:
+    """v1.18 : mode sous-titres « Desactive » + reglage « sous-titres forces
+    automatiques » : affiche la piste forcee adaptee si aucun sous-titre
+    n'est deja affiche (choix de Kodi ou de l'utilisateur respecte).
+    """
+    if play_data and play_data.get("subtitle_stream_index"):
+        return
+    if xbmc.getCondVisibility("VideoPlayer.SubtitlesEnabled"):
+        log.debug("Forced subs: sous-titres deja affiches, rien a faire")
+        return
+    streams = _wait_subtitle_streams()
+    audio_lang = xbmc.getInfoLabel("VideoPlayer.AudioLanguage")
+    idx = pick_forced_subtitle(streams, audio_lang, pref_sub)
+    log.debug(
+        "Forced subs: audio='{0}' pref_sub='{1}' streams={2} -> {3}",
+        audio_lang, pref_sub, streams, idx,
+    )
+    if idx is not None:
+        player = xbmc.Player()
+        player.setSubtitleStream(idx)
+        player.showSubtitles(True)
+        log.info("Sous-titres forces actives (piste {0})", idx)
+
+
 def apply_intelligent_subtitle(play_data: dict) -> None:
     """Mode sous-titres « Intelligent » (facon Emby).
 
@@ -1899,7 +1969,13 @@ def apply_intelligent_subtitle(play_data: dict) -> None:
     """
     try:
         settings = xbmcaddon.Addon()
+        # v1.18 : sous-titres forces automatiques (reglage independant du mode)
+        forced_auto = settings.getSetting("subtitle_forced_auto") != "false"
         if settings.getSetting("subtitle_auto_mode") != "1":
+            if forced_auto:
+                apply_forced_subtitle_only(
+                    play_data, settings.getSetting("pref_subtitle_lang")
+                )
             return
         # Ne jamais ecraser un choix explicite de l'utilisateur.
         if play_data and play_data.get("subtitle_stream_index"):
@@ -1911,15 +1987,7 @@ def apply_intelligent_subtitle(play_data: dict) -> None:
 
         player = xbmc.Player()
         audio_lang = xbmc.getInfoLabel("VideoPlayer.AudioLanguage")
-
-        # Attendre l'enumeration des pistes : les sous-titres embarques
-        # (notamment forced) apparaissent parfois un instant apres onAVStarted.
-        streams = []
-        for _ in range(20):  # ~2 s max
-            streams = _kodi_subtitle_streams()
-            if streams:
-                break
-            xbmc.sleep(100)
+        streams = _wait_subtitle_streams()
 
         log.debug(
             "Intelligent subs: audio='{0}' pref_audio='{1}' pref_sub='{2}' streams={3}",
@@ -1931,7 +1999,9 @@ def apply_intelligent_subtitle(play_data: dict) -> None:
             # complets, MAIS on active une eventuelle piste FORCED de la langue
             # preferee (traduction des passages etrangers / textes a l'ecran),
             # qui doit toujours s'afficher.
-            forced_idx = _pick_subtitle(streams, pref_sub, forced_only=True)
+            forced_idx = None
+            if forced_auto:
+                forced_idx = pick_forced_subtitle(streams, audio_lang, pref_sub)
             if forced_idx is not None:
                 player.setSubtitleStream(forced_idx)
                 player.showSubtitles(True)

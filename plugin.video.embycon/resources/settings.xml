@@ -412,6 +412,11 @@
 				<heading>30476</heading>
 				</control>
 				</setting>
+				<setting id="subtitle_forced_auto" type="boolean" label="30573" help="30574">
+				<level>0</level>
+				<default>true</default>
+				<control type="toggle"/>
+				</setting>
 				<setting id="pref_audio_lang" type="string" label="30477" help="">
 				<level>0</level>
 				<default>fre</default>

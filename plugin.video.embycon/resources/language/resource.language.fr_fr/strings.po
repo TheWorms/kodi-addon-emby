@@ -1605,3 +1605,11 @@ msgstr "Afficher le dialogue X s avant la fin (sans marqueur de générique)"
 msgctxt "#30572"
 msgid "Next movie"
 msgstr "Film suivant"
+
+msgctxt "#30573"
+msgid "Automatically show forced subtitles"
+msgstr "Afficher automatiquement les sous-titres forcés"
+
+msgctxt "#30574"
+msgid "Forced subtitles translate foreign-language passages and on-screen text. The forced track in the audio language (or the preferred subtitle language) is turned on, unless subtitles are already shown or chosen manually."
+msgstr "Les sous-titres forcés traduisent les passages en langue étrangère et les textes à l'écran. La piste forcée dans la langue de l'audio (ou la langue de sous-titres préférée) est activée, sauf si des sous-titres sont déjà affichés ou choisis à la main."
