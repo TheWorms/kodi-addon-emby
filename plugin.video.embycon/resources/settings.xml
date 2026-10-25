@@ -280,6 +280,18 @@
 						<formatlabel>30616</formatlabel>
 					</control>
 				</setting>
+				<setting id="skip_button_duration" type="integer" label="30892" help="30893">
+					<level>0</level>
+					<default>10</default>
+					<constraints>
+						<minimum label="30891">0</minimum>
+						<step>1</step>
+						<maximum>60</maximum>
+					</constraints>
+					<control type="spinner" format="string">
+						<formatlabel>30616</formatlabel>
+					</control>
+				</setting>
 			</group>
 			<group id="2" label="30440">
 				<setting id="next_episode_mode" type="integer" label="30674" help="30675">

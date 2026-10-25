@@ -6,10 +6,24 @@ import xbmcgui
 import xbmcaddon
 
 import threading
+import time
 
 from .simple_logging import SimpleLogging
 
 log = SimpleLogging(__name__)
+
+
+def button_duration() -> int:
+    """v1.21.0 : secondes d'affichage du bouton « Passer » (0 = jusqu'a la fin)."""
+    try:
+        return max(0, int(xbmcaddon.Addon().getSetting("skip_button_duration") or 0))
+    except ValueError:
+        return 0
+
+
+def button_expired(shown_at: float | None, now: float, duration: int) -> bool:
+    """Le bouton affiche depuis shown_at doit-il disparaitre ?"""
+    return shown_at is not None and duration > 0 and now - shown_at >= duration
 
 
 class SkipIntroMonitor(threading.Thread):
@@ -27,6 +41,8 @@ class SkipIntroMonitor(threading.Thread):
         settings = xbmcaddon.Addon()
         addon_path = settings.getAddonInfo("path")
         skip_intro_dialog = None
+        shown_at = None
+        duration = button_duration()
 
         intro_start_sec = (self.intro_start_ticks / 1000) / 10000
         intro_end_sec = (self.intro_end_ticks / 1000) / 10000
@@ -88,6 +104,13 @@ class SkipIntroMonitor(threading.Thread):
                         "SkipIntroDialog.xml", addon_path, "default", "720p"
                     )
                     skip_intro_dialog.show()
+                    shown_at = time.time()
+
+            # v1.21.0 : bouton ignore -> il disparait apres le temps regle
+            if skip_intro_dialog is not None and button_expired(shown_at, time.time(), duration):
+                log.info("Saut d'intro : bouton non utilise, masque apres {0} s", duration)
+                skip_intro_dialog.close()
+                break
 
             # player skipped past intro end so exit the monitor
             if play_time > intro_end_sec:
@@ -189,6 +212,8 @@ class SkipCreditsMonitor(threading.Thread):
         settings = xbmcaddon.Addon()
         addon_path = settings.getAddonInfo("path")
         credits_dialog = None
+        shown_at = None
+        duration = button_duration()
 
         credits_start_sec = (self.credits_start_ticks / 1000) / 10000
 
@@ -235,6 +260,13 @@ class SkipCreditsMonitor(threading.Thread):
                         "SkipCreditsDialog.xml", addon_path, "default", "720p"
                     )
                     credits_dialog.show()
+                    shown_at = time.time()
+
+            # v1.21.0 : bouton ignore -> il disparait apres le temps regle
+            if credits_dialog is not None and button_expired(shown_at, time.time(), duration):
+                log.info("Saut du generique : bouton non utilise, masque apres {0} s", duration)
+                credits_dialog.close()
+                break
 
             if credits_dialog is not None and not credits_dialog.dialog_open:
                 log.debug(

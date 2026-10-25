@@ -80,3 +80,15 @@ def test_fin_lecture_continue(monkeypatch) -> None:
 def test_plus_de_film_retour_accueil(monkeypatch) -> None:
     lances, accueil, _ = _arret(monkeypatch, 97, continu=True, tirage=None)
     assert lances == [] and accueil == ["ActivateWindow(Home)"]
+
+
+# --- bouton « Passer » qui disparait ----------------------------------------
+
+
+def test_bouton_passer_disparait() -> None:
+    from lib.skip_intro_dialog import button_expired
+
+    assert not button_expired(None, 100.0, 10)  # pas encore affiche
+    assert not button_expired(100.0, 105.0, 10)
+    assert button_expired(100.0, 110.0, 10)
+    assert not button_expired(100.0, 500.0, 0)  # 0 = jusqu'a la fin

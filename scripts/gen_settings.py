@@ -249,6 +249,10 @@ CATS = [
         "If Emby has not found the credits, the skip is offered this many seconds before the end.",
         "Si Emby n'a pas repéré le générique, le saut est proposé ce nombre de secondes avant la fin.",
         "0", 0, 10, 600, F_SEC, NO, parent="skip_credits", deps=vis("skip_credits", "0", "!is")),
+   spin("skip_button_duration", "Show the « Skip » button for", "Afficher le bouton « Passer » pendant",
+        "If you do not press it, the intro or credits button disappears after this time.",
+        "Si tu ne l'utilises pas, le bouton de l'intro ou du générique disparaît après ce délai.",
+        "10", 0, 1, 60, F_SEC, ("Until the end", "Jusqu'à la fin")),
   ]),
   (("Next episode", "Épisode suivant"), [
    ilist("next_episode_mode", "At the end of an episode", "À la fin d'un épisode",

@@ -1975,3 +1975,15 @@ msgstr "Enchaîner un autre film au hasard à la fin"
 msgctxt "#30890"
 msgid "When the movie ends, a new one is drawn with the same criteria and starts. Stopping playback goes back to the home screen."
 msgstr "À la fin du film, un nouveau film est tiré avec les mêmes critères et démarre. Arrêter la lecture ramène à l'accueil."
+
+msgctxt "#30891"
+msgid "Until the end"
+msgstr "Jusqu'à la fin"
+
+msgctxt "#30892"
+msgid "Show the « Skip » button for"
+msgstr "Afficher le bouton « Passer » pendant"
+
+msgctxt "#30893"
+msgid "If you do not press it, the intro or credits button disappears after this time."
+msgstr "Si tu ne l'utilises pas, le bouton de l'intro ou du générique disparaît après ce délai."
