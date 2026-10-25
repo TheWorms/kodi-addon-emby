@@ -36,7 +36,11 @@ def check_connection_speed() -> int:
     settings = xbmcaddon.Addon()
     verify_cert = settings.getSetting("verify_cert") == "true"
     http_timeout = int(settings.getSetting("http_timeout"))
-    speed_test_data_size = int(settings.getSetting("speed_test_data_size"))
+    # v1.19 : une seule taille de test (manuel et qualite auto)
+    try:
+        speed_test_data_size = int(settings.getSetting("auto_bitrate_test_size"))
+    except ValueError:
+        speed_test_data_size = 8
     test_data_size = speed_test_data_size * 1000000
 
     du = DownloadUtils()

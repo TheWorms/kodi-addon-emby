@@ -25,8 +25,7 @@ def next_trigger_time(
 ) -> float:
     """Secondes avant la fin ou proposer l'element suivant (0 = jamais).
 
-    - Episode : reglage historique play_next_trigger_time (si le dialogue
-      « episode suivant » est actif).
+    - Episode : reglage play_next_trigger_time (0 = jamais).
     - Film d'une collection (v1.17, mode « dialogue ») : au marqueur de
       generique s'il existe, sinon next_movie_trigger_time avant la fin.
     """
@@ -34,8 +33,7 @@ def next_trigger_time(
         return 0
     item_type = play_data.get("item_type")
     if item_type == "Episode":
-        if settings.getSetting("show_play_next_dialog") == "false":
-            return 0
+        # v1.19 : 0 = jamais (l'ancien interrupteur en doublon a ete retire)
         return _int(settings.getSetting("play_next_trigger_time"))
     if item_type == "Movie":
         if settings.getSetting("next_movie_mode") != "1":

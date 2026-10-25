@@ -280,19 +280,19 @@ msgid "Item Details"
 msgstr ""
 
 msgctxt "#30217"
-msgid "Prompt to delete episode after %"
+msgid "Offer to delete the episode after X % (100 = never)"
 msgstr ""
 
 msgctxt "#30218"
-msgid "Play next episode after %"
+msgid "When stopped after X %, play the next episode (100 = never)"
 msgstr ""
 
 msgctxt "#30219"
-msgid " - Prompt before play"
+msgid "Ask for confirmation"
 msgstr ""
 
 msgctxt "#30220"
-msgid "Prompt to delete movie after %"
+msgid "Offer to delete the movie after X % (100 = never)"
 msgstr ""
 
 msgctxt "#30222"
@@ -1015,7 +1015,7 @@ msgid "Sorting"
 msgstr ""
 
 msgctxt "#30423"
-msgid "NotSet"
+msgid "Server order"
 msgstr ""
 
 msgctxt "#30424"
@@ -1079,11 +1079,11 @@ msgid "Play cinema intros"
 msgstr ""
 
 msgctxt "#30439"
-msgid "Show play next episode at time left"
+msgid "Offer the next episode X s before the end (0 = never)"
 msgstr ""
 
 msgctxt "#30440"
-msgid "Play next"
+msgid "Next episode"
 msgstr ""
 
 msgctxt "#30441"
@@ -1159,7 +1159,7 @@ msgid "Are you sure you want to hide this item?"
 msgstr ""
 
 msgctxt "#30460"
-msgid "Sort order"
+msgid "Order"
 msgstr ""
 
 msgctxt "#30461"
@@ -1187,7 +1187,7 @@ msgid "Automatic (periodic measurement)"
 msgstr ""
 
 msgctxt "#30467"
-msgid "Auto quality test size (MB)"
+msgid "Speed test size (MB)"
 msgstr ""
 
 msgctxt "#30469"
@@ -1265,11 +1265,11 @@ msgid "Server & account"
 msgstr ""
 
 msgctxt "#30491"
-msgid "Quality & playback"
+msgid "Playback"
 msgstr ""
 
 msgctxt "#30492"
-msgid "Automations"
+msgid "Up next & automation"
 msgstr ""
 
 msgctxt "#30493"
@@ -1289,7 +1289,7 @@ msgid "Device"
 msgstr ""
 
 msgctxt "#30497"
-msgid "Playback quality"
+msgid "Quality and bitrate"
 msgstr ""
 
 msgctxt "#30498"
@@ -1297,7 +1297,7 @@ msgid "Subtitles"
 msgstr ""
 
 msgctxt "#30499"
-msgid "Delete after watching"
+msgid "After watching"
 msgstr ""
 
 msgctxt "#30500"
@@ -1565,7 +1565,7 @@ msgid "Forget all remembered views"
 msgstr ""
 
 msgctxt "#30566"
-msgid "Next movie in a collection"
+msgid "Next movie and collections"
 msgstr ""
 
 msgctxt "#30567"
@@ -1618,4 +1618,16 @@ msgstr ""
 
 msgctxt "#30579"
 msgid "« Collections - Recently added » widget"
+msgstr ""
+
+msgctxt "#30580"
+msgid "Starting playback"
+msgstr ""
+
+msgctxt "#30581"
+msgid "Intro and credits skipping"
+msgstr ""
+
+msgctxt "#30582"
+msgid "Lists"
 msgstr ""

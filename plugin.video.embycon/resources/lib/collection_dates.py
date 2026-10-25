@@ -49,9 +49,21 @@ def release_date(item: dict) -> str:
 
 
 def latest_release(children: list) -> str:
+    return release_span(children)[1]
+
+
+def release_span(children: list) -> tuple[str, str]:
+    """(date du premier film, date du film le plus recent), '' si inconnues."""
     dates = [release_date(c) for c in children or []]
     dates = [d for d in dates if d]
-    return max(dates) if dates else ""
+    if not dates:
+        return "", ""
+    return min(dates), max(dates)
+
+
+def _complete(entry: dict | None) -> bool:
+    # v1.19 : une entree doit porter les deux dates (premier et dernier film)
+    return bool(entry) and "f" in entry
 
 
 def missing_ids(entries: dict, ids: list, now: float, max_age: float = ENTRY_MAX_AGE) -> list:
@@ -59,17 +71,17 @@ def missing_ids(entries: dict, ids: list, now: float, max_age: float = ENTRY_MAX
     out = []
     for boxset_id in ids:
         entry = entries.get(boxset_id)
-        if not entry or now - float(entry.get("t", 0)) > max_age:
+        if not _complete(entry) or now - float(entry.get("t", 0)) > max_age:
             out.append(boxset_id)
     return out
 
 
 def compute_dates(ids: list, fetch_children: Callable[[str], list], workers: int = _WORKERS) -> dict:
-    """{id: date du film le plus recent ('' si inconnue)}, requetes en parallele."""
+    """{id: (premier film, film le plus recent)}, requetes en parallele."""
     if not ids:
         return {}
     with ThreadPoolExecutor(max_workers=max(1, min(workers, len(ids)))) as pool:
-        results = list(pool.map(lambda bid: latest_release(fetch_children(bid)), ids))
+        results = list(pool.map(lambda bid: release_span(fetch_children(bid)), ids))
     return dict(zip(ids, results))
 
 
@@ -129,6 +141,7 @@ def collection_release_dates(
     ids: list,
     fetch_children: Callable[[str], list] | None = None,
     allow_stale: bool = True,
+    first: bool = False,
 ) -> dict:
     """Dates (film le plus recent) des collections `ids`, depuis le cache disque.
 
@@ -143,13 +156,13 @@ def collection_release_dates(
         entries = _load(path)
         now = time.time()
         if allow_stale:
-            todo = [i for i in ids if i not in entries]
+            todo = [i for i in ids if not _complete(entries.get(i))]
         else:
             todo = missing_ids(entries, ids, now)
         if todo:
             start = time.time()
-            for boxset_id, date in compute_dates(todo, fetch).items():
-                entries[boxset_id] = {"d": date, "t": now}
+            for boxset_id, (first_date, last_date) in compute_dates(todo, fetch).items():
+                entries[boxset_id] = {"f": first_date, "d": last_date, "t": now}
             try:
                 _save(path, entries)
             except OSError as err:
@@ -160,7 +173,8 @@ def collection_release_dates(
                 time.time() - start,
                 len(ids) - len(todo),
             )
-    return {i: entries[i]["d"] for i in ids if i in entries and entries[i].get("d")}
+    key = "f" if first else "d"
+    return {i: entries[i][key] for i in ids if i in entries and entries[i].get(key)}
 
 
 def refresh_all_collection_dates() -> None:
@@ -174,7 +188,9 @@ def refresh_all_collection_dates() -> None:
         log.error("Collections : preparation des dates impossible ({0})", err)
 
 
-def apply_collection_dates(item_list: list, release_as_date_added: bool = False) -> None:
+def apply_collection_dates(
+    item_list: list, release_as_date_added: bool = False, ascending: bool = False
+) -> None:
     """Renseigne annee + date de sortie des collections d'une liste d'ItemDetails.
 
     Donne a Kodi (tri « Annee » d'un widget Arctic) et au tri EmbyCon une
@@ -185,12 +201,15 @@ def apply_collection_dates(item_list: list, release_as_date_added: bool = False)
     date de sortie. Un widget Arctic trie par « date d'ajout » (son reglage
     par defaut, il n'a pas de tri « date de sortie ») suit alors la date de
     sortie, sans rien changer dans le skin.
+
+    v1.19 : ascending (ordre croissant) -> date du PREMIER film (debut de la
+    saga) ; decroissant -> date du film le plus recent.
     """
     boxsets = [d for d in item_list if getattr(d, "item_type", None) == "BoxSet"]
     if not boxsets:
         return
     try:
-        dates = collection_release_dates([d.id for d in boxsets])
+        dates = collection_release_dates([d.id for d in boxsets], first=ascending)
     except Exception as err:
         log.error("Collections : calcul des dates impossible ({0})", err)
         return

@@ -437,6 +437,13 @@ def _release_as_date_added(settings: xbmcaddon.Addon, params: dict[str, str]) ->
     return False
 
 
+def _collections_ascending(settings: xbmcaddon.Addon, params: dict[str, str]) -> bool:
+    """v1.19 : collections en ordre croissant -> date du premier film."""
+    if params.get("type") == "recent_boxsets":
+        return settings.getSetting("sort_order-RecentBoxSets") == "0"
+    return settings.getSetting("sort_order-BoxSets") == "0"
+
+
 @timer
 def process_directory(
     url: str,
@@ -536,7 +543,11 @@ def process_directory(
     # v1.18.4 : collections -> annee / date de sortie du film le plus recent
     # (Emby n'en donne souvent aucune : tri « date de sortie » ou « Annee »
     # sans effet dans les listes et les widgets)
-    apply_collection_dates(item_list, _release_as_date_added(settings, params))
+    apply_collection_dates(
+        item_list,
+        _release_as_date_added(settings, params),
+        _collections_ascending(settings, params),
+    )
 
     display_options = DisplayOptions()
     display_options.addCounts = settings.getSetting("addCounts") == "true"

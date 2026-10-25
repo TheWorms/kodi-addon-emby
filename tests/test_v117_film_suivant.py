@@ -61,10 +61,9 @@ def test_pas_de_dialogue_en_mode_auto_ou_desactive() -> None:
 
 def test_episode_inchange() -> None:
     data = {"item_type": "Episode", "next_episode": {"Id": "e2"}}
-    reglages = _settings(play_next_trigger_time="45", show_play_next_dialog="true")
-    assert next_trigger_time(data, reglages, 2400) == 45
-    reglages = _settings(play_next_trigger_time="45", show_play_next_dialog="false")
-    assert next_trigger_time(data, reglages, 2400) == 0
+    assert next_trigger_time(data, _settings(play_next_trigger_time="45"), 2400) == 45
+    # v1.19 : 0 = jamais (plus d'interrupteur separe)
+    assert next_trigger_time(data, _settings(play_next_trigger_time="0"), 2400) == 0
 
 
 def test_rien_sans_element_suivant() -> None:
