@@ -37,7 +37,7 @@ from .sort_options import (
     sort_setting,
     is_descending,
     describe_order,
-    rank_stamps,
+    same_date_added,
 )
 from .collection_dates import apply_collection_dates
 
@@ -261,10 +261,10 @@ def get_content(url: str, params: dict[str, str]) -> int:
         log.debug("Applied client sort: {0}", client_sort_spec)
         if context in ("BoxSets", "InBoxSet"):
             log.info("Tri {0} {1} : {2}", context, client_sort_spec, describe_order(dir_items))
-        # v1.19.1 : liste de collections -> le tri du widget Arctic (date
-        # d'ajout decroissante) suit l'ordre EmbyCon
+        # v1.20.1 : liste de collections -> un widget du skin trie par date
+        # d'ajout (croissante OU decroissante) garde l'ordre EmbyCon
         if context == "BoxSets":
-            stamp_rank_dates(dir_items)
+            freeze_order_for_skin(dir_items)
 
     detected_type = result.detected_type
     total_records = result.total_records
@@ -433,14 +433,24 @@ def set_sort(
     xbmcplugin.addSortMethod(pluginhandle, xbmcplugin.SORT_METHOD_LABEL)
 
 
-def stamp_rank_dates(dir_items: list) -> None:
-    """Date d'ajout = rang dans l'ordre EmbyCon (voir sort_options.rank_stamps)."""
-    for gui_item, stamp in zip(dir_items, rank_stamps(len(dir_items))):
-        gui_item.sort_added = stamp
+def freeze_order_for_skin(dir_items: list) -> None:
+    """v1.20.1 : fige l'ordre EmbyCon face au tri « date d'ajout » d'un skin.
+
+    Kodi trie un widget par date d'ajout avec la cle « <date> <DBID> » et un
+    tri stable : si toutes les collections ont la meme date et le meme DBID,
+    l'ordre recu est conserve, que le widget soit en croissant ou en
+    decroissant. (v1.19.1 numerotait les dates par rang : ca ne marchait que
+    pour un widget en decroissant ; celui d'Arctic etait en croissant.)
+    Le DBID d'une collection Emby ne sert a rien dans Kodi.
+    """
+    stamp = same_date_added([getattr(gi, "sort_added", "") for gi in dir_items])
+    for gui_item in dir_items:
         try:
-            gui_item.list_item.getVideoInfoTag().setDateAdded(stamp)
+            tag = gui_item.list_item.getVideoInfoTag()
+            tag.setDateAdded(stamp)
+            tag.setDbId(-1)
         except Exception as err:
-            log.debug("stamp_rank_dates : {0}", err)
+            log.debug("freeze_order_for_skin : {0}", err)
 
 
 def _collections_ascending(settings: xbmcaddon.Addon, params: dict[str, str]) -> bool:

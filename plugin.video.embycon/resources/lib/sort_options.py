@@ -221,15 +221,12 @@ def describe_order(items: list, count: int = 6) -> str:
     return ", ".join(parts)
 
 
-def rank_stamps(count: int, now: datetime.datetime | None = None) -> list:
-    """v1.19.1 : dates d'ajout decroissantes, une par rang (minute par minute).
+def same_date_added(dates: list) -> str:
+    """v1.20.1 : date d'ajout commune a toute une liste (la plus recente).
 
-    Appliquees apres le tri EmbyCon, elles font qu'un widget de skin trie par
-    « date d'ajout, decroissant » (cas d'Arctic) reproduit exactement l'ordre
-    choisi dans EmbyCon, croissant ou decroissant.
+    Voir dir_functions.freeze_order_for_skin.
     """
-    base = (now or datetime.datetime.now()).replace(second=0, microsecond=0)
-    return [
-        (base - datetime.timedelta(minutes=rank)).strftime("%Y-%m-%d %H:%M:%S")
-        for rank in range(count)
-    ]
+    known = [d for d in dates if d]
+    if known:
+        return max(known)
+    return datetime.datetime.now().replace(microsecond=0).strftime("%Y-%m-%d %H:%M:%S")

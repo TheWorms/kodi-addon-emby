@@ -196,7 +196,7 @@ def apply_collection_dates(item_list: list, ascending: bool = False) -> None:
     ordre decroissant.
 
     v1.19.1 : la date d'ajout n'est plus detournee ici. C'est l'ordre final
-    d'EmbyCon qui est transmis au skin (dir_functions.stamp_rank_dates).
+    d'EmbyCon qui est transmis au skin (dir_functions.freeze_order_for_skin).
     """
     boxsets = [d for d in item_list if getattr(d, "item_type", None) == "BoxSet"]
     if not boxsets:

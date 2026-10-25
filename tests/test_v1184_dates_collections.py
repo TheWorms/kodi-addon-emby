@@ -169,21 +169,25 @@ def test_sens_du_tri_des_collections() -> None:
     assert not df._collections_ascending(reglages({"list_sort-BoxSets": "0"}), {"media_type": "boxsets"})
 
 
-# --- v1.19.1 : l'ordre EmbyCon pilote le widget Arctic ----------------------
+# --- v1.20.1 : l'ordre EmbyCon resiste au tri « date d'ajout » du skin ------
 
 
 class _Tag:
-    def __init__(self):
-        self.added = ""
+    def __init__(self, added, dbid):
+        self.added = added
+        self.dbid = dbid
 
     def setDateAdded(self, value):
         self.added = value
 
+    def setDbId(self, value):
+        self.dbid = value
+
 
 class _ListItem:
-    def __init__(self, label):
+    def __init__(self, label, added, dbid):
         self.label = label
-        self.tag = _Tag()
+        self.tag = _Tag(added, dbid)
 
     def getLabel(self):
         return self.label
@@ -192,43 +196,52 @@ class _ListItem:
         return self.tag
 
 
-def _gui(label, date):
-    return SimpleNamespace(list_item=_ListItem(label), sort_date=date, sort_name=label, sort_added="")
+def _gui(label, date, added, dbid):
+    return SimpleNamespace(
+        list_item=_ListItem(label, added, dbid), sort_date=date, sort_name=label, sort_added=added
+    )
 
 
-def _ordre_arctic(items):
-    """Ce que fait le widget : tri par date d'ajout, decroissant."""
-    ranges = sorted(items, key=lambda i: i.list_item.tag.added, reverse=True)
+def _widget_kodi(items, descending):
+    """Tri d'un widget Kodi par date d'ajout : cle « <date> <DBID> », tri stable."""
+    ranges = sorted(
+        items,
+        key=lambda i: "%s %d" % (i.list_item.tag.added, i.list_item.tag.dbid),
+        reverse=descending,
+    )
     return [i.list_item.label for i in ranges]
 
 
-def test_rangs_en_dates_d_ajout() -> None:
-    import datetime
-
-    from lib.sort_options import rank_stamps
-
-    maintenant = datetime.datetime(2026, 10, 25, 20, 30, 45)
-    assert rank_stamps(3, maintenant) == [
-        "2026-10-25 20:30:00",
-        "2026-10-25 20:29:00",
-        "2026-10-25 20:28:00",
+def _collections():
+    return [
+        _gui("Star Wars", "1977-05-25", "2024-01-10 10:00:00", 300),
+        _gui("Dune", "2021-09-15", "2025-06-01 10:00:00", 100),
+        _gui("Alien", "1979-05-25", "2023-03-03 10:00:00", 200),
     ]
-    assert rank_stamps(0) == []
 
 
-def test_widget_arctic_suit_le_sens_choisi() -> None:
+def test_widget_en_croissant_ou_decroissant_garde_l_ordre() -> None:
     import lib.dir_functions as df
     from lib.sort_options import sort_gui_items
 
-    collections = [
-        _gui("Star Wars", "1977-05-25"),
-        _gui("Dune", "2021-09-15"),
-        _gui("Alien", "1979-05-25"),
-    ]
-    croissant = sort_gui_items(collections, "date", False)
-    df.stamp_rank_dates(croissant)
-    assert _ordre_arctic(croissant) == ["Star Wars", "Alien", "Dune"]
+    for sens_embycon, attendu in ((False, ["Star Wars", "Alien", "Dune"]), (True, ["Dune", "Alien", "Star Wars"])):
+        liste = sort_gui_items(_collections(), "date", sens_embycon)
+        df.freeze_order_for_skin(liste)
+        # le widget d'Arctic etait en croissant (sens mal enregistre) ; un
+        # autre skin peut etre en decroissant : meme resultat
+        assert _widget_kodi(liste, descending=False) == attendu
+        assert _widget_kodi(liste, descending=True) == attendu
 
-    decroissant = sort_gui_items(collections, "date", True)
-    df.stamp_rank_dates(decroissant)
-    assert _ordre_arctic(decroissant) == ["Dune", "Alien", "Star Wars"]
+
+def test_sans_correction_le_widget_imposait_son_ordre() -> None:
+    from lib.sort_options import sort_gui_items
+
+    liste = sort_gui_items(_collections(), "date", False)
+    assert _widget_kodi(liste, descending=False) == ["Alien", "Star Wars", "Dune"]
+
+
+def test_date_commune() -> None:
+    from lib.sort_options import same_date_added
+
+    assert same_date_added(["2024-01-10 10:00:00", "", "2025-06-01 10:00:00"]) == "2025-06-01 10:00:00"
+    assert len(same_date_added([])) == 19
