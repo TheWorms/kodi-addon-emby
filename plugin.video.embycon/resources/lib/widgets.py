@@ -15,7 +15,13 @@ from .simple_logging import SimpleLogging
 from .kodi_utils import HomeWindow
 from .dir_functions import process_directory, DirectoryResult
 from .tracking import timer
-from .sort_options import recent_newest_first, server_sort, client_sort, sort_gui_items
+from .sort_options import (
+    recent_newest_first,
+    server_sort,
+    client_sort,
+    sort_gui_items,
+    describe_order,
+)
 from .random_movie import lancer_film_au_hasard, random_widget_launches
 
 
@@ -245,6 +251,13 @@ def get_widget_content_cast(handle: int, params: dict) -> int:
     return 0
 
 
+def _int_setting(settings: xbmcaddon.Addon, key: str, default: int) -> int:
+    try:
+        return int(settings.getSetting(key))
+    except (TypeError, ValueError):
+        return default
+
+
 # v1.16 : widget -> reglage d'ordre des listes « recents »
 _RECENT_KINDS = {
     "recent_movies": "RecentMovies",
@@ -268,6 +281,7 @@ def get_widget_content(handle: int, params: dict) -> int:
     log.debug("widget_type: {0}", widget_type)
 
     url_verb = "{server}/emby/Users/{userid}/Items"
+    boxset_limit = 0
     url_params = {}
     url_params["Limit"] = "{ItemLimit}"
     url_params["format"] = "json"
@@ -341,6 +355,13 @@ def get_widget_content(handle: int, params: dict) -> int:
         url_params["SortBy"] = sort_spec[0]
         url_params["SortOrder"] = sort_spec[1]
         url_params["IncludeItemTypes"] = "BoxSet"
+        # v1.18.4 : tri par date de sortie = date du film le plus recent,
+        # calculee par EmbyCon -> on prend TOUTES les collections, on trie,
+        # puis on garde les N premieres (sinon le serveur choisirait les N
+        # selon sa propre date, souvent vide)
+        if settings.getSetting("sort-RecentBoxSets") == "9":
+            url_params.pop("Limit", None)
+            boxset_limit = _int_setting(settings, "show_x_filtered_items", 20)
 
     elif widget_type == "recent_episodes":
         xbmcplugin.setContent(handle, "episodes")
@@ -445,6 +466,9 @@ def get_widget_content(handle: int, params: dict) -> int:
         spec = client_sort(settings.getSetting, "RecentBoxSets")
         if spec is not None:
             dir_items = sort_gui_items(dir_items, spec[0], spec[1])
+        if boxset_limit > 0:
+            dir_items = dir_items[:boxset_limit]
+        log.info("Widget Collections {0} : {1}", spec, describe_order(dir_items))
 
     # v1.16 : ordre des widgets « recents » (reglage) — le serveur renvoie
     # toujours les N plus recents ; « plus ancien d'abord » inverse la liste.

@@ -168,3 +168,16 @@ def recent_newest_first(get_setting: GetSetting, kind: str) -> bool:
     (sinon on obtiendrait les N plus anciens de la mediatheque).
     """
     return get_setting("sort_order-" + kind) != "1"
+
+
+def describe_order(items: list, count: int = 6) -> str:
+    """Resume lisible des premiers elements tries (journal de diagnostic)."""
+    parts = []
+    for item in items[:count]:
+        label = ""
+        try:
+            label = item.list_item.getLabel()
+        except Exception:
+            label = getattr(item, "sort_name", "")
+        parts.append("%s (%s)" % (label, getattr(item, "sort_date", "") or "?"))
+    return ", ".join(parts)

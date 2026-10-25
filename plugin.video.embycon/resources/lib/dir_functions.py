@@ -29,7 +29,14 @@ from .item_functions import (
 )
 from .tracking import timer
 from .kodi_utils import HomeWindow
-from .sort_options import sort_context, server_sort, client_sort, sort_gui_items
+from .sort_options import (
+    sort_context,
+    server_sort,
+    client_sort,
+    sort_gui_items,
+    describe_order,
+)
+from .collection_dates import apply_collection_dates
 
 log = SimpleLogging(__name__)
 
@@ -249,6 +256,8 @@ def get_content(url: str, params: dict[str, str]) -> int:
     if client_sort_spec is not None:
         dir_items = sort_gui_items(dir_items, client_sort_spec[0], client_sort_spec[1])
         log.debug("Applied client sort: {0}", client_sort_spec)
+        if context in ("BoxSets", "InBoxSet"):
+            log.info("Tri {0} {1} : {2}", context, client_sort_spec, describe_order(dir_items))
 
     # v1.16 : listes « recents » en ordre « plus ancien d'abord »
     if params.get("reverse") == "true":
@@ -514,6 +523,11 @@ def process_directory(
         return None
 
     hide_unwatched_details = settings.getSetting("hide_unwatched_details") == "true"
+
+    # v1.18.4 : collections -> annee / date de sortie du film le plus recent
+    # (Emby n'en donne souvent aucune : tri « date de sortie » ou « Annee »
+    # sans effet dans les listes et les widgets)
+    apply_collection_dates(item_list)
 
     display_options = DisplayOptions()
     display_options.addCounts = settings.getSetting("addCounts") == "true"
