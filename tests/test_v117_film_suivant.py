@@ -14,9 +14,9 @@ import lib.play_utils as pu  # noqa: E402
 from lib.playnext import next_trigger_time  # noqa: E402
 
 SAGA = [
-    {"Id": "m1", "Type": "Movie", "Name": "Episode I"},
-    {"Id": "m2", "Type": "Movie", "Name": "Episode II"},
-    {"Id": "m3", "Type": "Movie", "Name": "Episode III"},
+    {"Id": "m1", "Type": "Movie", "Name": "Episode I", "PremiereDate": "1999-05-19T00:00:00Z"},
+    {"Id": "m2", "Type": "Movie", "Name": "Episode II", "PremiereDate": "2002-05-16T00:00:00Z"},
+    {"Id": "m3", "Type": "Movie", "Name": "Episode III", "PremiereDate": "2005-05-19T00:00:00Z"},
 ]
 
 
@@ -120,12 +120,21 @@ def test_collection_tmdb(monkeypatch) -> None:
 
 
 def test_collection_parcourue_prioritaire(monkeypatch) -> None:
-    # collection manuelle (sans id TMDb) d'ou le film a ete lance
+    # collection manuelle (sans id TMDb) d'ou le film a ete lance ; le
+    # serveur la renvoie dans le desordre : l'ordre de sortie fait foi
     perso = [SAGA[2], SAGA[0]]
     _fake_serveur(monkeypatch, {"perso": ("Mes favoris", "", perso)}, contexte="perso")
-    suivant = pu.find_next_movie({"Id": "m3", "Type": "Movie", "ProviderIds": {}})
-    assert suivant["Id"] == "m1"
+    suivant = pu.find_next_movie({"Id": "m1", "Type": "Movie", "ProviderIds": {}})
+    assert suivant["Id"] == "m3"
     assert suivant["CollectionName"] == "Mes favoris"
+
+
+def test_ordre_serveur_ignore(monkeypatch) -> None:
+    """v1.18.2 : Emby peut renvoyer la collection dans son ordre d'affichage."""
+    desordre = [SAGA[2], SAGA[0], SAGA[1]]
+    _fake_serveur(monkeypatch, {"bs1": ("Star Wars", "10", desordre)})
+    film = {"Id": "m1", "Type": "Movie", "ProviderIds": {"TmdbCollection": "10"}}
+    assert pu.find_next_movie(film)["Id"] == "m2"
 
 
 def test_contexte_perime_ignore(monkeypatch) -> None:

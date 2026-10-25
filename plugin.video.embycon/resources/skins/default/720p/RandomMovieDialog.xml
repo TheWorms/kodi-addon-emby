@@ -1,14 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- v1.15 : dialogue « Film au hasard » (Lire / Autre tirage / Annuler) -->
+<!-- v1.15 : dialogue « Film au hasard » (Lire / Autre tirage / Annuler)
+     v1.18.2 : plein ecran, fanart du film en fond (on ne voit plus la liste
+     de l'extension derriere), voile sombre pour la lisibilite -->
 <window id="3302" type="dialog">
 	<defaultcontrol always="true">4020</defaultcontrol>
 	<zorder>2</zorder>
 	<coordinates>
 		<system>1</system>
+		<left>0</left>
+		<top>0</top>
+	</coordinates>
+	<animation effect="fade" time="250">WindowOpen</animation>
+	<animation effect="fade" time="200">WindowClose</animation>
+	<controls>
+
+		<!-- fond opaque : masque l'explorateur de l'extension -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1280</width>
+			<height>720</height>
+			<texture colordiffuse="FF000000">white.png</texture>
+		</control>
+
+		<!-- fanart du film -->
+		<control type="image" id="4016">
+			<left>0</left>
+			<top>0</top>
+			<width>1280</width>
+			<height>720</height>
+			<aspectratio>scale</aspectratio>
+			<fadetime>300</fadetime>
+			<texture></texture>
+		</control>
+
+		<!-- voile sombre pour la lisibilite -->
+		<control type="image">
+			<left>0</left>
+			<top>0</top>
+			<width>1280</width>
+			<height>720</height>
+			<texture colordiffuse="99000000">white.png</texture>
+		</control>
+
+		<control type="group">
 		<left>190</left>
 		<top>150</top>
-	</coordinates>
-	<controls>
 
 		<!-- fond -->
 		<control type="image">
@@ -38,6 +75,7 @@
 			<width>200</width>
 			<height>300</height>
 			<aspectratio>keep</aspectratio>
+			<fadetime>300</fadetime>
 			<texture></texture>
 		</control>
 
@@ -123,6 +161,8 @@
 			<onleft>4021</onleft>
 			<onright>4020</onright>
 			<label></label>
+		</control>
+
 		</control>
 
 	</controls>

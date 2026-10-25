@@ -322,3 +322,48 @@ def test_memorisation_auto_desactivee(monkeypatch, tmp_path) -> None:
     monitor, store = _run_monitor(monkeypatch, tmp_path, kodi, auto="false")
     monitor.run()
     assert store.lookup(["movies@lib1", "movies"]) is None
+
+
+
+# --- v1.18.2 : contenu d'une collection trie aussi cote client ----------------
+
+
+def test_collection_tri_client_par_date() -> None:
+    assert client_sort(reglages(), "InBoxSet") == ("date", True)
+    assert client_sort(reglages(**{"sort__InBoxSet": "4"}), "InBoxSet") == ("added", True)
+    assert client_sort(reglages(**{"sort__InBoxSet": "0"}), "InBoxSet") is None
+    # dans une serie, seuls date et nom sont proposes
+    assert client_sort(reglages(**{"sort__InSeries": "4"}), "InSeries") is None
+
+
+def test_collection_ordre_serveur_corrige() -> None:
+    films = [
+        SimpleNamespace(label="B", sort_date="2002-05-16", sort_name="b", sort_index=(0, 0)),
+        SimpleNamespace(label="C", sort_date="2005-05-19", sort_name="c", sort_index=(0, 0)),
+        SimpleNamespace(label="A", sort_date="1999-05-19", sort_name="a", sort_index=(0, 0)),
+    ]
+    assert [f.label for f in sort_gui_items(films, "date", True)] == ["C", "B", "A"]
+    assert [f.label for f in sort_gui_items(films, "date", False)] == ["A", "B", "C"]
+
+
+def test_tri_par_ajout_et_note() -> None:
+    films = [
+        SimpleNamespace(label="x", sort_added="2026-01-02 10:00:00", sort_rating=6.1),
+        SimpleNamespace(label="y", sort_added="2026-03-01 10:00:00", sort_rating=8.4),
+    ]
+    assert [f.label for f in sort_gui_items(films, "added", True)] == ["y", "x"]
+    assert [f.label for f in sort_gui_items(films, "rating", True)] == ["y", "x"]
+
+
+def test_sort_emby_items() -> None:
+    from lib.sort_options import sort_emby_items
+
+    items = [
+        {"Id": "c", "PremiereDate": "2005-05-19T00:00:00Z", "SortName": "C"},
+        {"Id": "a", "ProductionYear": 1999, "SortName": "A"},
+        {"Id": "b", "PremiereDate": "2002-05-16T00:00:00Z", "SortName": "B"},
+        {"Id": "z", "SortName": "Z"},  # sans date : a la fin en croissant
+    ]
+    assert [i["Id"] for i in sort_emby_items(items, "0")] == ["a", "b", "c", "z"]
+    assert [i["Id"] for i in sort_emby_items(items, "2")] == ["a", "b", "c", "z"]
+    assert [i["Id"] for i in sort_emby_items(items, "1")] == ["c", "b", "a", "z"]

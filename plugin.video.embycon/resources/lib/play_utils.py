@@ -31,6 +31,7 @@ from .cache_images import CacheArtwork
 from .picture_viewer import PictureViewer
 from .tracking import timer
 from .skip_intro_dialog import SkipIntroMonitor, SkipCreditsMonitor
+from .sort_options import sort_emby_items
 
 log = SimpleLogging(__name__)
 
@@ -630,6 +631,7 @@ def play_file(
     # in that parent (v1.15 : collections + lecture aleatoire)
     if result.get("Type") in ["Season", "MusicAlbum", "Playlist", "BoxSet"]:
         log.debug("PlayAllFiles for parent item id: {0}", item_id)
+        result_type = result.get("Type")
         shuffle = bool(play_info.get("shuffle", False))
         url = build_play_all_url(
             item_id,
@@ -644,6 +646,10 @@ def play_file(
         items = (result or {}).get("Items")
         if items is None:
             items = []
+        # v1.18.2 : ordre garanti cote client pour une collection (Emby peut
+        # renvoyer l'ordre d'affichage propre a la collection)
+        if result_type == "BoxSet" and not shuffle:
+            items = sort_emby_items(items, settings.getSetting("collection_play_order"))
         log.info(
             "Tout lire : {0} element(s), aleatoire={1}", len(items), shuffle
         )
@@ -1148,11 +1154,14 @@ def find_next_movie(movie: dict) -> dict | None:
     for boxset_id, boxset_name in candidates:
         url = build_play_all_url(boxset_id, "BoxSet", False, order)
         result = data_manager.get_content(url)
-        items = [
-            item
-            for item in (result or {}).get("Items") or []
-            if item.get("Type") == "Movie"
-        ]
+        items = sort_emby_items(
+            [
+                item
+                for item in (result or {}).get("Items") or []
+                if item.get("Type") == "Movie"
+            ],
+            order,
+        )
         if not any(item.get("Id") == movie_id for item in items):
             continue
         next_movie = next_in_list(items, movie_id)

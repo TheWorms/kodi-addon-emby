@@ -10,7 +10,7 @@ Lire / Autre tirage / Annuler. La lecture passe ensuite par le chemin normal
 
 from __future__ import annotations
 
-from typing import cast
+from typing import Callable, cast
 
 import xbmc
 import xbmcaddon
@@ -29,6 +29,9 @@ log = SimpleLogging(__name__)
 # Nombre de candidats demandes quand un filtre local (duree) est actif :
 # Emby n'expose pas de filtre « duree maximale », on filtre donc cote client.
 _CANDIDATS_AVEC_FILTRE = 30
+
+# Largeur demandee pour le fanart plein ecran du dialogue
+FANART_WIDTH = 1920
 
 # Choix du dialogue
 CHOIX_ANNULER = 0
@@ -141,11 +144,18 @@ def ligne_infos(item: dict) -> str:
 
 
 class RandomMovieDialog(xbmcgui.WindowXMLDialog):
-    """Dialogue Lire / Autre tirage / Annuler (RandomMovieDialog.xml)."""
+    """Dialogue Lire / Autre tirage / Annuler (RandomMovieDialog.xml).
+
+    v1.18.2 : plein ecran avec le fanart du film en fond (on ne voit plus la
+    liste de l'extension derriere) ; « Autre tirage » met a jour le dialogue
+    sur place au lieu de le fermer puis le rouvrir.
+    """
 
     choix: int = CHOIX_ANNULER
     film: dict | None = None
     affiche: str = ""
+    fond: str = ""
+    tirer_suivant: Callable[[], tuple | None] | None = None
 
     def __init__(
         self,
@@ -160,10 +170,17 @@ class RandomMovieDialog(xbmcgui.WindowXMLDialog):
         self.choix = CHOIX_ANNULER
 
     def onInit(self) -> None:
-        film = self.film or {}
         cast(xbmcgui.ControlLabel, self.getControl(4011)).setLabel(
             string_load(30519)
         )
+        cast(xbmcgui.ControlButton, self.getControl(4020)).setLabel(string_load(30521))
+        cast(xbmcgui.ControlButton, self.getControl(4021)).setLabel(string_load(30522))
+        cast(xbmcgui.ControlButton, self.getControl(4022)).setLabel(string_load(30523))
+        self._afficher()
+        self.setFocusId(4020)
+
+    def _afficher(self) -> None:
+        film = self.film or {}
         cast(xbmcgui.ControlLabel, self.getControl(4012)).setLabel(
             film.get("Name") or ""
         )
@@ -172,18 +189,22 @@ class RandomMovieDialog(xbmcgui.WindowXMLDialog):
             film.get("Overview") or ""
         )
         cast(xbmcgui.ControlImage, self.getControl(4015)).setImage(self.affiche)
-        cast(xbmcgui.ControlButton, self.getControl(4020)).setLabel(string_load(30521))
-        cast(xbmcgui.ControlButton, self.getControl(4021)).setLabel(string_load(30522))
-        cast(xbmcgui.ControlButton, self.getControl(4022)).setLabel(string_load(30523))
-        self.setFocusId(4020)
+        cast(xbmcgui.ControlImage, self.getControl(4016)).setImage(self.fond)
 
     def onClick(self, controlId: int) -> None:
-        if controlId == 4020:
-            self.choix = CHOIX_LIRE
-        elif controlId == 4021:
-            self.choix = CHOIX_RETIRER
-        else:
-            self.choix = CHOIX_ANNULER
+        if controlId == 4021:
+            suivant = self.tirer_suivant() if self.tirer_suivant else None
+            if suivant is None:
+                xbmcgui.Dialog().notification(
+                    string_load(30519),
+                    string_load(30524),
+                    icon="special://home/addons/plugin.video.embycon/icon.png",
+                )
+                return
+            self.film, self.affiche, self.fond = suivant
+            self._afficher()
+            return
+        self.choix = CHOIX_LIRE if controlId == 4020 else CHOIX_ANNULER
         self.close()
 
     def onAction(self, action: xbmcgui.Action) -> None:
@@ -192,8 +213,16 @@ class RandomMovieDialog(xbmcgui.WindowXMLDialog):
             self.close()
 
 
+def _image(download_utils: DownloadUtils, film: dict, kind: str, server, width: int) -> str:
+    try:
+        return download_utils.get_artwork(film, kind, server=server, maxwidth=width) or ""
+    except Exception as err:
+        log.debug("Film au hasard : image {0} indisponible ({1})", kind, err)
+        return ""
+
+
 def choisir_film_au_hasard(params: dict[str, str]) -> str | None:
-    """Boucle de tirage interactive. Renvoie l'Id du film a lire, ou None."""
+    """Tirage interactif. Renvoie l'Id du film a lire, ou None."""
     parent_id = params.get("parent_id") or None
     if parent_id == "none":
         parent_id = None
@@ -207,44 +236,39 @@ def choisir_film_au_hasard(params: dict[str, str]) -> str | None:
         max_image_width = 0
     download_utils = DownloadUtils()
     server = download_utils.get_server()
-
     deja_proposes: set = set()
-    while True:
+
+    def prochain() -> tuple | None:
         film = tirer_film(parent_id, genre_ids, deja_proposes)
         if film is None:
-            log.info("Film au hasard : aucun film ne correspond aux criteres")
-            xbmcgui.Dialog().notification(
-                string_load(30519),
-                string_load(30524),
-                icon="special://home/addons/plugin.video.embycon/icon.png",
-            )
             return None
+        deja_proposes.add(film.get("Id"))
+        log.info("Film au hasard : tirage {0} ({1})", film.get("Name"), film.get("Id"))
+        affiche = _image(download_utils, film, "Primary", server, max_image_width)
+        fond = _image(download_utils, film, "Backdrop", server, FANART_WIDTH)
+        return film, affiche, fond
 
-        film_id = film.get("Id")
-        deja_proposes.add(film_id)
-        log.info("Film au hasard : tirage {0} ({1})", film.get("Name"), film_id)
-
-        affiche = ""
-        try:
-            affiche = download_utils.get_artwork(
-                film, "Primary", server=server, maxwidth=max_image_width
-            )
-        except Exception as err:
-            log.debug("Film au hasard : affiche indisponible ({0})", err)
-
-        dialogue = RandomMovieDialog(
-            "RandomMovieDialog.xml", plugin_path, "default", "720p"
+    premier = prochain()
+    if premier is None:
+        log.info("Film au hasard : aucun film ne correspond aux criteres")
+        xbmcgui.Dialog().notification(
+            string_load(30519),
+            string_load(30524),
+            icon="special://home/addons/plugin.video.embycon/icon.png",
         )
-        dialogue.film = film
-        dialogue.affiche = affiche
-        dialogue.doModal()
-        choix = dialogue.choix
-        del dialogue
+        return None
 
-        if choix == CHOIX_LIRE:
-            return film_id
-        if choix != CHOIX_RETIRER:
-            return None
+    dialogue = RandomMovieDialog("RandomMovieDialog.xml", plugin_path, "default", "720p")
+    dialogue.film, dialogue.affiche, dialogue.fond = premier
+    dialogue.tirer_suivant = prochain
+    dialogue.doModal()
+    choix = dialogue.choix
+    film = dialogue.film or {}
+    del dialogue
+
+    if choix == CHOIX_LIRE:
+        return film.get("Id")
+    return None
 
 
 def _lancer(film_id: str) -> None:

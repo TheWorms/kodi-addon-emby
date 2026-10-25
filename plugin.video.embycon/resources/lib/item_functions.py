@@ -36,6 +36,8 @@ class GuiItem:
     sort_date: str = ""
     sort_name: str = ""
     sort_index: tuple = (0, 0)
+    sort_added: str = ""
+    sort_rating: float = 0.0
 
     def as_tuple(self) -> tuple[str, xbmcgui.ListItem, bool]:
         """Returns the item as a tuple for compatibility with xbmcplugin.addDirectoryItems."""
@@ -948,6 +950,8 @@ def add_gui_item(
         play_count=item_details.play_count,
         sort_date=sort_date,
         sort_name=item_details.sort_name or item_details.name or "",
+        sort_added=item_details.date_added or "",
+        sort_rating=item_details.community_rating or 0.0,
         sort_index=(
             item_details.season_sort_number or item_details.season_number or 0,
             item_details.episode_sort_number or item_details.episode_number or 0,
