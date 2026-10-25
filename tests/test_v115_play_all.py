@@ -23,6 +23,12 @@ class FakePlaylist:
     def add(self, url, _li=None) -> None:
         self.urls.append(url)
 
+    def size(self) -> int:
+        return len(self.urls)
+
+    def __getitem__(self, index):
+        return SimpleNamespace(getPath=lambda: self.urls[index])
+
 
 class FakePlayer:
     """Lecteur simule : demarre sur play(), peut etre arrete a la volee."""
@@ -113,3 +119,29 @@ def test_aucun_element_lisible(monkeypatch) -> None:
     _setup(monkeypatch, set(), player, playlist)
     assert pu.play_all_files([{"Id": "a"}], "-1", SimpleNamespace()) is None
     assert player.play_calls == 0
+
+
+def test_url_lue_differente_ne_coupe_plus_la_suite(monkeypatch) -> None:
+    """v1.18.1 : en transcodage, Kodi rapporte une autre URL que celle ajoutee."""
+    playlist, player = FakePlaylist(), FakePlayer()
+    _setup(monkeypatch, {"a", "b", "c"}, player, playlist)
+    player.getPlayingFile = lambda: "http://srv/hls/master.m3u8"
+    pu.play_all_files([{"Id": "a"}, {"Id": "b"}, {"Id": "c"}], "-1", SimpleNamespace())
+    assert playlist.urls == ["http://srv/a", "http://srv/b", "http://srv/c"]
+
+
+def test_autre_lecture_lancee_entre_temps(monkeypatch) -> None:
+    playlist, player = FakePlaylist(), FakePlayer()
+    _setup(monkeypatch, {"a", "b", "c"}, player, playlist)
+    original = pu._prepare_play_all_item
+
+    def prepare_puis_autre_lecture(item, *args):
+        res = original(item, *args)
+        if item["Id"] == "b":
+            # une autre lecture EmbyCon vide la playlist et met son film
+            playlist.urls = ["http://srv/autre"]
+        return res
+
+    monkeypatch.setattr(pu, "_prepare_play_all_item", prepare_puis_autre_lecture)
+    pu.play_all_files([{"Id": "a"}, {"Id": "b"}, {"Id": "c"}], "-1", SimpleNamespace())
+    assert "http://srv/c" not in playlist.urls

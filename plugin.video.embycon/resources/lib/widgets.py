@@ -1,5 +1,6 @@
 from __future__ import annotations
 import time
+import xbmc
 import xbmcaddon
 import xbmcplugin
 import xbmcgui
@@ -15,6 +16,7 @@ from .kodi_utils import HomeWindow
 from .dir_functions import process_directory, DirectoryResult
 from .tracking import timer
 from .sort_options import recent_newest_first
+from .random_movie import lancer_film_au_hasard, random_widget_launches
 
 
 log = SimpleLogging(__name__)
@@ -294,6 +296,13 @@ def get_widget_content(handle: int, params: dict) -> int:
         url_params["IncludeItemTypes"] = "Movie"
 
     elif widget_type == "random_movies":
+        # v1.18.1 : « Films - Aleatoire » ouvert en plein ecran (raccourci du
+        # menu principal, clic sur l'entree) -> lance un film au hasard au
+        # lieu d'afficher la liste. Sur l'accueil, le widget reste une liste.
+        if xbmc.getCondVisibility("Window.IsActive(videos)") and random_widget_launches():
+            log.info("Films - Aleatoire ouvert en plein ecran : lancement d'un film au hasard")
+            lancer_film_au_hasard({}, handle)
+            return 0
         xbmcplugin.setContent(handle, "movies")
 
         home_window = HomeWindow()

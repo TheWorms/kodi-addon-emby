@@ -1591,12 +1591,12 @@ msgid "Do nothing"
 msgstr "Ne rien faire"
 
 msgctxt "#30569"
-msgid "Offer the next movie (dialog)"
-msgstr "Proposer le film suivant (dialogue)"
+msgid "Offer the next movie, then play it (dialog)"
+msgstr "Proposer le film suivant puis l'enchaîner (dialogue)"
 
 msgctxt "#30570"
-msgid "Play the next movie automatically"
-msgstr "Enchaîner automatiquement le film suivant"
+msgid "Play the next movie automatically, without dialog"
+msgstr "Enchaîner automatiquement, sans dialogue"
 
 msgctxt "#30571"
 msgid "Show the dialog X seconds before the end (when there is no credits marker)"
@@ -1613,3 +1613,11 @@ msgstr "Afficher automatiquement les sous-titres forcés"
 msgctxt "#30574"
 msgid "Forced subtitles translate foreign-language passages and on-screen text. The forced track in the audio language (or the preferred subtitle language) is turned on, unless subtitles are already shown or chosen manually."
 msgstr "Les sous-titres forcés traduisent les passages en langue étrangère et les textes à l'écran. La piste forcée dans la langue de l'audio (ou la langue de sous-titres préférée) est activée, sauf si des sous-titres sont déjà affichés ou choisis à la main."
+
+msgctxt "#30575"
+msgid "« Movies - Random » opened full screen plays a random movie"
+msgstr "« Films - Aléatoire » ouvert en plein écran lance un film au hasard"
+
+msgctxt "#30576"
+msgid "When the « Movies - Random » entry is opened from a menu or a list, a random movie is drawn and offered instead of showing the list. On the home screen the widget stays a list."
+msgstr "Quand l'entrée « Films - Aléatoire » est ouverte depuis un menu ou une liste, un film est tiré au sort et proposé au lieu d'afficher la liste. Sur l'accueil, le widget reste une liste."

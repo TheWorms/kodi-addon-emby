@@ -48,7 +48,7 @@ from .skin_cloner import clone_default_skin
 from .item_functions import extract_media_info
 from .custom_nodes import load_custom_nodes
 from .profile_utils import list_available_profiles, view_profile_details
-from .random_movie import choisir_film_au_hasard
+from .random_movie import lancer_film_au_hasard
 from .marker_info import show_marker_info
 from .view_memory import (
     ViewStore,
@@ -184,9 +184,8 @@ def main_entry_point() -> None:
         play_action(params)
     elif mode == "RANDOM_MOVIE":
         # v1.15 : tirage d'un film + dialogue Lire / Autre tirage / Annuler
-        film_id = choisir_film_au_hasard(params)
-        if film_id:
-            play_action({"item_id": film_id})
+        # v1.18.1 : fonctionne aussi appele comme dossier (raccourci de menu)
+        lancer_film_au_hasard(params, _plugin_handle())
     elif mode == "RESET_VIEWS":
         # v1.16 : bouton « Oublier toutes les vues memorisees » des reglages
         ViewStore().clear()
@@ -223,6 +222,18 @@ def main_entry_point() -> None:
             f.write(pstring)
 
     log.debug("===== EmbyCon FINISHED =====")
+
+
+def _plugin_handle() -> int:
+    """Handle Kodi du dossier demande (-1 pour RunPlugin / RunScript)."""
+    try:
+        handle = int(sys.argv[1])
+    except (IndexError, ValueError):
+        return -1
+    # RunScript(plugin.video.embycon,0,...) passe « 0 » sans dossier a remplir
+    if handle == 0 and not sys.argv[0].startswith("plugin://"):
+        return -1
+    return handle
 
 
 def __get_parent_id_from(params: dict[str, str]) -> str | None:

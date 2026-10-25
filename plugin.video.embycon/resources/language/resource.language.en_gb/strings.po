@@ -1577,11 +1577,11 @@ msgid "Do nothing"
 msgstr ""
 
 msgctxt "#30569"
-msgid "Offer the next movie (dialog)"
+msgid "Offer the next movie, then play it (dialog)"
 msgstr ""
 
 msgctxt "#30570"
-msgid "Play the next movie automatically"
+msgid "Play the next movie automatically, without dialog"
 msgstr ""
 
 msgctxt "#30571"
@@ -1598,4 +1598,12 @@ msgstr ""
 
 msgctxt "#30574"
 msgid "Forced subtitles translate foreign-language passages and on-screen text. The forced track in the audio language (or the preferred subtitle language) is turned on, unless subtitles are already shown or chosen manually."
+msgstr ""
+
+msgctxt "#30575"
+msgid "« Movies - Random » opened full screen plays a random movie"
+msgstr ""
+
+msgctxt "#30576"
+msgid "When the « Movies - Random » entry is opened from a menu or a list, a random movie is drawn and offered instead of showing the list. On the home screen the widget stays a list."
 msgstr ""

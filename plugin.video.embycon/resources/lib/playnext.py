@@ -108,6 +108,7 @@ class PlayNextService(threading.Thread):
                                 "720p",
                             )
                             play_next_dialog.set_episode_info(next_item)
+                            play_next_dialog.play_data = play_data
                             play_next_dialog.show()
 
                     is_playing = True
@@ -140,6 +141,13 @@ class PlayNextDialog(xbmcgui.WindowXMLDialog):
     episode_info: dict | None = None
     play_called: bool = False
     auto_close_thread: ActionAutoClose | None = None
+    # v1.18.1 : donnees de lecture du film en cours, pour noter que le
+    # « suivant » a ete traite (lance ou refuse) -> pas de double lancement
+    play_data: dict | None = None
+
+    def _mark_handled(self) -> None:
+        if self.play_data is not None:
+            self.play_data["next_handled"] = True
 
     def __init__(
         self,
@@ -240,10 +248,12 @@ class PlayNextDialog(xbmcgui.WindowXMLDialog):
 
     def onAction(self, action: xbmcgui.Action) -> None:
         if action.getId() == 10:  # ACTION_PREVIOUS_MENU
+            self._mark_handled()
             if self.auto_close_thread is not None:
                 self.auto_close_thread.stop()
             self.close()
         elif action.getId() == 92:  # ACTION_NAV_BACK
+            self._mark_handled()
             if self.auto_close_thread is not None:
                 self.auto_close_thread.stop()
             self.close()
@@ -256,6 +266,7 @@ class PlayNextDialog(xbmcgui.WindowXMLDialog):
         if controlId == 3013:
             log.debug("PlayNextDialog: Play Next Episode")
             self.play_called = True
+            self._mark_handled()
             if self.auto_close_thread is not None:
                 self.auto_close_thread.stop()
             self.close()

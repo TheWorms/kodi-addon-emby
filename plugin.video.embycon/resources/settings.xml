@@ -545,6 +545,11 @@
 				</setting>
 			</group>
 			<group id="5" label="30519">
+				<setting id="random_widget_launches" type="boolean" label="30575" help="30576">
+				<level>0</level>
+				<default>true</default>
+				<control type="toggle"/>
+				</setting>
 				<setting id="random_movie_unplayed" type="boolean" label="30525" help="">
 				<level>0</level>
 				<default>true</default>

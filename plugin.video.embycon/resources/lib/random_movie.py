@@ -12,15 +12,17 @@ from __future__ import annotations
 
 from typing import cast
 
+import xbmc
 import xbmcaddon
 import xbmcgui
+import xbmcplugin
 import xbmcvfs
 
 from .datamanager import DataManager
 from .downloadutils import DownloadUtils
 from .simple_logging import SimpleLogging
 from .translation import string_load
-from .utils import get_emby_url
+from .utils import get_emby_url, send_event_notification
 
 log = SimpleLogging(__name__)
 
@@ -243,3 +245,52 @@ def choisir_film_au_hasard(params: dict[str, str]) -> str | None:
             return film_id
         if choix != CHOIX_RETIRER:
             return None
+
+
+def _lancer(film_id: str) -> None:
+    """Meme chemin que functions.play_action (sans import circulaire)."""
+    xbmc.Player().stop()
+    send_event_notification(
+        "embycon_play_action",
+        {
+            "action": "play",
+            "item_id": film_id,
+            "auto_resume": "-1",
+            "force_transcode": False,
+            "media_source_id": "",
+        },
+    )
+
+
+def lancer_film_au_hasard(params: dict[str, str], handle: int = -1) -> None:
+    """v1.18.1 : point d'entree unique du « Film au hasard ».
+
+    Kodi peut appeler le chemin de trois facons :
+    - RunPlugin(...) (menu contextuel, raccourci Arctic « action ») :
+      handle = -1, on tire et on lance ;
+    - ActivateWindow(Videos, ...) / clic dans une liste (raccourci Arctic
+      vers le chemin) : handle >= 0, Kodi attend un dossier -> on lui repond
+      « echec » pour qu'il ne reste pas bloque ni n'affiche de liste, puis on
+      tire et on lance ;
+    - chargement d'un widget (accueil, hub du skin) : handle >= 0 hors de
+      la fenetre Videos -> on ne lance RIEN (sinon le dialogue surgirait a
+      chaque affichage).
+    """
+    if handle >= 0:
+        try:
+            xbmcplugin.endOfDirectory(
+                handle, succeeded=False, updateListing=False, cacheToDisc=False
+            )
+        except Exception as err:
+            log.debug("Film au hasard : endOfDirectory ({0})", err)
+        if not xbmc.getCondVisibility("Window.IsActive(videos)"):
+            log.info("Film au hasard : charge comme widget, rien a lancer")
+            return
+    film_id = choisir_film_au_hasard(params)
+    if film_id:
+        _lancer(film_id)
+
+
+def random_widget_launches() -> bool:
+    """Reglage : « Films - Aleatoire » ouvert en plein ecran lance un film."""
+    return xbmcaddon.Addon().getSetting("random_widget_launches") != "false"

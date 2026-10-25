@@ -156,7 +156,7 @@ def test_film_hors_collection(monkeypatch) -> None:
 # --- enchainement automatique en fin de film --------------------------------
 
 
-def _fin_de_film(monkeypatch, position, mode="2"):
+def _fin_de_film(monkeypatch, position, mode="2", deja_traite=False):
     envois = []
     monkeypatch.setattr(pu, "send_event_notification", lambda m, d: envois.append((m, d)))
     monkeypatch.setattr(
@@ -178,6 +178,8 @@ def _fin_de_film(monkeypatch, position, mode="2"):
         "duration": 100,
         "can_delete": False,
     }
+    if deja_traite:
+        data["next_handled"] = True
     pu.prompt_for_stop_actions("m1", data)
     return envois
 
@@ -196,5 +198,16 @@ def test_pas_d_enchainement_si_arret_en_cours_de_film(monkeypatch) -> None:
     assert _fin_de_film(monkeypatch, 40) == []
 
 
-def test_pas_d_enchainement_en_mode_dialogue(monkeypatch) -> None:
-    assert _fin_de_film(monkeypatch, 97, mode="1") == []
+def test_mode_dialogue_enchaine_aussi_sans_refus(monkeypatch) -> None:
+    """v1.18.1 : le dialogue propose, puis le suivant demarre a la fin."""
+    assert len(_fin_de_film(monkeypatch, 97, mode="1")) == 1
+
+
+def test_pas_de_double_lancement_ni_apres_refus(monkeypatch) -> None:
+    # « Play Now » deja clique, ou dialogue ferme par Retour
+    assert _fin_de_film(monkeypatch, 97, mode="1", deja_traite=True) == []
+    assert _fin_de_film(monkeypatch, 97, mode="2", deja_traite=True) == []
+
+
+def test_mode_desactive_n_enchaine_pas(monkeypatch) -> None:
+    assert _fin_de_film(monkeypatch, 97, mode="0") == []

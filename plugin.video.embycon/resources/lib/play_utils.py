@@ -245,16 +245,25 @@ def _prepare_play_all_item(
     return playurl, list_item
 
 
-def _playing_one_of(player: xbmc.Player, urls: set) -> bool:
-    """Vrai si le lecteur joue encore un des elements de NOTRE liste."""
+def _still_our_playlist(
+    player: xbmc.Player, playlist: xbmc.PlayList, first_url: str, count: int
+) -> bool:
+    """Vrai si la playlist video est toujours la notre et que la lecture continue.
+
+    v1.18.1 : on ne compare plus l'URL lue (getPlayingFile) a nos URL : en
+    transcodage HLS ou avec des en-tetes, Kodi peut rapporter une autre URL,
+    ce qui interrompait a tort l'ajout des films suivants (la collection
+    s'arretait apres le premier film). On verifie la playlist elle-meme :
+    meme premier element, meme taille (une autre lecture EmbyCon la vide).
+    """
     try:
         if not player.isPlaying():
             return False
-        if player.getPlayingFile() in urls:
-            return True
+        if playlist.size() != count:
+            return False
+        return playlist[0].getPath() == first_url
     except Exception:
         return False
-    return xbmc.getInfoLabel("Player.Filenameandpath") in urls
 
 
 def _wait_for_playback(player: xbmc.Player, timeout_tenths: int) -> bool:
@@ -349,11 +358,12 @@ def play_all_files(
     max_image_width = int(settings.getSetting("max_image_width"))
 
     player = xbmc.Player()
-    our_urls: set = set()
+    first_url = ""
+    added = 0
     started = False
 
     for index, item in enumerate(items):
-        if started and not _playing_one_of(player, our_urls):
+        if started and not _still_our_playlist(player, playlist, first_url, added):
             log.info(
                 "Tout lire : lecture arretee ou remplacee, preparation interrompue ({0}/{1})",
                 index,
@@ -372,8 +382,10 @@ def play_all_files(
             continue
 
         playurl, list_item = prepared
-        our_urls.add(playurl)
         playlist.add(playurl, list_item)
+        if added == 0:
+            first_url = playurl
+        added += 1
 
         if not play_items:
             continue
@@ -403,6 +415,8 @@ def play_all_files(
         return playlist
     if not started:
         log.info("Tout lire : aucun element lisible")
+    else:
+        log.info("Tout lire : {0} element(s) dans la liste de lecture", added)
     return None
 
 
@@ -960,6 +974,8 @@ def play_file(
         except Exception as err:
             log.error("Film suivant : recherche impossible ({0})", err)
             next_episode = None
+        if next_episode is None:
+            log.info("Film suivant : aucun pour {0}", result.get("Name"))
 
     if next_episode is not None:
         next_epp_art = get_art(
@@ -1121,12 +1137,15 @@ def find_next_movie(movie: dict) -> dict | None:
     """
     settings = xbmcaddon.Addon()
     if settings.getSetting("next_movie_mode") in ("", "0"):
+        log.info("Film suivant : desactive dans les reglages")
         return None
     movie_id = movie.get("Id")
     order = settings.getSetting("collection_play_order")
     data_manager = DataManager()
 
-    for boxset_id, boxset_name in _candidate_boxsets(movie):
+    candidates = _candidate_boxsets(movie)
+    log.info("Film suivant : collections candidates {0}", [c[0] for c in candidates])
+    for boxset_id, boxset_name in candidates:
         url = build_play_all_url(boxset_id, "BoxSet", False, order)
         result = data_manager.get_content(url)
         items = [
@@ -1151,7 +1170,7 @@ def find_next_movie(movie: dict) -> dict | None:
         )
         return next_movie
 
-    log.debug("Film suivant : aucune collection trouvee pour {0}", movie_id)
+    log.info("Film suivant : aucune collection trouvee pour {0}", movie_id)
     return None
 
 
@@ -1648,10 +1667,15 @@ def prompt_for_stop_actions(item_id: str, data: dict) -> None:
     )
 
     # v1.17 : enchainement automatique du film suivant d'une collection
+    # v1.18.1 : aussi en mode « dialogue » (1) : le dialogue propose, et sans
+    # refus de l'utilisateur le film suivant demarre a la fin (comme les
+    # episodes). Pas d'enchainement si « Play Now » a deja lance le suivant
+    # ou si le dialogue a ete ferme (Retour).
     next_movie_auto = (
         item_type == "Movie"
         and next_episode is not None
-        and settings.getSetting("next_movie_mode") == "2"
+        and settings.getSetting("next_movie_mode") in ("1", "2")
+        and not data.get("next_handled", False)
     )
 
     # everything is off so return
@@ -1695,6 +1719,13 @@ def prompt_for_stop_actions(item_id: str, data: dict) -> None:
         log.debug("Prompting for delete")
         delete(item_id)
 
+    if item_type == "Movie" and next_episode is not None:
+        log.info(
+            "Film suivant : fin a {0} %, enchainement={1} (deja traite={2})",
+            percenatge_complete,
+            next_movie_auto and percenatge_complete >= NEXT_MOVIE_AUTO_PERCENT,
+            data.get("next_handled", False),
+        )
     if next_movie_auto and percenatge_complete >= NEXT_MOVIE_AUTO_PERCENT:
         next_item_id = next_episode.get("Id")
         log.info("Film suivant (automatique) : {0}", next_episode.get("Name"))
@@ -2082,7 +2113,10 @@ class PlaybackMonitorService(xbmc.Player):
         # start the skip intro monitor
         settings = xbmcaddon.Addon()
         skip_intros = settings.getSetting("skip_intros")
-        if skip_intros != "0":
+        # v1.18.1 : une ligne claire par lecture pour diagnostiquer le saut
+        if skip_intros in ("", "0"):
+            log.info("Saut d'intro : desactive dans les reglages (Qualite & lecture)")
+        if skip_intros not in ("", "0"):
             intro_start = play_data.get("intro_start", 0)
             intro_end = play_data.get("intro_end", 0)
             # Repli duree fixe : si le serveur n'a pas de marqueur d'intro,
@@ -2095,7 +2129,18 @@ class PlaybackMonitorService(xbmc.Player):
                 if fb_intro > 0:
                     intro_start = 0
                     intro_end = fb_intro * 10000000
+            if not (intro_end > 0 and intro_end > intro_start):
+                log.info(
+                    "Saut d'intro : pas de marqueur serveur et pas de repli (item {0})",
+                    emby_item_id,
+                )
             if intro_end > 0 and intro_end > intro_start:
+                log.info(
+                    "Saut d'intro : {0} de {1:.0f} s a {2:.0f} s",
+                    "automatique" if skip_intros == "2" else "bouton",
+                    intro_start / 10000000.0,
+                    intro_end / 10000000.0,
+                )
                 skip_monitor = SkipIntroMonitor()
                 skip_monitor.set_times(intro_start, intro_end)
                 skip_monitor.set_auto_skip(skip_intros == "2")
