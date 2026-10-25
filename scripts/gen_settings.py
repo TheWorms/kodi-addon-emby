@@ -313,7 +313,7 @@ CATS = [
          "Order of the Collections list and widget (the skin follows this order).",
          "Ordre de la liste et du widget Collections (le skin suit cet ordre).", "4d", SORT),
    slist("list_sort-InBoxSet", "Movies in a collection", "Films d'une collection",
-         "Order of the movies when a collection is opened.", "Ordre des films quand on ouvre une collection.", "9d", SORT_BOX),
+         "Order of the movies when a collection is opened.", "Ordre des films quand on ouvre une collection.", "9a", SORT_BOX),
    slist("list_sort-InSeries", "Seasons and episodes", "Saisons et épisodes",
          "Order inside a series.", "Ordre à l'intérieur d'une série.", "9d", SORT_SERIE),
    bool_("use_prem_date_for_added", "Skin widgets: release date instead of date added",

@@ -499,7 +499,7 @@
 				</setting>
 				<setting id="list_sort-InBoxSet" type="string" label="30720" help="30721">
 					<level>0</level>
-					<default>9d</default>
+					<default>9a</default>
 					<constraints>
 						<options>
 							<option label="30609">0</option>

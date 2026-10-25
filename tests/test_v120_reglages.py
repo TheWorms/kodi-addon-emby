@@ -199,3 +199,24 @@ def test_sept_menus() -> None:
     ]
     visibles = [s for s in racine.iter("setting") if s.findtext("visible") != "false"]
     assert len(visibles) == 93
+
+
+# --- v1.20.2 : films d'une collection, du plus ancien au plus recent --------
+
+
+def test_collection_ancien_vers_recent(monkeypatch, tmp_path) -> None:
+    # installation deja en 1.20 : ancien defaut 9d (marque default="true")
+    (tmp_path / "settings.xml").write_text(
+        '<settings version="2"><setting id="list_sort-InBoxSet" default="true">9d</setting></settings>',
+        encoding="utf-8",
+    )
+    addon = _Addon(str(tmp_path), {"settings_layout": "1.20", "list_sort-InBoxSet": "9d"})
+    monkeypatch.setattr(sys.modules["xbmcaddon"], "Addon", lambda: addon, raising=False)
+    monkeypatch.setattr(sys.modules["xbmcvfs"], "translatePath", lambda p: p, raising=False)
+    mig.migrate_settings()
+    assert addon.ecrits == [("list_sort-InBoxSet", "9a"), ("settings_layout", "1.20.2")]
+
+
+def test_choix_explicite_conserve() -> None:
+    assert mig.plan_v1202({"list_sort-InBoxSet": "9d"}) == {}
+    assert mig.plan_v1202({}) == {"list_sort-InBoxSet": "9a"}

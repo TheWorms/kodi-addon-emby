@@ -19,7 +19,7 @@ import xml.etree.ElementTree as ET
 from .sort_options import migrate_sort
 
 LAYOUT_SETTING = "settings_layout"
-LAYOUT_VERSION = "1.20"
+LAYOUT_VERSION = "1.20.2"
 
 SORT_CONTEXTS = ("Movies", "Series", "BoxSets", "InBoxSet", "InSeries")
 DELETE_CHOICES = (100, 95, 90, 80)
@@ -130,6 +130,25 @@ _OLD_SORT_DEFAULTS = {
 }
 
 
+def plan_v1202(old: dict[str, str]) -> dict[str, str]:
+    """v1.20.2 : films d'une collection du plus ancien au plus recent.
+
+    L'ancien defaut (recent -> ancien) est remplace s'il n'avait pas ete
+    choisi explicitement. Kodi re-applique une valeur stockee meme marquee
+    default="true" : changer le defaut dans settings.xml ne suffit pas.
+    """
+    if "list_sort-InBoxSet" in old:
+        return {}
+    return {"list_sort-InBoxSet": "9a"}
+
+
+def _version(value: str) -> tuple:
+    try:
+        return tuple(int(p) for p in value.split("."))
+    except ValueError:
+        return ()
+
+
 def migrate_settings() -> None:
     """Appele au demarrage du service et de l'extension ; ne fait rien ensuite."""
     import xbmcaddon
@@ -140,10 +159,14 @@ def migrate_settings() -> None:
     log = SimpleLogging(__name__)
     try:
         addon = xbmcaddon.Addon()
-        if addon.getSetting(LAYOUT_SETTING) == LAYOUT_VERSION:
+        done = _version(addon.getSetting(LAYOUT_SETTING))
+        if done >= _version(LAYOUT_VERSION):
             return
         profile = xbmcvfs.translatePath(addon.getAddonInfo("profile"))
-        changes = plan_migration(read_user_values(os.path.join(profile, "settings.xml")))
+        old = read_user_values(os.path.join(profile, "settings.xml"))
+        changes = {} if done >= (1, 20) else plan_migration(old)
+        if done < (1, 20, 2):
+            changes.update(plan_v1202(dict(old, **changes)))
         for key, value in changes.items():
             addon.setSetting(key, value)
         addon.setSetting(LAYOUT_SETTING, LAYOUT_VERSION)
