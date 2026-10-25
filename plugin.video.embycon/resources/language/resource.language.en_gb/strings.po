@@ -1389,7 +1389,7 @@ msgid "Play"
 msgstr ""
 
 msgctxt "#30522"
-msgid "Another pick"
+msgid "Next »"
 msgstr ""
 
 msgctxt "#30523"
@@ -1606,4 +1606,16 @@ msgstr ""
 
 msgctxt "#30576"
 msgid "When the « Movies - Random » entry is opened from a menu or a list, a random movie is drawn and offered instead of showing the list. On the home screen the widget stays a list."
+msgstr ""
+
+msgctxt "#30577"
+msgid "« Previous"
+msgstr ""
+
+msgctxt "#30578"
+msgid "Drawing a movie…"
+msgstr ""
+
+msgctxt "#30579"
+msgid "« Collections - Recently added » widget"
 msgstr ""

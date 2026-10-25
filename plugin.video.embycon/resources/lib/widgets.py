@@ -15,7 +15,7 @@ from .simple_logging import SimpleLogging
 from .kodi_utils import HomeWindow
 from .dir_functions import process_directory, DirectoryResult
 from .tracking import timer
-from .sort_options import recent_newest_first
+from .sort_options import recent_newest_first, server_sort, client_sort, sort_gui_items
 from .random_movie import lancer_film_au_hasard, random_widget_launches
 
 
@@ -329,10 +329,17 @@ def get_widget_content(handle: int, params: dict) -> int:
 
     elif widget_type == "recent_boxsets":
         # v1.16 : nouveau widget « Collections recentes »
+        # v1.18.3 : tri regle dans EmbyCon (date d'ajout par defaut, ou date
+        # de sortie, titre, note ; croissant / decroissant). Arctic ne sait
+        # trier un widget qu'en croissant : laisser son tri sur « aucun ».
         xbmcplugin.setContent(handle, "sets")
         url_params["Recursive"] = True
-        url_params["SortBy"] = "DateCreated,SortName"
-        url_params["SortOrder"] = "Descending"
+        sort_spec = server_sort(settings.getSetting, "RecentBoxSets") or (
+            "DateCreated,SortName",
+            "Descending",
+        )
+        url_params["SortBy"] = sort_spec[0]
+        url_params["SortOrder"] = sort_spec[1]
         url_params["IncludeItemTypes"] = "BoxSet"
 
     elif widget_type == "recent_episodes":
@@ -432,6 +439,12 @@ def get_widget_content(handle: int, params: dict) -> int:
     # ce qui garantit qu'un episode deja lu ne reste jamais dans la liste.
     if hide_watched and widget_type in ("recent_tvshows", "recent_episodes"):
         dir_items = [gi for gi in dir_items if gi.play_count == 0]
+
+    # v1.18.3 : widget des collections, ordre garanti cote client
+    if widget_type == "recent_boxsets":
+        spec = client_sort(settings.getSetting, "RecentBoxSets")
+        if spec is not None:
+            dir_items = sort_gui_items(dir_items, spec[0], spec[1])
 
     # v1.16 : ordre des widgets « recents » (reglage) — le serveur renvoie
     # toujours les N plus recents ; « plus ancien d'abord » inverse la liste.

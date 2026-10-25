@@ -143,19 +143,59 @@ def ligne_infos(item: dict) -> str:
     return "  ·  ".join(morceaux)
 
 
-class RandomMovieDialog(xbmcgui.WindowXMLDialog):
-    """Dialogue Lire / Autre tirage / Annuler (RandomMovieDialog.xml).
+class HistoriqueTirages:
+    """v1.18.3 : historique des tirages pour « Precedent » / « Suivant ».
 
-    v1.18.2 : plein ecran avec le fanart du film en fond (on ne voit plus la
-    liste de l'extension derriere) ; « Autre tirage » met a jour le dialogue
-    sur place au lieu de le fermer puis le rouvrir.
+    Chaque entree est un tuple (film, affiche, fond). « Suivant » avance dans
+    l'historique s'il y a des tirages deja vus devant, sinon tire un nouveau
+    film ; « Precedent » revient au tirage d'avant. Classe sans Kodi : testable.
+    """
+
+    def __init__(self, tirer: Callable[[], tuple | None]) -> None:
+        self._tirer = tirer
+        self._entrees: list = []
+        self._index = -1
+
+    def courant(self) -> tuple | None:
+        if 0 <= self._index < len(self._entrees):
+            return self._entrees[self._index]
+        return None
+
+    @property
+    def peut_reculer(self) -> bool:
+        return self._index > 0
+
+    def suivant(self) -> tuple | None:
+        """Entree suivante (deja vue ou nouveau tirage) ; None si aucun film."""
+        if self._index + 1 < len(self._entrees):
+            self._index += 1
+            return self.courant()
+        entree = self._tirer()
+        if entree is None:
+            return None
+        self._entrees.append(entree)
+        self._index = len(self._entrees) - 1
+        return entree
+
+    def precedent(self) -> tuple | None:
+        if not self.peut_reculer:
+            return None
+        self._index -= 1
+        return self.courant()
+
+
+class RandomMovieDialog(xbmcgui.WindowXMLDialog):
+    """Dialogue « Film au hasard » (RandomMovieDialog.xml).
+
+    v1.18.2 : plein ecran avec le fanart du film en fond.
+    v1.18.3 : s'ouvre IMMEDIATEMENT (fond noir + « Tirage en cours ») puis
+    tire le film : on ne voit plus l'explorateur de l'extension pendant la
+    requete. Boutons « Precedent » / « Lire » / « Suivant » / « Annuler » ;
+    touches piste precedente / suivante de la telecommande aussi.
     """
 
     choix: int = CHOIX_ANNULER
-    film: dict | None = None
-    affiche: str = ""
-    fond: str = ""
-    tirer_suivant: Callable[[], tuple | None] | None = None
+    historique: HistoriqueTirages | None = None
 
     def __init__(
         self,
@@ -169,18 +209,45 @@ class RandomMovieDialog(xbmcgui.WindowXMLDialog):
         )
         self.choix = CHOIX_ANNULER
 
+    @property
+    def film(self) -> dict | None:
+        entree = self.historique.courant() if self.historique else None
+        return entree[0] if entree else None
+
     def onInit(self) -> None:
         cast(xbmcgui.ControlLabel, self.getControl(4011)).setLabel(
             string_load(30519)
         )
+        cast(xbmcgui.ControlButton, self.getControl(4023)).setLabel(string_load(30577))
         cast(xbmcgui.ControlButton, self.getControl(4020)).setLabel(string_load(30521))
         cast(xbmcgui.ControlButton, self.getControl(4021)).setLabel(string_load(30522))
         cast(xbmcgui.ControlButton, self.getControl(4022)).setLabel(string_load(30523))
-        self._afficher()
         self.setFocusId(4020)
+        if self.historique is not None and self.historique.courant() is None:
+            self._chargement()
+            if self.historique.suivant() is None:
+                self._aucun_film()
+                self.close()
+                return
+        self._afficher()
+
+    def _chargement(self) -> None:
+        cast(xbmcgui.ControlLabel, self.getControl(4012)).setLabel(string_load(30578))
+        cast(xbmcgui.ControlLabel, self.getControl(4013)).setLabel("")
+        cast(xbmcgui.ControlTextBox, self.getControl(4014)).setText("")
+
+    def _aucun_film(self) -> None:
+        xbmcgui.Dialog().notification(
+            string_load(30519),
+            string_load(30524),
+            icon="special://home/addons/plugin.video.embycon/icon.png",
+        )
 
     def _afficher(self) -> None:
-        film = self.film or {}
+        entree = self.historique.courant() if self.historique else None
+        if entree is None:
+            return
+        film, affiche, fond = entree
         cast(xbmcgui.ControlLabel, self.getControl(4012)).setLabel(
             film.get("Name") or ""
         )
@@ -188,29 +255,45 @@ class RandomMovieDialog(xbmcgui.WindowXMLDialog):
         cast(xbmcgui.ControlTextBox, self.getControl(4014)).setText(
             film.get("Overview") or ""
         )
-        cast(xbmcgui.ControlImage, self.getControl(4015)).setImage(self.affiche)
-        cast(xbmcgui.ControlImage, self.getControl(4016)).setImage(self.fond)
+        cast(xbmcgui.ControlImage, self.getControl(4015)).setImage(affiche)
+        cast(xbmcgui.ControlImage, self.getControl(4016)).setImage(fond)
+        cast(xbmcgui.ControlButton, self.getControl(4023)).setEnabled(
+            bool(self.historique and self.historique.peut_reculer)
+        )
+
+    def _suivant(self) -> None:
+        if self.historique is None:
+            return
+        self._chargement()
+        if self.historique.suivant() is None:
+            self._aucun_film()
+        self._afficher()
+
+    def _precedent(self) -> None:
+        if self.historique is not None and self.historique.precedent() is not None:
+            self._afficher()
 
     def onClick(self, controlId: int) -> None:
         if controlId == 4021:
-            suivant = self.tirer_suivant() if self.tirer_suivant else None
-            if suivant is None:
-                xbmcgui.Dialog().notification(
-                    string_load(30519),
-                    string_load(30524),
-                    icon="special://home/addons/plugin.video.embycon/icon.png",
-                )
-                return
-            self.film, self.affiche, self.fond = suivant
-            self._afficher()
+            self._suivant()
+            return
+        if controlId == 4023:
+            self._precedent()
+            if not (self.historique and self.historique.peut_reculer):
+                self.setFocusId(4020)
             return
         self.choix = CHOIX_LIRE if controlId == 4020 else CHOIX_ANNULER
         self.close()
 
     def onAction(self, action: xbmcgui.Action) -> None:
-        if action.getId() in (10, 92):  # ACTION_PREVIOUS_MENU, ACTION_NAV_BACK
+        action_id = action.getId()
+        if action_id in (10, 92):  # ACTION_PREVIOUS_MENU, ACTION_NAV_BACK
             self.choix = CHOIX_ANNULER
             self.close()
+        elif action_id == 14:  # ACTION_NEXT_ITEM (piste suivante)
+            self._suivant()
+        elif action_id == 15:  # ACTION_PREV_ITEM (piste precedente)
+            self._precedent()
 
 
 def _image(download_utils: DownloadUtils, film: dict, kind: str, server, width: int) -> str:
@@ -241,6 +324,7 @@ def choisir_film_au_hasard(params: dict[str, str]) -> str | None:
     def prochain() -> tuple | None:
         film = tirer_film(parent_id, genre_ids, deja_proposes)
         if film is None:
+            log.info("Film au hasard : aucun film ne correspond aux criteres")
             return None
         deja_proposes.add(film.get("Id"))
         log.info("Film au hasard : tirage {0} ({1})", film.get("Name"), film.get("Id"))
@@ -248,25 +332,15 @@ def choisir_film_au_hasard(params: dict[str, str]) -> str | None:
         fond = _image(download_utils, film, "Backdrop", server, FANART_WIDTH)
         return film, affiche, fond
 
-    premier = prochain()
-    if premier is None:
-        log.info("Film au hasard : aucun film ne correspond aux criteres")
-        xbmcgui.Dialog().notification(
-            string_load(30519),
-            string_load(30524),
-            icon="special://home/addons/plugin.video.embycon/icon.png",
-        )
-        return None
-
+    # le dialogue s'ouvre tout de suite ; le premier tirage se fait dedans
     dialogue = RandomMovieDialog("RandomMovieDialog.xml", plugin_path, "default", "720p")
-    dialogue.film, dialogue.affiche, dialogue.fond = premier
-    dialogue.tirer_suivant = prochain
+    dialogue.historique = HistoriqueTirages(prochain)
     dialogue.doModal()
     choix = dialogue.choix
     film = dialogue.film or {}
     del dialogue
 
-    if choix == CHOIX_LIRE:
+    if choix == CHOIX_LIRE and film.get("Id"):
         return film.get("Id")
     return None
 
@@ -313,6 +387,12 @@ def lancer_film_au_hasard(params: dict[str, str], handle: int = -1) -> None:
     film_id = choisir_film_au_hasard(params)
     if film_id:
         _lancer(film_id)
+        return
+    # v1.18.3 : Annuler (ou Retour) ramene a l'accueil au lieu de laisser
+    # l'explorateur de l'extension affiche derriere le dialogue
+    if xbmc.getCondVisibility("Window.IsActive(videos)"):
+        log.info("Film au hasard : annule, retour a l'accueil")
+        xbmc.executebuiltin("ActivateWindow(Home)")
 
 
 def random_widget_launches() -> bool:

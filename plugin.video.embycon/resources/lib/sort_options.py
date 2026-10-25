@@ -33,12 +33,13 @@ SORT_FIELD_MAP = {
     "9": "PremiereDate,ProductionYear,SortName",  # Date de sortie
 }
 
-SERVER_CONTEXTS = ("Movies", "Series", "BoxSets", "InBoxSet")
+SERVER_CONTEXTS = ("Movies", "Series", "BoxSets", "InBoxSet", "RecentBoxSets")
 # v1.18.2 : le contenu d'une collection est AUSSI trie cote client : Emby
 # renvoie les films d'une collection dans l'ordre d'affichage propre a la
 # collection et peut ignorer SortBy (constate : tri par date de sortie sans
 # effet dans un widget de collection).
-CLIENT_CONTEXTS = ("InSeries", "InBoxSet")
+# v1.18.3 : liste et widget des collections aussi (ordre garanti a l'affichage)
+CLIENT_CONTEXTS = ("InSeries", "InBoxSet", "BoxSets", "RecentBoxSets")
 
 # criteres de tri client
 CLIENT_DATE = "date"

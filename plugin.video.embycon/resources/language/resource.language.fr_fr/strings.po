@@ -1403,8 +1403,8 @@ msgid "Play"
 msgstr "Lire"
 
 msgctxt "#30522"
-msgid "Another pick"
-msgstr "Autre tirage"
+msgid "Next »"
+msgstr "Suivant »"
 
 msgctxt "#30523"
 msgid "Cancel"
@@ -1621,3 +1621,15 @@ msgstr "« Films - Aléatoire » ouvert en plein écran lance un film au hasard"
 msgctxt "#30576"
 msgid "When the « Movies - Random » entry is opened from a menu or a list, a random movie is drawn and offered instead of showing the list. On the home screen the widget stays a list."
 msgstr "Quand l'entrée « Films - Aléatoire » est ouverte depuis un menu ou une liste, un film est tiré au sort et proposé au lieu d'afficher la liste. Sur l'accueil, le widget reste une liste."
+
+msgctxt "#30577"
+msgid "« Previous"
+msgstr "« Précédent"
+
+msgctxt "#30578"
+msgid "Drawing a movie…"
+msgstr "Tirage en cours…"
+
+msgctxt "#30579"
+msgid "« Collections - Recently added » widget"
+msgstr "Widget « Collections - Ajouts récents »"

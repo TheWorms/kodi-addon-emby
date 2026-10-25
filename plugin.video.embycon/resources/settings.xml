@@ -956,6 +956,34 @@
 				<heading>30460</heading>
 				</control>
 				</setting>
+				<setting id="sort-RecentBoxSets" type="integer" label="30579" help="">
+				<level>0</level>
+				<default>4</default>
+				<constraints>
+				<options>
+				<option label="30427">4</option>
+				<option label="30554">9</option>
+				<option label="30426">2</option>
+				<option label="30428">7</option>
+				</options>
+				</constraints>
+				<control type="list" format="string">
+				<heading>30579</heading>
+				</control>
+				</setting>
+				<setting id="sort_order-RecentBoxSets" type="integer" label="30460" help="">
+				<level>0</level>
+				<default>1</default>
+				<constraints>
+				<options>
+				<option label="30461">0</option>
+				<option label="30462">1</option>
+				</options>
+				</constraints>
+				<control type="list" format="string">
+				<heading>30460</heading>
+				</control>
+				</setting>
 				<setting id="sort-InBoxSet" type="integer" label="30550" help="">
 				<level>0</level>
 				<default>9</default>

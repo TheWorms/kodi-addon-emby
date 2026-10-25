@@ -58,10 +58,21 @@ def test_charge_comme_widget_ne_lance_rien(monkeypatch) -> None:
     assert appels["tirage"] == 0 and appels["lance"] == []
 
 
-def test_annule_ne_lance_rien(monkeypatch) -> None:
+def test_annule_ne_lance_rien_et_revient_a_l_accueil(monkeypatch) -> None:
     appels = _env(monkeypatch, fenetre_videos=True, film=None)
+    commandes = []
+    monkeypatch.setattr(rm.xbmc, "executebuiltin", commandes.append, raising=False)
     rm.lancer_film_au_hasard({}, 7)
     assert appels["lance"] == []
+    assert commandes == ["ActivateWindow(Home)"]
+
+
+def test_annule_depuis_l_accueil_reste_sur_l_accueil(monkeypatch) -> None:
+    _env(monkeypatch, fenetre_videos=False, film=None)
+    commandes = []
+    monkeypatch.setattr(rm.xbmc, "executebuiltin", commandes.append, raising=False)
+    rm.lancer_film_au_hasard({}, -1)
+    assert commandes == []
 
 
 def test_reglage_lanceur(monkeypatch) -> None:
