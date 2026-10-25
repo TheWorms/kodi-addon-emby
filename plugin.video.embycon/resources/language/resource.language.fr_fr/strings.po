@@ -1967,3 +1967,11 @@ msgstr "Intégration à Kodi (redémarrage nécessaire)"
 msgctxt "#30888"
 msgid "Troubleshooting"
 msgstr "Dépannage"
+
+msgctxt "#30889"
+msgid "Play another random movie at the end"
+msgstr "Enchaîner un autre film au hasard à la fin"
+
+msgctxt "#30890"
+msgid "When the movie ends, a new one is drawn with the same criteria and starts. Stopping playback goes back to the home screen."
+msgstr "À la fin du film, un nouveau film est tiré avec les mêmes critères et démarre. Arrêter la lecture ramène à l'accueil."

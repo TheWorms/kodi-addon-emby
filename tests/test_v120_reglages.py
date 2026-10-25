@@ -198,7 +198,7 @@ def test_sept_menus() -> None:
         "lecture", "enchainements", "listes", "fiches", "hasard", "serveur", "avance"
     ]
     visibles = [s for s in racine.iter("setting") if s.findtext("visible") != "false"]
-    assert len(visibles) == 93
+    assert len(visibles) == 94  # v1.21.0 : lecture continue en aleatoire
 
 
 # --- v1.20.2 : films d'une collection, du plus ancien au plus recent --------

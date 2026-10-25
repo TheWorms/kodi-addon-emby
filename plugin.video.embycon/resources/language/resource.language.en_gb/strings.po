@@ -1957,3 +1957,11 @@ msgstr ""
 msgctxt "#30888"
 msgid "Troubleshooting"
 msgstr ""
+
+msgctxt "#30889"
+msgid "Play another random movie at the end"
+msgstr ""
+
+msgctxt "#30890"
+msgid "When the movie ends, a new one is drawn with the same criteria and starts. Stopping playback goes back to the home screen."
+msgstr ""

@@ -683,6 +683,11 @@
 					<default>true</default>
 					<control type="toggle" />
 				</setting>
+				<setting id="random_continuous" type="boolean" label="30889" help="30890">
+					<level>0</level>
+					<default>false</default>
+					<control type="toggle" />
+				</setting>
 				<setting id="random_movie_max_minutes" type="integer" label="30766" help="30767">
 					<level>0</level>
 					<default>0</default>

@@ -345,6 +345,15 @@ def choisir_film_au_hasard(params: dict[str, str]) -> str | None:
     return None
 
 
+def lancer_film(film_id: str, parent_id: str | None = None, genre_ids: str | None = None) -> None:
+    """Lance un film tire au sort et ouvre sa session (v1.21.0 : retour a
+    l'accueil ou lecture continue a la fin, voir random_session)."""
+    from .random_session import start
+
+    start(film_id, parent_id, genre_ids)
+    _lancer(film_id)
+
+
 def _lancer(film_id: str) -> None:
     """Meme chemin que functions.play_action (sans import circulaire)."""
     xbmc.Player().stop()
@@ -386,7 +395,8 @@ def lancer_film_au_hasard(params: dict[str, str], handle: int = -1) -> None:
             return
     film_id = choisir_film_au_hasard(params)
     if film_id:
-        _lancer(film_id)
+        parent_id = params.get("parent_id") or None
+        lancer_film(film_id, None if parent_id == "none" else parent_id, params.get("genre_ids") or None)
         return
     # v1.18.3 : Annuler (ou Retour) ramene a l'accueil au lieu de laisser
     # l'explorateur de l'extension affiche derriere le dialogue

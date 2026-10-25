@@ -32,6 +32,7 @@ from .picture_viewer import PictureViewer
 from .tracking import timer
 from .skip_intro_dialog import SkipIntroMonitor, SkipCreditsMonitor
 from .sort_options import sort_emby_items
+from . import random_session
 
 log = SimpleLogging(__name__)
 
@@ -976,7 +977,13 @@ def play_file(
     next_episode = get_next_episode(result)
     # v1.17 : film suivant d'une collection (meme mecanique que l'episode
     # suivant : dialogue en fin de film, ou enchainement automatique)
-    if next_episode is None and result.get("Type") == "Movie":
+    # v1.21.0 : pas de « film suivant » de collection pour un film au hasard
+    # (sa suite est geree par random_session)
+    if (
+        next_episode is None
+        and result.get("Type") == "Movie"
+        and not random_session.is_random(result.get("Id"))
+    ):
         try:
             next_episode = find_next_movie(result)
         except Exception as err:
@@ -1693,6 +1700,7 @@ def prompt_for_stop_actions(item_id: str, data: dict) -> None:
         prompt_delete_episode_percentage == 100
         and prompt_delete_movie_percentage == 100
         and not next_auto
+        and not random_session.is_random(item_id)
     ):
         return
 
@@ -1701,6 +1709,7 @@ def prompt_for_stop_actions(item_id: str, data: dict) -> None:
     # if no runtime we cant calculate perceantge so just return
     if duration == 0:
         log.debug("No duration so returing")
+        random_session.handle_stop(item_id, 0)
         return
 
     # item percentage complete
@@ -1727,6 +1736,10 @@ def prompt_for_stop_actions(item_id: str, data: dict) -> None:
     if prompt_to_delete:
         log.debug("Prompting for delete")
         delete(item_id)
+
+    # v1.21.0 : film au hasard -> accueil, ou film suivant tire au sort
+    if random_session.handle_stop(item_id, percenatge_complete):
+        return
 
     if item_type in ("Movie", "Episode") and next_episode is not None:
         log.info(
