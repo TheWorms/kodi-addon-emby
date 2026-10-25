@@ -17,13 +17,26 @@ Extension Kodi pour parcourir et lire la médiathèque d'un serveur **[Emby](htt
 
 - **Interface française complète** — traduction intégrale (`resource.language.fr_fr`), détectée automatiquement selon la langue de Kodi.
 - **Masquage des éléments déjà vus** — sur les listes *et* les widgets d'accueil, avec un rafraîchissement fiable : purge du cache au marquage et jeton de rechargement (`&reload`) injecté dans les chemins de widgets pour une mise à jour automatique après un marquage vu/non-vu.
-- **Tri côté serveur** — tri par défaut configurable par type de contenu (films, coffrets, séries, saisons, épisodes) avec sens croissant/décroissant.
+- **Tri configurable par liste** — films, séries, collections, films d'une collection, saisons et épisodes : le critère et le sens tiennent en un seul réglage (« Date de sortie, ancien → récent »…).
 - **Qualité de lecture automatique** — mesure du débit réseau en arrière-plan (jamais pendant la lecture) et réglage automatique du débit maximal ; mode manuel toujours disponible.
 - **Saut de l'intro et du générique** — basé sur les marqueurs détectés par le serveur Emby (`IntroStart`/`IntroEnd`/`CreditsStart`), en mode *Bouton* ou *Automatique*, avec un **repli à durée fixe** (sauter les X premières secondes / proposer le saut X secondes avant la fin) lorsque le serveur n'a pas de marqueur.
 - **Sous-titres intelligents** — active automatiquement un sous-titre dans la langue préférée quand l'audio n'est pas dans la langue préférée (comme l'appli web Emby).
-- **Lecture de l'épisode suivant** — boîte de dialogue configurable (activation, seuil de déclenchement, pourcentage).
+- **Épisode et film suivants** — une fenêtre propose la suite avant la fin puis l'enchaîne, ou l'enchaînement se fait sans demander.
 - **Rafraîchissement après lecture** — la liste courante se met à jour peu après la fin d'une lecture.
-- **Réglages réorganisés** — 6 catégories claires regroupées par intention (Serveur & compte, Qualité & lecture, Automatisations, Affichage & listes, Services, Avancé).
+- **Réglages réorganisés** — 7 menus (Lecture, Enchaînements, Listes et tri, Titres et fiches, Film au hasard, Serveur et compte, Avancé), avec une phrase d'aide par réglage.
+
+---
+
+## 🎬 Nouveautés des versions 1.15 à 1.20
+
+- **Film au hasard** — fiche plein écran sur le fanart du film avec *Lire*, *Suivant*, *Précédent* et *Annuler* ; filtres « non vus » et durée maximale. Ouvrir le widget « Films - Aléatoire » lance directement le tirage.
+- **Collections de films** — *Tout lire* une collection, et enchaînement du **film suivant** : proposé au début du générique (ou quelques minutes avant la fin), puis lancé automatiquement. Ordre de lecture configurable, du plus ancien au plus récent par défaut.
+- **Épisode suivant** — même fonctionnement que pour les films : proposer puis enchaîner, ou enchaîner sans demander.
+- **Dates des collections** — Emby ne date pas les collections : EmbyCon calcule leur date de sortie à partir de leurs films, en parallèle, avec un cache disque préparé en arrière-plan par le service. Les tris par date fonctionnent donc aussi sur les collections.
+- **Films d'une collection dans l'ordre** — par défaut du plus ancien au plus récent, pour suivre une saga d'année en année.
+- **Sous-titres forcés** — affichés automatiquement dans votre langue (dialogues étrangers, panneaux).
+- **Vues mémorisées** — la vue choisie (liste, affiches, vignettes…) est retenue pour chaque catégorie.
+- **Réglages simplifiés (1.20)** — 93 réglages au lieu de 110 : doublons fusionnés, options obsolètes retirées, valeurs lisibles (« Désactivé », « Sans limite ») et sous-réglages affichés seulement quand ils servent. Les réglages existants sont convertis automatiquement à la mise à jour.
 
 ---
 
@@ -41,7 +54,7 @@ Extension Kodi pour parcourir et lire la médiathèque d'un serveur **[Emby](htt
 
 ## 📦 Installation
 
-### Via le dépôt TheWorms (recommandé, mises à jour automatiques)
+### Via le dépôt TheWorms (mises à jour automatiques)
 
 1. Dans Kodi : **Paramètres → Système → Modules complémentaires** et activez **Sources inconnues**.
 2. Installez le dépôt TheWorms depuis cette URL (Explorateur de fichiers → *Ajouter une source*, ou installation directe du zip) :
@@ -50,19 +63,15 @@ Extension Kodi pour parcourir et lire la médiathèque d'un serveur **[Emby](htt
    ```
 3. **Modules → Installer depuis un dépôt → TheWorms Repository → Extensions vidéo → EmbyCon**.
 
-### Depuis un zip
-
-Téléchargez la dernière archive depuis les [Releases](https://github.com/TheWorms/kodi-addon-emby/releases) puis, dans Kodi : **Modules → Installer depuis un fichier zip**.
-
 ---
 
 ## ⚙️ Configuration
 
 1. Ouvrez les réglages de l'extension.
-2. **Serveur & compte** : renseignez l'adresse et le port de votre serveur Emby (ou utilisez la détection automatique), puis vos identifiants.
+2. **Serveur et compte** : renseignez l'adresse et le port de votre serveur Emby (ou utilisez la détection automatique), puis vos identifiants.
 3. Parcourez votre médiathèque depuis l'entrée **EmbyCon** de Kodi, ou ajoutez des **widgets** à votre écran d'accueil.
 
-> Pour que les éléments vus disparaissent des listes et widgets, activez **Affichage & listes → Organisation → Masquer les éléments déjà vus**.
+> Pour que les éléments vus disparaissent des listes et widgets, activez **Listes et tri → Contenu → Masquer ce que j'ai déjà vu**.
 
 ---
 

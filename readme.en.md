@@ -17,13 +17,26 @@ Kodi add-on to browse and play the media library of an **[Emby](https://emby.med
 
 - **Full French interface** — complete translation (`resource.language.fr_fr`), auto-detected from Kodi's language.
 - **Hide watched items** — on both lists *and* home widgets, with reliable refreshing: cache is purged on marking, and a reload token (`&reload`) is injected into widget paths so widgets update automatically after a watched/unwatched action.
-- **Server-side sorting** — configurable default sort per content type (movies, box sets, series, seasons, episodes) with ascending/descending order.
+- **Per-list sorting** — movies, series, collections, movies in a collection, seasons and episodes: criterion and direction fit in a single setting (« Release date, oldest → newest »…).
 - **Automatic playback quality** — background network-speed measurement (never during playback) that sets the maximum bitrate automatically; manual mode still available.
 - **Skip intro & skip credits** — based on the server-detected markers (`IntroStart`/`IntroEnd`/`CreditsStart`), in *Button* or *Automatic* mode, with a **fixed-duration fallback** (skip the first X seconds / offer the credits skip X seconds before the end) when the server has no markers.
 - **Intelligent subtitles** — automatically enables a preferred-language subtitle when the audio is not in your preferred language (like the Emby web app).
-- **Play next episode** — configurable dialog (enable, trigger threshold, percentage).
+- **Next episode and next movie** — a window offers what comes next before the end, then plays it, or playback chains without asking.
 - **Refresh after playback** — the current list updates shortly after playback ends.
-- **Reorganized settings** — 6 clear categories grouped by intent (Server & account, Quality & playback, Automations, Display & lists, Services, Advanced).
+- **Reorganized settings** — 7 menus (Playback, Skips and up next, Lists and sorting, Titles and details, Random movie, Server and account, Advanced), with a help sentence for each setting.
+
+---
+
+## 🎬 What's new in 1.15 to 1.20
+
+- **Random movie** — full-screen card over the movie's fanart with *Play*, *Next*, *Previous* and *Cancel*; « unwatched only » and maximum length filters. Opening the « Movies - Random » widget starts the draw directly.
+- **Movie collections** — *Play all* for a collection, and chaining to the **next movie**: offered when the credits start (or a few minutes before the end), then started automatically. Configurable playback order, oldest to newest by default.
+- **Next episode** — works like movies: offer then play, or play without asking.
+- **Collection dates** — Emby does not date collections: EmbyCon computes their release date from their movies, in parallel, with a disk cache prepared in the background by the service. Date sorting therefore works on collections too.
+- **Movies of a collection in order** — oldest to newest by default, to follow a saga year after year.
+- **Forced subtitles** — shown automatically in your language (foreign dialogue, signs).
+- **Remembered views** — the chosen view (list, posters, thumbnails…) is kept for each category.
+- **Simplified settings (1.20)** — 93 settings instead of 110: duplicates merged, obsolete options removed, readable values (« Off », « No limit ») and sub-settings shown only when relevant. Existing settings are converted automatically on update.
 
 ---
 
@@ -41,7 +54,7 @@ Kodi add-on to browse and play the media library of an **[Emby](https://emby.med
 
 ## 📦 Installation
 
-### Via the TheWorms repository (recommended, automatic updates)
+### Via the TheWorms repository (automatic updates)
 
 1. In Kodi: **Settings → System → Add-ons** and enable **Unknown sources**.
 2. Install the TheWorms repository from this URL (File manager → *Add source*, or install the zip directly):
@@ -50,19 +63,15 @@ Kodi add-on to browse and play the media library of an **[Emby](https://emby.med
    ```
 3. **Add-ons → Install from repository → TheWorms Repository → Video add-ons → EmbyCon**.
 
-### From a zip
-
-Download the latest archive from the [Releases](https://github.com/TheWorms/kodi-addon-emby/releases) page, then in Kodi: **Add-ons → Install from zip file**.
-
 ---
 
 ## ⚙️ Configuration
 
 1. Open the add-on settings.
-2. **Server & account**: enter your Emby server address and port (or use auto-detection), then your credentials.
+2. **Server and account**: enter your Emby server address and port (or use auto-detection), then your credentials.
 3. Browse your library from Kodi's **EmbyCon** entry, or add **widgets** to your home screen.
 
-> For watched items to disappear from lists and widgets, enable **Display & lists → Organization → Hide watched items**.
+> For watched items to disappear from lists and widgets, enable **Lists and sorting → Content → Hide what I have already watched**.
 
 ---
 
