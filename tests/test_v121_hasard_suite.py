@@ -100,3 +100,29 @@ def test_retour_depuis_le_plein_ecran() -> None:
     assert not rs.leave_fullscreen_to_home(True, False, False, True)  # pas l'explorateur
     assert not rs.leave_fullscreen_to_home(True, False, True, False)  # pas un film au hasard
     assert not rs.leave_fullscreen_to_home(True, True, True, True)
+
+
+def test_fin_naturelle_compte_comme_vu_jusqu_au_bout(monkeypatch) -> None:
+    """v1.21.3 : journal de Thib, fin de lecture vue a 84 % (position datee)."""
+    lances = []
+    monkeypatch.setattr(rs, "current", lambda: dict(SESSION))
+    monkeypatch.setattr(rs, "clear", lambda: None)
+    monkeypatch.setattr(
+        sys.modules["xbmcaddon"],
+        "Addon",
+        lambda: SimpleNamespace(
+            getSetting=lambda k: {"random_continuous": "true", "promptDeleteEpisodePercentage": "100",
+                                  "promptDeleteMoviePercentage": "100"}.get(k, ""),
+            getLocalizedString=lambda i: "Film au hasard",
+        ),
+        raising=False,
+    )
+    monkeypatch.setattr(sys.modules["xbmcgui"], "Dialog", lambda: SimpleNamespace(notification=lambda *a, **k: None), raising=False)
+    import lib.random_movie as rm
+
+    monkeypatch.setattr(rm, "tirer_film", lambda *a: {"Id": "m2", "Name": "Dune"})
+    monkeypatch.setattr(rm, "lancer_film", lambda fid, *a: lances.append(fid))
+    data = {"item_type": "Movie", "next_episode": None, "currentPossition": 84, "duration": 100,
+            "can_delete": False, "playback_ended": True}
+    pu.prompt_for_stop_actions("m1", data)
+    assert lances == ["m2"]

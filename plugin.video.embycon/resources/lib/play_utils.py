@@ -1709,12 +1709,16 @@ def prompt_for_stop_actions(item_id: str, data: dict) -> None:
     # if no runtime we cant calculate perceantge so just return
     if duration == 0:
         log.debug("No duration so returing")
-        random_session.handle_stop(item_id, 0)
+        random_session.handle_stop(item_id, 100 if data.get("playback_ended") else 0)
         return
 
     # item percentage complete
     # percenatge_complete = int(((current_position * 10000000) / runtime) * 100)
     percenatge_complete = int((current_position / duration) * 100)
+    # v1.21.3 : la position n'est relevee que toutes les 10 s ; une fin
+    # naturelle de lecture vaut 100 % (enchainements film / episode / hasard)
+    if data.get("playback_ended"):
+        percenatge_complete = 100
     log.debug("Episode Percentage Complete: {0}", percenatge_complete)
 
     if (
@@ -1765,7 +1769,7 @@ def prompt_for_stop_actions(item_id: str, data: dict) -> None:
         return
 
 
-def stop_all_playback(played_information: dict[str, dict]) -> None:
+def stop_all_playback(played_information: dict[str, dict], ended: bool = False) -> None:
     log.debug("stop_all_playback : {0}", played_information)
 
     if len(played_information) == 0:
@@ -1804,6 +1808,10 @@ def stop_all_playback(played_information: dict[str, dict]) -> None:
                 }
                 download_utils.download_url(url, post_body=postdata, method="POST")
                 data["currently_playing"] = False
+                # v1.21.3 : fin naturelle (onPlayBackEnded) -> vu jusqu'au bout,
+                # meme si la derniere position connue date de 10 s
+                if ended:
+                    data["playback_ended"] = True
 
                 if data.get("play_action_type", "") == "play":
                     prompt_for_stop_actions(emby_item_id, data)
@@ -2180,7 +2188,7 @@ class PlaybackMonitorService(xbmc.Player):
     def onPlayBackEnded(self) -> None:
         # Will be called when kodi stops playing a file
         log.info("onPlayBackEnded")
-        stop_all_playback(self.played_information)
+        stop_all_playback(self.played_information, ended=True)
         if self.currently_playing_id is not None:
             log.info("marking item watched : {0}", self.currently_playing_id)
             mark_item_watched(self.currently_playing_id, refresh=False)
