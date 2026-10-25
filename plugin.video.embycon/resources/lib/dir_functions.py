@@ -35,6 +35,7 @@ from .sort_options import (
     client_sort,
     sort_gui_items,
     describe_order,
+    rank_stamps,
 )
 from .collection_dates import apply_collection_dates
 
@@ -258,6 +259,10 @@ def get_content(url: str, params: dict[str, str]) -> int:
         log.debug("Applied client sort: {0}", client_sort_spec)
         if context in ("BoxSets", "InBoxSet"):
             log.info("Tri {0} {1} : {2}", context, client_sort_spec, describe_order(dir_items))
+        # v1.19.1 : liste de collections -> le tri du widget Arctic (date
+        # d'ajout decroissante) suit l'ordre EmbyCon
+        if context == "BoxSets":
+            stamp_rank_dates(dir_items)
 
     # v1.16 : listes « recents » en ordre « plus ancien d'abord »
     if params.get("reverse") == "true":
@@ -428,13 +433,14 @@ def set_sort(
     xbmcplugin.addSortMethod(pluginhandle, xbmcplugin.SORT_METHOD_LABEL)
 
 
-def _release_as_date_added(settings: xbmcaddon.Addon, params: dict[str, str]) -> bool:
-    """v1.18.6 : liste / widget de collections trie par « Date de sortie » ?"""
-    if sort_context(params.get("media_type")) == "BoxSets":
-        return settings.getSetting("sort-BoxSets") == "9"
-    if params.get("type") == "recent_boxsets":
-        return settings.getSetting("sort-RecentBoxSets") == "9"
-    return False
+def stamp_rank_dates(dir_items: list) -> None:
+    """Date d'ajout = rang dans l'ordre EmbyCon (voir sort_options.rank_stamps)."""
+    for gui_item, stamp in zip(dir_items, rank_stamps(len(dir_items))):
+        gui_item.sort_added = stamp
+        try:
+            gui_item.list_item.getVideoInfoTag().setDateAdded(stamp)
+        except Exception as err:
+            log.debug("stamp_rank_dates : {0}", err)
 
 
 def _collections_ascending(settings: xbmcaddon.Addon, params: dict[str, str]) -> bool:
@@ -543,11 +549,7 @@ def process_directory(
     # v1.18.4 : collections -> annee / date de sortie du film le plus recent
     # (Emby n'en donne souvent aucune : tri « date de sortie » ou « Annee »
     # sans effet dans les listes et les widgets)
-    apply_collection_dates(
-        item_list,
-        _release_as_date_added(settings, params),
-        _collections_ascending(settings, params),
-    )
+    apply_collection_dates(item_list, _collections_ascending(settings, params))
 
     display_options = DisplayOptions()
     display_options.addCounts = settings.getSetting("addCounts") == "true"

@@ -188,22 +188,15 @@ def refresh_all_collection_dates() -> None:
         log.error("Collections : preparation des dates impossible ({0})", err)
 
 
-def apply_collection_dates(
-    item_list: list, release_as_date_added: bool = False, ascending: bool = False
-) -> None:
+def apply_collection_dates(item_list: list, ascending: bool = False) -> None:
     """Renseigne annee + date de sortie des collections d'une liste d'ItemDetails.
 
-    Donne a Kodi (tri « Annee » d'un widget Arctic) et au tri EmbyCon une
-    vraie date : celle du film le plus recent de chaque collection.
+    Donne a Kodi et au tri EmbyCon une vraie date : celle du PREMIER film
+    (debut de la saga) en ordre croissant, celle du film le plus recent en
+    ordre decroissant.
 
-    v1.18.6 : release_as_date_added (tri EmbyCon des collections regle sur
-    « Date de sortie ») -> la date d'ajout transmise a Kodi devient aussi la
-    date de sortie. Un widget Arctic trie par « date d'ajout » (son reglage
-    par defaut, il n'a pas de tri « date de sortie ») suit alors la date de
-    sortie, sans rien changer dans le skin.
-
-    v1.19 : ascending (ordre croissant) -> date du PREMIER film (debut de la
-    saga) ; decroissant -> date du film le plus recent.
+    v1.19.1 : la date d'ajout n'est plus detournee ici. C'est l'ordre final
+    d'EmbyCon qui est transmis au skin (dir_functions.stamp_rank_dates).
     """
     boxsets = [d for d in item_list if getattr(d, "item_type", None) == "BoxSet"]
     if not boxsets:
@@ -220,6 +213,3 @@ def apply_collection_dates(
         details.year = int(date[:4])
         # annee seule : on retire la date Emby pour rester coherent
         details.premiere_date = date if len(date) == 10 else None
-        if release_as_date_added:
-            full = date if len(date) == 10 else date + "-01-01"
-            details.date_added = full + " 00:00:00"

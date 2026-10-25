@@ -13,7 +13,7 @@ from .utils import get_emby_url
 from .datamanager import DataManager
 from .simple_logging import SimpleLogging
 from .kodi_utils import HomeWindow
-from .dir_functions import process_directory, DirectoryResult
+from .dir_functions import process_directory, DirectoryResult, stamp_rank_dates
 from .tracking import timer
 from .sort_options import (
     recent_newest_first,
@@ -468,6 +468,7 @@ def get_widget_content(handle: int, params: dict) -> int:
             dir_items = sort_gui_items(dir_items, spec[0], spec[1])
         if boxset_limit > 0:
             dir_items = dir_items[:boxset_limit]
+        stamp_rank_dates(dir_items)
         log.info("Widget Collections {0} : {1}", spec, describe_order(dir_items))
 
     # v1.16 : ordre des widgets « recents » (reglage) — le serveur renvoie

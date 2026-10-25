@@ -126,8 +126,8 @@ def test_perimee_utilisee_par_les_widgets_rafraichie_par_le_service(monkeypatch,
     assert appels == ["bs-sw"]
 
 
-def test_date_de_sortie_comme_date_d_ajout(monkeypatch) -> None:
-    """v1.18.6 : un widget Arctic trie par date d'ajout suit la date de sortie."""
+def test_date_d_ajout_conservee(monkeypatch) -> None:
+    """v1.19.1 : la date d'ajout n'est plus remplacee par la date de sortie."""
     monkeypatch.setattr(
         cd,
         "collection_release_dates",
@@ -137,26 +137,9 @@ def test_date_de_sortie_comme_date_d_ajout(monkeypatch) -> None:
     sw.date_added = "2024-03-01 10:00:00"
     perso = _details("bs-perso")
     perso.date_added = "2025-01-01 10:00:00"
-    cd.apply_collection_dates([sw, perso], release_as_date_added=True)
-    assert sw.date_added == "2019-12-18 00:00:00"
-    assert perso.date_added == "2012-01-01 00:00:00"
-    # sans l'option : la vraie date d'ajout est conservee
-    autre = _details("bs-sw")
-    autre.date_added = "2024-03-01 10:00:00"
-    cd.apply_collection_dates([autre])
-    assert autre.date_added == "2024-03-01 10:00:00"
-
-
-def test_quand_appliquer_la_date_de_sortie() -> None:
-    import lib.dir_functions as df
-
-    def reglages(valeurs):
-        return SimpleNamespace(getSetting=lambda k: valeurs.get(k, ""))
-
-    assert df._release_as_date_added(reglages({"sort-BoxSets": "9"}), {"media_type": "boxsets"})
-    assert not df._release_as_date_added(reglages({"sort-BoxSets": "4"}), {"media_type": "boxsets"})
-    assert df._release_as_date_added(reglages({"sort-RecentBoxSets": "9"}), {"type": "recent_boxsets"})
-    assert not df._release_as_date_added(reglages({"sort-BoxSets": "9"}), {"media_type": "movies"})
+    cd.apply_collection_dates([sw, perso])
+    assert (sw.year, sw.premiere_date, sw.date_added) == (2019, "2019-12-18", "2024-03-01 10:00:00")
+    assert (perso.year, perso.premiere_date) == (2012, None)
 
 
 def test_ordre_croissant_date_du_premier_film(monkeypatch, tmp_path) -> None:
@@ -169,8 +152,8 @@ def test_ordre_croissant_date_du_premier_film(monkeypatch, tmp_path) -> None:
 
     sw = _details("bs-sw")
     sw.date_added = "2024-03-01 10:00:00"
-    cd.apply_collection_dates([sw], release_as_date_added=True, ascending=True)
-    assert (sw.year, sw.premiere_date, sw.date_added) == (1977, "1977-05-25", "1977-05-25 00:00:00")
+    cd.apply_collection_dates([sw], ascending=True)
+    assert (sw.year, sw.premiere_date) == (1977, "1977-05-25")
 
 
 def test_sens_du_tri_des_collections() -> None:
@@ -184,3 +167,68 @@ def test_sens_du_tri_des_collections() -> None:
     assert df._collections_ascending(
         reglages({"sort_order-RecentBoxSets": "0", "sort_order-BoxSets": "1"}), {"type": "recent_boxsets"}
     )
+
+
+# --- v1.19.1 : l'ordre EmbyCon pilote le widget Arctic ----------------------
+
+
+class _Tag:
+    def __init__(self):
+        self.added = ""
+
+    def setDateAdded(self, value):
+        self.added = value
+
+
+class _ListItem:
+    def __init__(self, label):
+        self.label = label
+        self.tag = _Tag()
+
+    def getLabel(self):
+        return self.label
+
+    def getVideoInfoTag(self):
+        return self.tag
+
+
+def _gui(label, date):
+    return SimpleNamespace(list_item=_ListItem(label), sort_date=date, sort_name=label, sort_added="")
+
+
+def _ordre_arctic(items):
+    """Ce que fait le widget : tri par date d'ajout, decroissant."""
+    ranges = sorted(items, key=lambda i: i.list_item.tag.added, reverse=True)
+    return [i.list_item.label for i in ranges]
+
+
+def test_rangs_en_dates_d_ajout() -> None:
+    import datetime
+
+    from lib.sort_options import rank_stamps
+
+    maintenant = datetime.datetime(2026, 10, 25, 20, 30, 45)
+    assert rank_stamps(3, maintenant) == [
+        "2026-10-25 20:30:00",
+        "2026-10-25 20:29:00",
+        "2026-10-25 20:28:00",
+    ]
+    assert rank_stamps(0) == []
+
+
+def test_widget_arctic_suit_le_sens_choisi() -> None:
+    import lib.dir_functions as df
+    from lib.sort_options import sort_gui_items
+
+    collections = [
+        _gui("Star Wars", "1977-05-25"),
+        _gui("Dune", "2021-09-15"),
+        _gui("Alien", "1979-05-25"),
+    ]
+    croissant = sort_gui_items(collections, "date", False)
+    df.stamp_rank_dates(croissant)
+    assert _ordre_arctic(croissant) == ["Star Wars", "Alien", "Dune"]
+
+    decroissant = sort_gui_items(collections, "date", True)
+    df.stamp_rank_dates(decroissant)
+    assert _ordre_arctic(decroissant) == ["Dune", "Alien", "Star Wars"]

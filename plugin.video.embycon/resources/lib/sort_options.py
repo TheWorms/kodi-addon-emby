@@ -18,6 +18,7 @@ Module sans dependance Kodi : testable hors Kodi.
 
 from __future__ import annotations
 
+import datetime
 from typing import Callable
 
 GetSetting = Callable[[str], str]
@@ -181,3 +182,17 @@ def describe_order(items: list, count: int = 6) -> str:
             label = getattr(item, "sort_name", "")
         parts.append("%s (%s)" % (label, getattr(item, "sort_date", "") or "?"))
     return ", ".join(parts)
+
+
+def rank_stamps(count: int, now: datetime.datetime | None = None) -> list:
+    """v1.19.1 : dates d'ajout decroissantes, une par rang (minute par minute).
+
+    Appliquees apres le tri EmbyCon, elles font qu'un widget de skin trie par
+    « date d'ajout, decroissant » (cas d'Arctic) reproduit exactement l'ordre
+    choisi dans EmbyCon, croissant ou decroissant.
+    """
+    base = (now or datetime.datetime.now()).replace(second=0, microsecond=0)
+    return [
+        (base - datetime.timedelta(minutes=rank)).strftime("%Y-%m-%d %H:%M:%S")
+        for rank in range(count)
+    ]
