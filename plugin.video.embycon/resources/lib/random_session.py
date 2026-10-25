@@ -37,6 +37,18 @@ def decide(session: dict | None, item_id: str, percent: int, continuous: bool) -
     return HOME
 
 
+def leave_fullscreen_to_home(
+    was_fullscreen: bool, fullscreen: bool, videos_active: bool, random_playing: bool
+) -> bool:
+    """v1.21.2 : Retour pendant un film au hasard -> accueil.
+
+    Kodi garde la video en fond et reaffiche la fenetre precedente (l'explorateur
+    de l'extension). On ne redirige qu'au moment ou l'on quitte le plein ecran :
+    naviguer ensuite dans Videos pendant la lecture reste possible.
+    """
+    return was_fullscreen and not fullscreen and videos_active and random_playing
+
+
 def start(film_id: str, parent_id: str | None, genre_ids: str | None) -> None:
     session = current() or {}
     same_filters = session.get("parent_id") == parent_id and session.get("genre_ids") == genre_ids

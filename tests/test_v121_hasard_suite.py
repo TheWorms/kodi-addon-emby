@@ -92,3 +92,11 @@ def test_bouton_passer_disparait() -> None:
     assert not button_expired(100.0, 105.0, 10)
     assert button_expired(100.0, 110.0, 10)
     assert not button_expired(100.0, 500.0, 0)  # 0 = jusqu'a la fin
+
+
+def test_retour_depuis_le_plein_ecran() -> None:
+    assert rs.leave_fullscreen_to_home(True, False, True, True)
+    assert not rs.leave_fullscreen_to_home(False, False, True, True)  # deja hors plein ecran
+    assert not rs.leave_fullscreen_to_home(True, False, False, True)  # pas l'explorateur
+    assert not rs.leave_fullscreen_to_home(True, False, True, False)  # pas un film au hasard
+    assert not rs.leave_fullscreen_to_home(True, True, True, True)

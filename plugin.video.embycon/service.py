@@ -33,6 +33,7 @@ from resources.lib.playnext import PlayNextService
 from resources.lib.chapter_dialog import ChapterDialogMonitor
 from resources.lib.view_memory import ViewMonitor
 from resources.lib.collection_dates import refresh_all_collection_dates
+from resources.lib import random_session
 
 # v1.20.0 : nouvelle organisation des reglages, convertie avant tout le reste
 migrate_settings()
@@ -170,6 +171,8 @@ refresh_grace = 0
 # pendant l'economiseur d'ecran ; une mesure part des la sortie de veille.
 last_bitrate_check = 0.0
 bitrate_auto_interval = 30 * 60
+# v1.21.2 : film au hasard, « Retour » depuis le plein ecran -> accueil
+random_was_fullscreen = False
 
 while not kodi_monitor.abortRequested():
     try:
@@ -180,7 +183,19 @@ while not kodi_monitor.abortRequested():
                 last_progress_update = time.time()
                 send_progress(play_monitor_service)
 
+            fullscreen = xbmc.getCondVisibility("Window.IsActive(fullscreenvideo)")
+            if random_session.leave_fullscreen_to_home(
+                random_was_fullscreen,
+                fullscreen,
+                xbmc.getCondVisibility("Window.IsActive(videos)"),
+                random_session.is_random(home_window.get_property("currently_playing_id")),
+            ):
+                log.info("Film au hasard : retour depuis le plein ecran, accueil")
+                xbmc.executebuiltin("ActivateWindow(Home)")
+            random_was_fullscreen = fullscreen
+
         else:
+            random_was_fullscreen = False
             # EmbyCon FR: rafraichissement differe apres lecture.
             # On n'agit qu'apres etre reellement sorti de la video plein ecran
             # depuis ~2s (temporisation). Cela evite de consommer le drapeau
