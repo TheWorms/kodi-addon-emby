@@ -13,15 +13,8 @@ from .utils import get_emby_url
 from .datamanager import DataManager
 from .simple_logging import SimpleLogging
 from .kodi_utils import HomeWindow
-from .dir_functions import process_directory, DirectoryResult, stamp_rank_dates
+from .dir_functions import process_directory, DirectoryResult
 from .tracking import timer
-from .sort_options import (
-    recent_newest_first,
-    server_sort,
-    client_sort,
-    sort_gui_items,
-    describe_order,
-)
 from .random_movie import lancer_film_au_hasard, random_widget_launches
 
 
@@ -251,21 +244,6 @@ def get_widget_content_cast(handle: int, params: dict) -> int:
     return 0
 
 
-def _int_setting(settings: xbmcaddon.Addon, key: str, default: int) -> int:
-    try:
-        return int(settings.getSetting(key))
-    except (TypeError, ValueError):
-        return default
-
-
-# v1.16 : widget -> reglage d'ordre des listes « recents »
-_RECENT_KINDS = {
-    "recent_movies": "RecentMovies",
-    "recent_tvshows": "RecentSeries",
-    "recent_episodes": "RecentSeries",
-}
-
-
 @timer
 def get_widget_content(handle: int, params: dict) -> int:
     log.debug("getWigetContent Called: {0}", params)
@@ -281,7 +259,6 @@ def get_widget_content(handle: int, params: dict) -> int:
     log.debug("widget_type: {0}", widget_type)
 
     url_verb = "{server}/emby/Users/{userid}/Items"
-    boxset_limit = 0
     url_params = {}
     url_params["Limit"] = "{ItemLimit}"
     url_params["format"] = "json"
@@ -342,26 +319,15 @@ def get_widget_content(handle: int, params: dict) -> int:
         url_params["IncludeItemTypes"] = "Series"
 
     elif widget_type == "recent_boxsets":
-        # v1.16 : nouveau widget « Collections recentes »
-        # v1.18.3 : tri regle dans EmbyCon (date d'ajout par defaut, ou date
-        # de sortie, titre, note ; croissant / decroissant). Arctic ne sait
-        # trier un widget qu'en croissant : laisser son tri sur « aucun ».
+        # v1.16 : widget « Collections - Ajouts recents »
+        # v1.20.0 : toujours par date d'ajout, du plus recent au plus ancien,
+        # comme son nom l'indique (le tri reglable des collections est celui
+        # de la liste Collections, utilisee par le widget Collections du skin)
         xbmcplugin.setContent(handle, "sets")
         url_params["Recursive"] = True
-        sort_spec = server_sort(settings.getSetting, "RecentBoxSets") or (
-            "DateCreated,SortName",
-            "Descending",
-        )
-        url_params["SortBy"] = sort_spec[0]
-        url_params["SortOrder"] = sort_spec[1]
+        url_params["SortBy"] = "DateCreated,SortName"
+        url_params["SortOrder"] = "Descending"
         url_params["IncludeItemTypes"] = "BoxSet"
-        # v1.18.4 : tri par date de sortie = date du film le plus recent,
-        # calculee par EmbyCon -> on prend TOUTES les collections, on trie,
-        # puis on garde les N premieres (sinon le serveur choisirait les N
-        # selon sa propre date, souvent vide)
-        if settings.getSetting("sort-RecentBoxSets") == "9":
-            url_params.pop("Limit", None)
-            boxset_limit = _int_setting(settings, "show_x_filtered_items", 20)
 
     elif widget_type == "recent_episodes":
         xbmcplugin.setContent(handle, "episodes")
@@ -460,22 +426,6 @@ def get_widget_content(handle: int, params: dict) -> int:
     # ce qui garantit qu'un episode deja lu ne reste jamais dans la liste.
     if hide_watched and widget_type in ("recent_tvshows", "recent_episodes"):
         dir_items = [gi for gi in dir_items if gi.play_count == 0]
-
-    # v1.18.3 : widget des collections, ordre garanti cote client
-    if widget_type == "recent_boxsets":
-        spec = client_sort(settings.getSetting, "RecentBoxSets")
-        if spec is not None:
-            dir_items = sort_gui_items(dir_items, spec[0], spec[1])
-        if boxset_limit > 0:
-            dir_items = dir_items[:boxset_limit]
-        stamp_rank_dates(dir_items)
-        log.info("Widget Collections {0} : {1}", spec, describe_order(dir_items))
-
-    # v1.16 : ordre des widgets « recents » (reglage) — le serveur renvoie
-    # toujours les N plus recents ; « plus ancien d'abord » inverse la liste.
-    recent_kind = _RECENT_KINDS.get(widget_type)
-    if recent_kind and not recent_newest_first(settings.getSetting, recent_kind):
-        dir_items = list(reversed(dir_items))
 
     list_items = [item.as_tuple() for item in dir_items]
     detected_type = directory_result.detected_type

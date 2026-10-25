@@ -1,11 +1,17 @@
 # Gnu General Public License - see LICENSE.TXT
 """v1.16 : tris par defaut, par contexte, fixes dans les reglages.
 
+v1.20.0 : un seul reglage par liste, « list_sort-<contexte> », qui reunit le
+critere et le sens : "0" = ordre du serveur, sinon <critere><a|d>, par
+exemple "9a" = date de sortie croissante, "4d" = date d'ajout decroissante.
+Les anciens couples sort-<contexte> / sort_order-<contexte> sont convertis
+une fois par settings_migration (voir migrate_sort).
+
 Contextes (media_type de l'URL plugin -> cle des reglages) :
   movies / movie  -> Movies    (mediatheque Films)        tri serveur
   tvshows         -> Series    (mediatheque Series)       tri serveur
-  boxsets         -> BoxSets   (liste des collections)    tri serveur
-  boxset          -> InBoxSet  (contenu d'une collection) tri serveur
+  boxsets         -> BoxSets   (liste des collections)    tri serveur + client
+  boxset          -> InBoxSet  (contenu d'une collection) tri serveur + client
   series / season -> InSeries  (saisons, episodes)        tri client
 
 Quand un tri est applique (serveur ou client), Kodi recoit « Aucun tri »
@@ -34,13 +40,14 @@ SORT_FIELD_MAP = {
     "9": "PremiereDate,ProductionYear,SortName",  # Date de sortie
 }
 
-SERVER_CONTEXTS = ("Movies", "Series", "BoxSets", "InBoxSet", "RecentBoxSets")
+SERVER_CONTEXTS = ("Movies", "Series", "BoxSets", "InBoxSet")
+SORT_SETTING_PREFIX = "list_sort-"
 # v1.18.2 : le contenu d'une collection est AUSSI trie cote client : Emby
 # renvoie les films d'une collection dans l'ordre d'affichage propre a la
 # collection et peut ignorer SortBy (constate : tri par date de sortie sans
 # effet dans un widget de collection).
-# v1.18.3 : liste et widget des collections aussi (ordre garanti a l'affichage)
-CLIENT_CONTEXTS = ("InSeries", "InBoxSet", "BoxSets", "RecentBoxSets")
+# v1.18.3 : liste des collections aussi (ordre garanti a l'affichage)
+CLIENT_CONTEXTS = ("InSeries", "InBoxSet", "BoxSets")
 
 # criteres de tri client
 CLIENT_DATE = "date"
@@ -74,31 +81,71 @@ def sort_context(media_type: str | None) -> str | None:
     return None
 
 
-def _descending(get_setting: GetSetting, context: str) -> bool:
-    return get_setting("sort_order-" + context) == "1"
+def parse_sort(value: str | None) -> tuple[str, bool] | None:
+    """'9a' -> ('9', False), '4d' -> ('4', True) ; '0', '' ou inconnu -> None."""
+    v = str(value or "").strip()
+    if len(v) < 2 or v[-1] not in ("a", "d"):
+        return None
+    return v[:-1], v[-1] == "d"
+
+
+def sort_setting(get_setting: GetSetting, context: str | None) -> tuple[str, bool] | None:
+    """(critere, decroissant) choisi pour un contexte, None = ordre du serveur."""
+    if not context:
+        return None
+    return parse_sort(get_setting(SORT_SETTING_PREFIX + context))
+
+
+def is_descending(get_setting: GetSetting, context: str) -> bool:
+    spec = sort_setting(get_setting, context)
+    return spec is None or spec[1]
 
 
 def server_sort(get_setting: GetSetting, context: str | None) -> tuple[str, str] | None:
     """(SortBy, SortOrder) Emby pour un contexte trie cote serveur, sinon None."""
     if context not in SERVER_CONTEXTS:
         return None
-    sort_by = SORT_FIELD_MAP.get(get_setting("sort-" + context))
+    spec = sort_setting(get_setting, context)
+    sort_by = SORT_FIELD_MAP.get(spec[0]) if spec else None
     if not sort_by:
         return None
-    order = "Descending" if _descending(get_setting, context) else "Ascending"
-    return sort_by, order
+    return sort_by, "Descending" if spec[1] else "Ascending"
 
 
 def client_sort(get_setting: GetSetting, context: str | None) -> tuple[str, bool] | None:
     """(critere, decroissant) pour un contexte trie cote client, sinon None."""
     if context not in CLIENT_CONTEXTS:
         return None
-    criterion = _CLIENT_CRITERIA.get(get_setting("sort-" + context))
+    spec = sort_setting(get_setting, context)
+    criterion = _CLIENT_CRITERIA.get(spec[0]) if spec else None
     if criterion is None:
         return None
     if context == "InSeries" and criterion not in (CLIENT_DATE, CLIENT_NAME):
         return None
-    return criterion, _descending(get_setting, context)
+    return criterion, spec[1]
+
+
+def migrate_sort(old_field: str | None, old_order: str | None, context: str) -> str:
+    """v1.20.0 : ancien couple (sort-X, sort_order-X) -> valeur list_sort-X.
+
+    Les criteres retires sont rapproches du plus proche : Annee -> date de
+    sortie, Genre / Nom -> titre ; la note n'existe plus qu'en decroissant.
+    """
+    field = str(old_field or "0").strip()
+    if field in ("", "0"):
+        return "0"
+    field = {"3": "9", "5": "2", "6": "2"}.get(field, field)
+    descending = str(old_order or "0").strip() == "1"
+    if context == "InSeries":
+        if field == "2":
+            return "2a"
+        if field != "9":
+            return "0"
+    if field == "7":
+        return "7d"
+    if field not in ("2", "4", "9"):
+        return "0"
+    return field + ("d" if descending else "a")
 
 
 def sort_gui_items(items: list, criterion: str, descending: bool) -> list:
@@ -159,16 +206,6 @@ def sort_emby_items(items: list, collection_order: str) -> list:
     dated.sort(key=lambda i: (_release_date(i), _name_key(i)), reverse=collection_order == "1")
     # sans date connue : toujours a la fin, par nom
     return dated + sorted(undated, key=_name_key)
-
-
-def recent_newest_first(get_setting: GetSetting, kind: str) -> bool:
-    """Listes « recents » : True = plus recent d'abord (defaut).
-
-    kind : "RecentMovies" ou "RecentSeries". Le serveur renvoie toujours les
-    N plus recents ; « plus ancien d'abord » inverse simplement cette liste
-    (sinon on obtiendrait les N plus anciens de la mediatheque).
-    """
-    return get_setting("sort_order-" + kind) != "1"
 
 
 def describe_order(items: list, count: int = 6) -> str:

@@ -14,24 +14,19 @@ kodi_stubs.install()
 
 from lib.sort_options import (  # noqa: E402
     client_sort,
-    recent_newest_first,
     server_sort,
     sort_context,
     sort_gui_items,
 )
 from lib.view_memory import ViewStore, category_chain, is_view_id  # noqa: E402
 
+# v1.20.0 : un reglage par liste (critere + sens)
 DEFAUTS_V116 = {
-    "sort-BoxSets": "4",
-    "sort_order-BoxSets": "1",
-    "sort-InBoxSet": "9",
-    "sort_order-InBoxSet": "1",
-    "sort-InSeries": "9",
-    "sort_order-InSeries": "1",
-    "sort_order-RecentMovies": "0",
-    "sort_order-RecentSeries": "0",
-    "sort-Movies": "0",
-    "sort-Series": "0",
+    "list_sort-BoxSets": "4d",
+    "list_sort-InBoxSet": "9d",
+    "list_sort-InSeries": "9d",
+    "list_sort-Movies": "0",
+    "list_sort-Series": "0",
 }
 
 
@@ -70,7 +65,7 @@ def test_contenu_collection_par_date_de_sortie_plus_recent_d_abord() -> None:
 
 
 def test_contenu_collection_n_herite_plus_de_la_liste() -> None:
-    get = reglages(**{"sort__InBoxSet": "2", "sort_order__InBoxSet": "0"})
+    get = reglages(**{"list_sort__InBoxSet": "2a"})
     assert server_sort(get, "InBoxSet") == ("SortName", "Ascending")
     assert server_sort(get, "BoxSets") == ("DateCreated,SortName", "Descending")
 
@@ -82,14 +77,8 @@ def test_mediatheques_non_definies_gardent_l_ordre_serveur() -> None:
 
 def test_dans_une_serie_tri_client_par_date_decroissante() -> None:
     assert client_sort(reglages(), "InSeries") == ("date", True)
-    assert client_sort(reglages(**{"sort__InSeries": "0"}), "InSeries") is None
+    assert client_sort(reglages(**{"list_sort__InSeries": "0"}), "InSeries") is None
     assert server_sort(reglages(), "InSeries") is None
-
-
-def test_recents_plus_recent_d_abord_par_defaut() -> None:
-    assert recent_newest_first(reglages(), "RecentMovies") is True
-    get = reglages(**{"sort_order__RecentSeries": "1"})
-    assert recent_newest_first(get, "RecentSeries") is False
 
 
 # --- tri client -------------------------------------------------------------
@@ -330,10 +319,10 @@ def test_memorisation_auto_desactivee(monkeypatch, tmp_path) -> None:
 
 def test_collection_tri_client_par_date() -> None:
     assert client_sort(reglages(), "InBoxSet") == ("date", True)
-    assert client_sort(reglages(**{"sort__InBoxSet": "4"}), "InBoxSet") == ("added", True)
-    assert client_sort(reglages(**{"sort__InBoxSet": "0"}), "InBoxSet") is None
+    assert client_sort(reglages(**{"list_sort__InBoxSet": "4d"}), "InBoxSet") == ("added", True)
+    assert client_sort(reglages(**{"list_sort__InBoxSet": "0"}), "InBoxSet") is None
     # dans une serie, seuls date et nom sont proposes
-    assert client_sort(reglages(**{"sort__InSeries": "4"}), "InSeries") is None
+    assert client_sort(reglages(**{"list_sort__InSeries": "4d"}), "InSeries") is None
 
 
 def test_collection_ordre_serveur_corrige() -> None:

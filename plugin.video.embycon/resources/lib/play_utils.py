@@ -38,6 +38,8 @@ log = SimpleLogging(__name__)
 # v1.17 : un film arrete au-dela de ce pourcentage (generique) est considere
 # comme termine pour l'enchainement automatique du film suivant
 NEXT_MOVIE_AUTO_PERCENT = 90
+# v1.20.0 : notification « Épisode suivant » (enchainement automatique)
+NEXT_EPISODE_STRING = 30440
 
 # v1.15 : ordre de lecture d'une collection (reglage collection_play_order)
 _ORDRES_COLLECTION = {
@@ -1664,10 +1666,6 @@ def prompt_for_stop_actions(item_id: str, data: dict) -> None:
     item_type = data.get("item_type")
     can_delete = data.get("can_delete", False)
 
-    prompt_next_percentage = int(settings.getSetting("promptPlayNextEpisodePercentage"))
-    play_prompt = (
-        settings.getSetting("promptPlayNextEpisodePercentage_prompt") == "true"
-    )
     prompt_delete_episode_percentage = int(
         settings.getSetting("promptDeleteEpisodePercentage")
     )
@@ -1677,22 +1675,24 @@ def prompt_for_stop_actions(item_id: str, data: dict) -> None:
 
     # v1.17 : enchainement automatique du film suivant d'une collection
     # v1.18.1 : aussi en mode « dialogue » (1) : le dialogue propose, et sans
-    # refus de l'utilisateur le film suivant demarre a la fin (comme les
-    # episodes). Pas d'enchainement si « Play Now » a deja lance le suivant
-    # ou si le dialogue a ete ferme (Retour).
-    next_movie_auto = (
-        item_type == "Movie"
-        and next_episode is not None
-        and settings.getSetting("next_movie_mode") in ("1", "2")
-        and not data.get("next_handled", False)
-    )
+    # refus de l'utilisateur le film suivant demarre a la fin. Pas
+    # d'enchainement si « Play Now » a deja lance le suivant ou si le
+    # dialogue a ete ferme (Retour).
+    # v1.20.0 : meme logique pour les episodes (« À la fin d'un épisode »),
+    # qui remplace « À l'arrêt après X %, lancer l'épisode suivant ».
+    next_auto = next_episode is not None and not data.get("next_handled", False)
+    if item_type == "Movie":
+        next_auto = next_auto and settings.getSetting("next_movie_mode") in ("1", "2")
+    elif item_type == "Episode":
+        next_auto = next_auto and settings.getSetting("next_episode_mode") in ("1", "2")
+    else:
+        next_auto = False
 
     # everything is off so return
     if (
-        prompt_next_percentage == 100
-        and prompt_delete_episode_percentage == 100
+        prompt_delete_episode_percentage == 100
         and prompt_delete_movie_percentage == 100
-        and not next_movie_auto
+        and not next_auto
     ):
         return
 
@@ -1728,18 +1728,19 @@ def prompt_for_stop_actions(item_id: str, data: dict) -> None:
         log.debug("Prompting for delete")
         delete(item_id)
 
-    if item_type == "Movie" and next_episode is not None:
+    if item_type in ("Movie", "Episode") and next_episode is not None:
         log.info(
-            "Film suivant : fin a {0} %, enchainement={1} (deja traite={2})",
+            "{0} suivant : fin a {1} %, enchainement={2} (deja traite={3})",
+            item_type,
             percenatge_complete,
-            next_movie_auto and percenatge_complete >= NEXT_MOVIE_AUTO_PERCENT,
+            next_auto and percenatge_complete >= NEXT_MOVIE_AUTO_PERCENT,
             data.get("next_handled", False),
         )
-    if next_movie_auto and percenatge_complete >= NEXT_MOVIE_AUTO_PERCENT:
+    if next_auto and percenatge_complete >= NEXT_MOVIE_AUTO_PERCENT:
         next_item_id = next_episode.get("Id")
-        log.info("Film suivant (automatique) : {0}", next_episode.get("Name"))
+        log.info("{0} suivant (automatique) : {1}", item_type, next_episode.get("Name"))
         xbmcgui.Dialog().notification(
-            string_load(30572),
+            string_load(30572 if item_type == "Movie" else NEXT_EPISODE_STRING),
             next_episode.get("Name") or "",
             icon="special://home/addons/plugin.video.embycon/icon.png",
         )
@@ -1749,37 +1750,6 @@ def prompt_for_stop_actions(item_id: str, data: dict) -> None:
         play_info["force_transcode"] = False
         send_event_notification("embycon_play_action", play_info)
         return
-
-    # prompt for next episode
-    if (
-        next_episode is not None
-        and prompt_next_percentage < 100
-        and item_type == "Episode"
-        and percenatge_complete > prompt_next_percentage
-    ):
-        if play_prompt:
-            from .playnext import PlayNextDialog
-
-            plugin_path = settings.getAddonInfo("path")
-            plugin_path_real = xbmcvfs.translatePath(os.path.join(plugin_path))
-
-            play_next_dialog = PlayNextDialog(
-                "PlayNextDialog.xml", plugin_path_real, "default", "720p"
-            )
-            play_next_dialog.set_episode_info(next_episode)
-            play_next_dialog.doModal()
-
-            if not play_next_dialog.get_play_called():
-                xbmc.executebuiltin("Container.Refresh")
-
-        else:
-            next_item_id = next_episode.get("Id")
-            log.debug("Playing Next Episode: {0}", next_item_id)
-            play_info = {}
-            play_info["item_id"] = next_item_id
-            play_info["auto_resume"] = "-1"
-            play_info["force_transcode"] = False
-            send_event_notification("embycon_play_action", play_info)
 
 
 def stop_all_playback(played_information: dict[str, dict]) -> None:
@@ -2329,11 +2299,6 @@ class MonitoringService(xbmc.Monitor):
             self.background_image_cache_thread.stop_activity()
             self.background_image_cache_thread = None
 
-        settings = xbmcaddon.Addon()
-        show_change_user = settings.getSetting("changeUserOnScreenSaver") == "true"
-        if show_change_user:
-            home_screen = HomeWindow()
-            skip_select_user = home_screen.get_property("skip_select_user")
-            if skip_select_user is not None and skip_select_user == "true":
-                return
-            xbmc.executebuiltin("RunScript(plugin.video.embycon,0,?mode=CHANGE_USER)")
+        # v1.20.0 : plus de dialogue de changement d'utilisateur a la sortie
+        # de veille (reglage retire ; « Changer d'utilisateur » reste dans
+        # Serveur et compte)

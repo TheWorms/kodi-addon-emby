@@ -13,17 +13,9 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-msgctxt "#30000"
-msgid "Host"
-msgstr "Hôte"
-
 msgctxt "#30001"
 msgid "Port"
 msgstr "Port"
-
-msgctxt "#30003"
-msgid "Verify HTTPS certificate"
-msgstr "Vérifier le certificat HTTPS"
 
 msgctxt "#30005"
 msgid "Username"
@@ -33,18 +25,6 @@ msgctxt "#30006"
 msgid "Password"
 msgstr "Mot de passe"
 
-msgctxt "#30007"
-msgid "Samba username"
-msgstr "Nom d'utilisateur Samba"
-
-msgctxt "#30008"
-msgid "Samba password"
-msgstr "Mot de passe Samba"
-
-msgctxt "#30010"
-msgid "Enable performance profiling"
-msgstr "Activer le profilage des performances"
-
 msgctxt "#30011"
 msgid "[Detect local server]"
 msgstr "[Détecter le serveur local]"
@@ -53,61 +33,13 @@ msgctxt "#30012"
 msgid "[Change user]"
 msgstr "[Changer d'utilisateur]"
 
-msgctxt "#30014"
-msgid "Emby"
-msgstr "Emby"
-
-msgctxt "#30015"
-msgid "Log timing data"
-msgstr "Journaliser les données de temps"
-
-msgctxt "#30016"
-msgid "Device display name"
-msgstr "Nom d'affichage de l'appareil"
-
 msgctxt "#30017"
 msgid "Show connected clients"
 msgstr "Afficher les clients connectés"
 
-msgctxt "#30018"
-msgid "Number of items to show in filtered lists"
-msgstr "Nombre d'éléments à afficher dans les listes filtrées"
-
-msgctxt "#30019"
-msgid "Filtered episode name format"
-msgstr "Format du nom des épisodes filtrés"
-
-msgctxt "#30020"
-msgid "Flatten TV Show seasons"
-msgstr "Aplatir les saisons des séries"
-
-msgctxt "#30021"
-msgid "Show all episodes item"
-msgstr "Afficher l'élément « Tous les épisodes »"
-
 msgctxt "#30022"
 msgid "Advanced"
 msgstr "Avancé"
-
-msgctxt "#30023"
-msgid "Hide unwatched episode details"
-msgstr "Masquer les détails des épisodes non vus"
-
-msgctxt "#30024"
-msgid "Username:"
-msgstr "Nom d'utilisateur :"
-
-msgctxt "#30025"
-msgid "Password:"
-msgstr "Mot de passe :"
-
-msgctxt "#30026"
-msgid "Widget item select action"
-msgstr "Action de sélection d'un widget"
-
-msgctxt "#30027"
-msgid "Enable debug logging"
-msgstr "Activer la journalisation de débogage"
 
 msgctxt "#30044"
 msgid "Incorrect Username/Password"
@@ -137,14 +69,6 @@ msgctxt "#30092"
 msgid "Warning: This action will delete the media files from the server."
 msgstr "Attention : cette action supprimera les fichiers média du serveur."
 
-msgctxt "#30110"
-msgid "Interface"
-msgstr "Interface"
-
-msgctxt "#30111"
-msgid "Services"
-msgstr "Services"
-
 msgctxt "#30112"
 msgid "Loading Content"
 msgstr "Chargement du contenu"
@@ -152,30 +76,6 @@ msgstr "Chargement du contenu"
 msgctxt "#30113"
 msgid "Retrieving Data"
 msgstr "Récupération des données"
-
-msgctxt "#30114"
-msgid "Jump back seconds"
-msgstr "Reculer de (secondes)"
-
-msgctxt "#30116"
-msgid "Add unwatched counts to names"
-msgstr "Ajouter le nombre de non-vus aux noms"
-
-msgctxt "#30117"
-msgid "User premiered date as date added"
-msgstr "Utiliser la date de sortie comme date d'ajout"
-
-msgctxt "#30118"
-msgid "Add resume percent to names"
-msgstr "Ajouter le pourcentage de reprise aux noms"
-
-msgctxt "#30120"
-msgid "Show load progress"
-msgstr "Afficher la progression du chargement"
-
-msgctxt "#30121"
-msgid "On resume"
-msgstr "À la reprise"
 
 msgctxt "#30125"
 msgid "Done"
@@ -197,10 +97,6 @@ msgctxt "#30139"
 msgid "No Media Type Set"
 msgstr "Aucun type de média défini"
 
-msgctxt "#30163"
-msgid "Add (cc) if subtitle is available"
-msgstr "Ajouter (st) si des sous-titres sont disponibles"
-
 msgctxt "#30166"
 msgid "Select Server"
 msgstr "Sélectionner un serveur"
@@ -217,18 +113,6 @@ msgctxt "#30180"
 msgid "Select User"
 msgstr "Sélectionner un utilisateur"
 
-msgctxt "#30181"
-msgid "Include plot"
-msgstr "Inclure le synopsis"
-
-msgctxt "#30182"
-msgid "Include media stream info"
-msgstr "Inclure les infos des flux média"
-
-msgctxt "#30183"
-msgid "Include people"
-msgstr "Inclure les personnes"
-
 msgctxt "#30200"
 msgid "URL error: %s"
 msgstr "Erreur d'URL : %s"
@@ -237,77 +121,9 @@ msgctxt "#30201"
 msgid "Unable to connect to server"
 msgstr "Impossible de se connecter au serveur"
 
-msgctxt "#30206"
-msgid "Playback type"
-msgstr "Type de lecture"
-
 msgctxt "#30207"
 msgid "Playback"
 msgstr "Lecture"
-
-msgctxt "#30208"
-msgid "Max stream bitrate (kbs)"
-msgstr "Débit maximal du flux (kb/s)"
-
-msgctxt "#30209"
-msgid "File direct path"
-msgstr "Chemin direct du fichier"
-
-msgctxt "#30210"
-msgid "HTTP direct stream"
-msgstr "Flux direct HTTP"
-
-msgctxt "#30211"
-msgid "Transcode options"
-msgstr "Options de transcodage"
-
-msgctxt "#30212"
-msgid "Video max width"
-msgstr "Largeur vidéo maximale"
-
-msgctxt "#30213"
-msgid "Video force 8 bit"
-msgstr "Forcer la vidéo en 8 bits"
-
-msgctxt "#30214"
-msgid "Events"
-msgstr "Événements"
-
-msgctxt "#30215"
-msgid "On playback stop (100% = disabled)"
-msgstr "À l'arrêt de la lecture (100 % = désactivé)"
-
-msgctxt "#30216"
-msgid "Item Details"
-msgstr "Détails de l'élément"
-
-msgctxt "#30217"
-msgid "Offer to delete the episode after X % (100 = never)"
-msgstr "Proposer de supprimer l'épisode après X % (100 = jamais)"
-
-msgctxt "#30218"
-msgid "When stopped after X %, play the next episode (100 = never)"
-msgstr "À l'arrêt après X %, lancer l'épisode suivant (100 = jamais)"
-
-msgctxt "#30219"
-msgid "Ask for confirmation"
-msgstr "Demander confirmation"
-
-msgctxt "#30220"
-msgid "Offer to delete the movie after X % (100 = never)"
-msgstr "Proposer de supprimer le film après X % (100 = jamais)"
-
-msgctxt "#30222"
-msgid "Item Layout"
-msgstr "Disposition des éléments"
-
-msgctxt "#30223"
-msgid "Page Size and Filtering"
-msgstr "Taille de page et filtrage"
-
-msgctxt "#30224"
-msgid "Interaction"
-msgstr "Interaction"
 
 msgctxt "#30229"
 msgid "TV Shows"
@@ -321,57 +137,21 @@ msgctxt "#30235"
 msgid "Episodes"
 msgstr "Épisodes"
 
-msgctxt "#30236"
-msgid "Force transcode h265 (hevc)"
-msgstr "Forcer le transcodage h265 (hevc)"
-
 msgctxt "#30237"
 msgid "Start from beginning"
 msgstr "Reprendre depuis le début"
-
-msgctxt "#30238"
-msgid "Playback stream options"
-msgstr "Options du flux de lecture"
-
-msgctxt "#30239"
-msgid "Force transcode mpeg2"
-msgstr "Forcer le transcodage mpeg2"
-
-msgctxt "#30240"
-msgid "Force transcode msmpeg4v3 (divx)"
-msgstr "Forcer le transcodage msmpeg4v3 (divx)"
-
-msgctxt "#30241"
-msgid "Force transcode mpeg4"
-msgstr "Forcer le transcodage mpeg4"
 
 msgctxt "#30246"
 msgid "Search"
 msgstr "Recherche"
 
-msgctxt "#30247"
-msgid "Custom Widget Content"
-msgstr "Contenu de widget personnalisé"
-
 msgctxt "#30250"
 msgid "Unknown"
 msgstr "Inconnu"
 
-msgctxt "#30251"
-msgid "Movies - Genres"
-msgstr "Films - Genres"
-
-msgctxt "#30252"
-msgid "Movies - A-Z"
-msgstr "Films - A-Z"
-
 msgctxt "#30254"
 msgid "Show add-on settings"
 msgstr "Afficher les réglages de l'extension"
-
-msgctxt "#30255"
-msgid "TV Shows - A-Z"
-msgstr "Séries - A-Z"
 
 msgctxt "#30256"
 msgid "Movies"
@@ -385,21 +165,9 @@ msgctxt "#30258"
 msgid "Movies - In Progress"
 msgstr "Films - En cours"
 
-msgctxt "#30259"
-msgid "Movies - Favorites"
-msgstr "Films - Favoris"
-
-msgctxt "#30260"
-msgid "BoxSets"
-msgstr "Collections"
-
 msgctxt "#30261"
 msgid "TV Shows"
 msgstr "Séries"
-
-msgctxt "#30262"
-msgid "TV Shows - Favorites"
-msgstr "Séries - Favoris"
 
 msgctxt "#30263"
 msgid "Episodes - Recently Added"
@@ -412,10 +180,6 @@ msgstr "Épisodes - En cours"
 msgctxt "#30265"
 msgid "Episodes - Next Up"
 msgstr "Épisodes - À suivre"
-
-msgctxt "#30266"
-msgid "Movies - Pages"
-msgstr "Films - Pages"
 
 msgctxt "#30267"
 msgid " - In Progress"
@@ -471,10 +235,6 @@ msgctxt "#30278"
 msgid " - Next Up"
 msgstr " - À suivre"
 
-msgctxt "#30279"
-msgid "TV Shows - Unwatched"
-msgstr "Séries - Non vues"
-
 msgctxt "#30280"
 msgid "Missing Title"
 msgstr "Titre manquant"
@@ -491,17 +251,9 @@ msgstr ""
 "Aucun serveur Emby détecté sur votre réseau local.\n"
 "Voulez-vous saisir manuellement l'URL d'un serveur ?"
 
-msgctxt "#30283"
-msgid "Play Next Episode?"
-msgstr "Lire l'épisode suivant ?"
-
 msgctxt "#30285"
 msgid " - Unwatched"
 msgstr " - Non vus"
-
-msgctxt "#30286"
-msgid "Movies - Unwatched"
-msgstr "Films - Non vus"
 
 msgctxt "#30287"
 msgid "TV Shows - Latest"
@@ -510,10 +262,6 @@ msgstr "Séries - Dernières"
 msgctxt "#30288"
 msgid " - Latest"
 msgstr " - Dernières"
-
-msgctxt "#30289"
-msgid "TV Shows - Genres"
-msgstr "Séries - Genres"
 
 msgctxt "#30290"
 msgid "All"
@@ -580,14 +328,6 @@ msgctxt "#30304"
 msgid "Cached Emby images : "
 msgstr "Images Emby en cache : "
 
-msgctxt "#30305"
-msgid "Not Found: %s"
-msgstr "Introuvable : %s"
-
-msgctxt "#30306"
-msgid "Playback starting: %s"
-msgstr "Démarrage de la lecture : %s"
-
 msgctxt "#30307"
 msgid "Play Trailer"
 msgstr "Lire la bande-annonce"
@@ -600,29 +340,9 @@ msgctxt "#30309"
 msgid "Select Media Source"
 msgstr "Sélectionner la source du média"
 
-msgctxt "#30310"
-msgid "Enable Emby remote control"
-msgstr "Activer le contrôle à distance Emby"
-
-msgctxt "#30311"
-msgid "Library - "
-msgstr "Bibliothèque - "
-
-msgctxt "#30312"
-msgid "All - "
-msgstr "Tout - "
-
-msgctxt "#30313"
-msgid "Menu"
-msgstr "Menu"
-
 msgctxt "#30314"
 msgid "Play"
 msgstr "Lecture"
-
-msgctxt "#30315"
-msgid "Suppress notifications for connection errors"
-msgstr "Masquer les notifications d'erreurs de connexion"
 
 msgctxt "#30316"
 msgid "Connection Error"
@@ -632,17 +352,9 @@ msgctxt "#30317"
 msgid "Play All"
 msgstr "Tout lire"
 
-msgctxt "#30318"
-msgid "Music - Albums"
-msgstr "Musique - Albums"
-
 msgctxt "#30320"
 msgid " - Albums"
 msgstr " - Albums"
-
-msgctxt "#30322"
-msgid "Auto resume"
-msgstr "Reprise automatique"
 
 msgctxt "#30325"
 msgid " - Genres"
@@ -652,37 +364,9 @@ msgctxt "#30327"
 msgid "Go To Season"
 msgstr "Aller à la saison"
 
-msgctxt "#30328"
-msgid "Show empty folders (shows, seasons, collections)"
-msgstr "Afficher les dossiers vides (séries, saisons, collections)"
-
-msgctxt "#30329"
-msgid "Screensaver"
-msgstr "Écran de veille"
-
-msgctxt "#30330"
-msgid "Show change user dialog"
-msgstr "Afficher la boîte de dialogue de changement d'utilisateur"
-
 msgctxt "#30331"
 msgid "Items per page"
 msgstr "Éléments par page"
-
-msgctxt "#30332"
-msgid "Stop media playback on screensaver activation"
-msgstr "Arrêter la lecture à l'activation de l'écran de veille"
-
-msgctxt "#30333"
-msgid "Cache artwork in the background"
-msgstr "Mettre les visuels en cache en arrière-plan"
-
-msgctxt "#30334"
-msgid "Use EmbyCon context menu"
-msgstr "Utiliser le menu contextuel EmbyCon"
-
-msgctxt "#30335"
-msgid "Use EmbyCon bookmarks dialog"
-msgstr "Utiliser la boîte de dialogue de signets EmbyCon"
 
 msgctxt "#30337"
 msgid "Song"
@@ -696,29 +380,9 @@ msgctxt "#30339"
 msgid "Person"
 msgstr "Personne"
 
-msgctxt "#30340"
-msgid "Group movies into collections"
-msgstr "Regrouper les films en collections"
-
-msgctxt "#30341"
-msgid "Background image update interval (0 = disabled)"
-msgstr "Intervalle de mise à jour de l'image de fond (0 = désactivé)"
-
-msgctxt "#30342"
-msgid "New content check interval (0 = disabled)"
-msgstr "Intervalle de vérification du nouveau contenu (0 = désactivé)"
-
-msgctxt "#30343"
-msgid "Changes Require Kodi Restart"
-msgstr "Les modifications nécessitent un redémarrage de Kodi"
-
 msgctxt "#30344"
 msgid "Number of images removed from cache : %s"
 msgstr "Nombre d'images retirées du cache : %s"
-
-msgctxt "#30345"
-msgid "Cache Emby server data requests"
-msgstr "Mettre en cache les requêtes de données du serveur Emby"
 
 msgctxt "#30346"
 msgid "Deleteing Cached Images"
@@ -728,29 +392,9 @@ msgctxt "#30347"
 msgid "Getting Existing Images"
 msgstr "Récupération des images existantes"
 
-msgctxt "#30348"
-msgid "Add user ratings"
-msgstr "Ajouter les notes des utilisateurs"
-
 msgctxt "#30349"
 msgid " - Recently Played"
 msgstr " - Lus récemment"
-
-msgctxt "#30350"
-msgid "Music - Recently Added"
-msgstr "Musique - Ajouts récents"
-
-msgctxt "#30351"
-msgid "Music - Recently Played"
-msgstr "Musique - Lus récemment"
-
-msgctxt "#30352"
-msgid "Music - Frequently Played"
-msgstr "Musique - Écoutés fréquemment"
-
-msgctxt "#30319"
-msgid "Music - All Album Artists"
-msgstr "Musique - Tous les artistes d'album"
 
 msgctxt "#30321"
 msgid " - Album Artists"
@@ -808,20 +452,6 @@ msgctxt "#30366"
 msgid "Manually enter user details"
 msgstr "Saisir manuellement les détails de l'utilisateur"
 
-msgctxt "#30367"
-msgid "Allow fast user switching password saving"
-msgstr ""
-"Autoriser l'enregistrement du mot de passe pour le changement rapide "
-"d'utilisateur"
-
-msgctxt "#30368"
-msgid "Clear Password?"
-msgstr "Effacer le mot de passe ?"
-
-msgctxt "#30369"
-msgid "Do you want to clear your saved password?"
-msgstr "Voulez-vous effacer votre mot de passe enregistré ?"
-
 msgctxt "#30371"
 msgid "Could not connect to the URL you entered, do you want to try again?"
 msgstr "Impossible de se connecter à l'URL saisie, voulez-vous réessayer ?"
@@ -850,33 +480,13 @@ msgctxt "#30377"
 msgid "Sending request"
 msgstr "Envoi de la requête"
 
-msgctxt "#30378"
-msgid "Persist user details"
-msgstr "Conserver les détails de l'utilisateur"
-
-msgctxt "#30379"
-msgid "External subtitle prompt"
-msgstr "Invite pour les sous-titres externes"
-
 msgctxt "#30380"
 msgid "Never"
 msgstr "Jamais"
 
-msgctxt "#30381"
-msgid "More than one"
-msgstr "Plus d'un"
-
 msgctxt "#30382"
 msgid "Always"
 msgstr "Toujours"
-
-msgctxt "#30383"
-msgid "System - "
-msgstr "Système - "
-
-msgctxt "#30384"
-msgid "Random movies interval minutes (0 = disabled)"
-msgstr "Intervalle des films aléatoires (minutes, 0 = désactivé)"
 
 msgctxt "#30385"
 msgid "Existing images before delete : "
@@ -889,14 +499,6 @@ msgstr "Images Emby inutilisées : "
 msgctxt "#30387"
 msgid "Unused images removed : "
 msgstr "Images inutilisées supprimées : "
-
-msgctxt "#30388"
-msgid "Server details"
-msgstr "Détails du serveur"
-
-msgctxt "#30389"
-msgid "User details"
-msgstr "Détails de l'utilisateur"
 
 msgctxt "#30390"
 msgid "Protocol"
@@ -933,10 +535,6 @@ msgstr "Actualiser les métadonnées Emby"
 msgctxt "#30399"
 msgid "Hide"
 msgstr "Masquer"
-
-msgctxt "#30400"
-msgid "Cache images interval minutes (0 = disabled)"
-msgstr "Intervalle de mise en cache des images (minutes, 0 = désactivé)"
 
 msgctxt "#30401"
 msgid "Info"
@@ -998,101 +596,25 @@ msgctxt "#30415"
 msgid " - Favorite Collections"
 msgstr " - Collections favorites"
 
-msgctxt "#30416"
-msgid "HTTP timeout seconds"
-msgstr "Délai d'expiration HTTP (secondes)"
-
 msgctxt "#30417"
 msgid "You do not have permision to delete this item"
 msgstr "Vous n'avez pas la permission de supprimer cet élément"
-
-msgctxt "#30418"
-msgid "Audio bitrate (kbs)"
-msgstr "Débit audio (kb/s)"
 
 msgctxt "#30419"
 msgid "Audio codec"
 msgstr "Codec audio"
 
-msgctxt "#30420"
-msgid "Audio max channels"
-msgstr "Nombre maximal de canaux audio"
-
 msgctxt "#30421"
 msgid "Views"
 msgstr "Vues"
-
-msgctxt "#30422"
-msgid "Sorting"
-msgstr "Tri"
 
 msgctxt "#30423"
 msgid "Server order"
 msgstr "Ordre du serveur"
 
-msgctxt "#30424"
-msgid "Default"
-msgstr "Par défaut"
-
-msgctxt "#30425"
-msgid "Year"
-msgstr "Année"
-
-msgctxt "#30426"
-msgid "Title"
-msgstr "Titre"
-
-msgctxt "#30427"
-msgid "Added"
-msgstr "Date d'ajout"
-
-msgctxt "#30428"
-msgid "Rating"
-msgstr "Note"
-
-msgctxt "#30429"
-msgid "Genre"
-msgstr "Genre"
-
-msgctxt "#30430"
-msgid "Label"
-msgstr "Nom"
-
-msgctxt "#30431"
-msgid "Seasons"
-msgstr "Saisons"
-
-msgctxt "#30432"
-msgid "Hide watched items in lists"
-msgstr "Masquer les éléments vus dans les listes"
-
-msgctxt "#30433"
-msgid "Allow direct file playback"
-msgstr "Autoriser la lecture directe des fichiers"
-
-msgctxt "#30434"
-msgid "Force transcode stream bitrate (kbs)"
-msgstr "Forcer le débit du flux de transcodage (kb/s)"
-
 msgctxt "#30435"
 msgid "Connection speed test"
 msgstr "Test de vitesse de connexion"
-
-msgctxt "#30436"
-msgid "Speed test data size (MB)"
-msgstr "Taille des données du test de vitesse (Mo)"
-
-msgctxt "#30437"
-msgid "Playback options"
-msgstr "Options de lecture"
-
-msgctxt "#30438"
-msgid "Play cinema intros"
-msgstr "Lire les intros cinéma"
-
-msgctxt "#30439"
-msgid "Offer the next episode X s before the end (0 = never)"
-msgstr "Proposer l'épisode suivant X s avant la fin (0 = jamais)"
 
 msgctxt "#30440"
 msgid "Next episode"
@@ -1114,54 +636,6 @@ msgctxt "#30444"
 msgid "Auto skip intro"
 msgstr "Sauter l'intro automatiquement"
 
-msgctxt "#30445"
-msgid "No Flattening"
-msgstr "Aucun aplatissement"
-
-msgctxt "#30446"
-msgid "Flatten Single"
-msgstr "Aplatir si unique"
-
-msgctxt "#30447"
-msgid "Flatten All"
-msgstr "Tout aplatir"
-
-msgctxt "#30448"
-msgid "Force transcode av1"
-msgstr "Forcer le transcodage av1"
-
-msgctxt "#30449"
-msgid "Max Image Width"
-msgstr "Largeur maximale de l'image"
-
-msgctxt "#30450"
-msgid "Movies view ID"
-msgstr "ID de vue Films"
-
-msgctxt "#30451"
-msgid "TV Shows view ID"
-msgstr "ID de vue Séries"
-
-msgctxt "#30452"
-msgid "Seasons view ID"
-msgstr "ID de vue Saisons"
-
-msgctxt "#30453"
-msgid "Episodes view ID"
-msgstr "ID de vue Épisodes"
-
-msgctxt "#30454"
-msgid "Collections view ID"
-msgstr "ID de vue Collections"
-
-msgctxt "#30455"
-msgid "Autoplay first version of an item"
-msgstr "Lire automatiquement la première version d'un élément"
-
-msgctxt "#30456"
-msgid "Episode"
-msgstr "Épisode"
-
 msgctxt "#30457"
 msgid "Confirm"
 msgstr "Confirmer"
@@ -1170,38 +644,6 @@ msgctxt "#30458"
 msgid "Are you sure you want to hide this item?"
 msgstr "Voulez-vous vraiment masquer cet élément ?"
 
-msgctxt "#30460"
-msgid "Order"
-msgstr "Ordre"
-
-msgctxt "#30461"
-msgid "Ascending"
-msgstr "Croissant"
-
-msgctxt "#30462"
-msgid "Descending"
-msgstr "Décroissant"
-
-msgctxt "#30463"
-msgid "Refresh list after playback"
-msgstr "Actualiser la liste après lecture"
-
-msgctxt "#30464"
-msgid "Playback quality"
-msgstr "Qualité de lecture"
-
-msgctxt "#30465"
-msgid "Manual"
-msgstr "Manuel"
-
-msgctxt "#30466"
-msgid "Automatic (periodic measurement)"
-msgstr "Automatique (mesure périodique)"
-
-msgctxt "#30467"
-msgid "Speed test size (MB)"
-msgstr "Taille du test de débit (Mo)"
-
 msgctxt "#30469"
 msgid "Skip credits (end of episode)"
 msgstr "Sauter le générique de fin"
@@ -1209,34 +651,6 @@ msgstr "Sauter le générique de fin"
 msgctxt "#30470"
 msgid "Skip Credits"
 msgstr "Sauter le générique"
-
-msgctxt "#30474"
-msgid "Show 'Play next episode' dialog"
-msgstr "Afficher le dialogue « Lecture de l'épisode suivant »"
-
-msgctxt "#30476"
-msgid "Subtitle mode"
-msgstr "Mode des sous-titres"
-
-msgctxt "#30477"
-msgid "Preferred audio language"
-msgstr "Langue audio préférée"
-
-msgctxt "#30478"
-msgid "Preferred subtitle language"
-msgstr "Langue de sous-titres préférée"
-
-msgctxt "#30479"
-msgid "Intelligent"
-msgstr "Intelligent"
-
-msgctxt "#30480"
-msgid ""
-"Shows subtitles in the preferred language when the audio is not in the "
-"preferred audio language."
-msgstr ""
-"Affiche les sous-titres dans la langue préférée quand l'audio n'est pas dans"
-" la langue audio préférée."
 
 msgctxt "#30481"
 msgid "French"
@@ -1274,121 +688,9 @@ msgctxt "#30489"
 msgid "Skip credits automatically"
 msgstr "Sauter le générique automatiquement"
 
-msgctxt "#30490"
-msgid "Server & account"
-msgstr "Serveur & compte"
-
-msgctxt "#30491"
-msgid "Playback"
-msgstr "Lecture"
-
-msgctxt "#30492"
-msgid "Up next & automation"
-msgstr "Enchaînement & automatismes"
-
-msgctxt "#30493"
-msgid "Display & lists"
-msgstr "Affichage & listes"
-
-msgctxt "#30494"
-msgid "Services"
-msgstr "Services"
-
-msgctxt "#30495"
-msgid "Advanced"
-msgstr "Avancé"
-
-msgctxt "#30496"
-msgid "Device"
-msgstr "Appareil"
-
-msgctxt "#30497"
-msgid "Quality and bitrate"
-msgstr "Qualité et débit"
-
-msgctxt "#30498"
-msgid "Subtitles"
-msgstr "Sous-titres"
-
-msgctxt "#30499"
-msgid "After watching"
-msgstr "Après visionnage"
-
-msgctxt "#30500"
-msgid "Refresh"
-msgstr "Rafraîchissement"
-
-msgctxt "#30501"
-msgid "Network & cache"
-msgstr "Réseau & cache"
-
-msgctxt "#30502"
-msgid "Logging"
-msgstr "Journalisation"
-
-msgctxt "#30503"
-msgid "Intro fallback: skip the first X seconds (0 = off)"
-msgstr "Repli intro : sauter les X premières secondes (0 = désactivé)"
-
-msgctxt "#30504"
-msgid "Credits fallback: offer skip X s before the end (0 = off)"
-msgstr "Repli générique : saut proposé X s avant la fin (0 = désactivé)"
-
-msgctxt "#30505"
-msgid "Hardware playback profile"
-msgstr "Profil de lecture matérielle"
-
-msgctxt "#30506"
-msgid "Auto"
-msgstr "Auto"
-
-msgctxt "#30507"
-msgid "ODROID-N2+ (AV1 transcoded)"
-msgstr "ODROID-N2+ (AV1 transcodé)"
-
-msgctxt "#30508"
-msgid "Manual (advanced settings)"
-msgstr "Manuel (réglages avancés)"
-
-msgctxt "#30509"
-msgid "Decides which codecs are direct-played or transcoded. On ODROID-N2+ (no AV1 hardware decoding), AV1 is transcoded."
-msgstr "Détermine quels codecs sont lus directement ou transcodés selon le matériel. Sur ODROID-N2+ (pas de décodage AV1 matériel), l'AV1 est transcodé."
-
-msgctxt "#30510"
-msgid "Connection retry attempts"
-msgstr "Nombre de tentatives de connexion"
-
-msgctxt "#30511"
-msgid "Number of attempts before showing an error message (1 = no retry). A short pause occurs between attempts."
-msgstr "Nombre de tentatives avant l'affichage d'un message d'erreur (1 = aucune relance). Une courte pause s'écoule entre chaque tentative."
-
 msgctxt "#30512"
 msgid "Connection failed, retrying (%s/%s)"
 msgstr "Connexion échouée, nouvelle tentative (%s/%s)"
-
-msgctxt "#30513"
-msgid "Cache duration (hours)"
-msgstr "Durée du cache (heures)"
-
-msgctxt "#30514"
-msgid "How long list caches are kept in the local SQLite database. 0 disables the cache."
-msgstr "Durée de conservation des caches de listes dans la base SQLite locale. 0 désactive le cache."
-
-msgctxt "#30515"
-msgid "WebSocket heartbeat interval (seconds)"
-msgstr "Intervalle du heartbeat WebSocket (secondes)"
-
-msgctxt "#30516"
-msgid "Interval between WebSocket heartbeat pings. A lower value detects a dead connection faster but sends more pings."
-msgstr "Intervalle entre les pings de heartbeat WebSocket. Une valeur plus basse détecte une connexion morte plus vite mais envoie plus de pings."
-
-msgctxt "#30517"
-msgid "Minimum interval between cache revalidations (minutes, 0 = disabled)"
-msgstr "Intervalle minimum entre deux revalidations du cache (minutes, 0 = désactivé)"
-
-msgctxt "#30518"
-msgid "A cached list is not re-downloaded in the background more than once per interval. 0 revalidates on every view (upstream behaviour)."
-msgstr "Une liste en cache n'est pas re-téléchargée en arrière-plan plus d'une fois par intervalle. 0 revalide à chaque consultation (comportement d'origine)."
 
 msgctxt "#30519"
 msgid "Random movie"
@@ -1414,49 +716,13 @@ msgctxt "#30524"
 msgid "No movie matches the criteria"
 msgstr "Aucun film ne correspond aux critères"
 
-msgctxt "#30525"
-msgid "Unwatched movies only"
-msgstr "Films non vus uniquement"
-
-msgctxt "#30526"
-msgid "Maximum duration (minutes, 0 = no limit)"
-msgstr "Durée maximale (minutes, 0 = sans limite)"
-
 msgctxt "#30527"
 msgid "Play all (shuffle)"
 msgstr "Tout lire (aléatoire)"
 
-msgctxt "#30528"
-msgid "Collection play order"
-msgstr "Ordre de lecture d'une collection"
-
-msgctxt "#30529"
-msgid "Release date, oldest first"
-msgstr "Date de sortie, du plus ancien au plus récent"
-
-msgctxt "#30530"
-msgid "Release date, newest first"
-msgstr "Date de sortie, du plus récent au plus ancien"
-
-msgctxt "#30531"
-msgid "Name"
-msgstr "Nom"
-
 msgctxt "#30532"
 msgid "Intro / credits markers"
 msgstr "Marqueurs intro / générique"
-
-msgctxt "#30533"
-msgid "Safety margin (% of measured speed)"
-msgstr "Marge de sécurité (% du débit mesuré)"
-
-msgctxt "#30534"
-msgid "Minimum bitrate (kbs)"
-msgstr "Débit minimum (kb/s)"
-
-msgctxt "#30535"
-msgid "Maximum bitrate (kbs, 0 = no limit)"
-msgstr "Débit maximum (kb/s, 0 = sans limite)"
 
 msgctxt "#30536"
 msgid "Last measurement"
@@ -1510,42 +776,6 @@ msgctxt "#30548"
 msgid "Measurement failed, previous bitrate kept"
 msgstr "Mesure en échec, débit précédent conservé"
 
-msgctxt "#30549"
-msgid "The bitrate used for playback is this percentage of the measured speed, to absorb line fluctuations without stuttering."
-msgstr "Le débit utilisé pour la lecture vaut ce pourcentage du débit mesuré, pour absorber les variations de la ligne sans coupure."
-
-msgctxt "#30550"
-msgid "Inside a collection"
-msgstr "Dans une collection"
-
-msgctxt "#30551"
-msgid "Inside a series (seasons and episodes)"
-msgstr "Dans une série (saisons et épisodes)"
-
-msgctxt "#30552"
-msgid "Recent movies (widgets and lists)"
-msgstr "Films récents (widgets et listes)"
-
-msgctxt "#30553"
-msgid "Recent series and episodes (widgets and lists)"
-msgstr "Séries et épisodes récents (widgets et listes)"
-
-msgctxt "#30554"
-msgid "Release date"
-msgstr "Date de sortie"
-
-msgctxt "#30555"
-msgid "Newest first"
-msgstr "Plus récent d'abord"
-
-msgctxt "#30556"
-msgid "Oldest first"
-msgstr "Plus ancien d'abord"
-
-msgctxt "#30557"
-msgid "Series order (numbers)"
-msgstr "Ordre de la série (numéros)"
-
 msgctxt "#30558"
 msgid "Collections - Recently added"
 msgstr "Collections - Ajouts récents"
@@ -1566,61 +796,13 @@ msgctxt "#30562"
 msgid "All remembered views have been forgotten"
 msgstr "Toutes les vues mémorisées ont été oubliées"
 
-msgctxt "#30563"
-msgid "Automatically remember the view chosen in each category"
-msgstr "Mémoriser automatiquement la vue choisie dans chaque catégorie"
-
-msgctxt "#30564"
-msgid "Each category (movie library, collection content, seasons, episodes...) keeps its own view. Changing the view through the skin remembers it for that category only."
-msgstr "Chaque catégorie (médiathèque Films, contenu d'une collection, saisons, épisodes…) garde sa propre vue. Changer de vue via le skin la mémorise pour cette catégorie uniquement."
-
-msgctxt "#30565"
-msgid "Forget all remembered views"
-msgstr "Oublier toutes les vues mémorisées"
-
-msgctxt "#30566"
-msgid "Next movie and collections"
-msgstr "Film suivant et collections"
-
-msgctxt "#30567"
-msgid "At the end of a movie from a collection"
-msgstr "À la fin d'un film d'une collection"
-
 msgctxt "#30568"
 msgid "Do nothing"
 msgstr "Ne rien faire"
 
-msgctxt "#30569"
-msgid "Offer the next movie, then play it (dialog)"
-msgstr "Proposer le film suivant puis l'enchaîner (dialogue)"
-
-msgctxt "#30570"
-msgid "Play the next movie automatically, without dialog"
-msgstr "Enchaîner automatiquement, sans dialogue"
-
-msgctxt "#30571"
-msgid "Show the dialog X seconds before the end (when there is no credits marker)"
-msgstr "Afficher le dialogue X s avant la fin (sans marqueur de générique)"
-
 msgctxt "#30572"
 msgid "Next movie"
 msgstr "Film suivant"
-
-msgctxt "#30573"
-msgid "Automatically show forced subtitles"
-msgstr "Afficher automatiquement les sous-titres forcés"
-
-msgctxt "#30574"
-msgid "Forced subtitles translate foreign-language passages and on-screen text. The forced track in the audio language (or the preferred subtitle language) is turned on, unless subtitles are already shown or chosen manually."
-msgstr "Les sous-titres forcés traduisent les passages en langue étrangère et les textes à l'écran. La piste forcée dans la langue de l'audio (ou la langue de sous-titres préférée) est activée, sauf si des sous-titres sont déjà affichés ou choisis à la main."
-
-msgctxt "#30575"
-msgid "« Movies - Random » opened full screen plays a random movie"
-msgstr "« Films - Aléatoire » ouvert en plein écran lance un film au hasard"
-
-msgctxt "#30576"
-msgid "When the « Movies - Random » entry is opened from a menu or a list, a random movie is drawn and offered instead of showing the list. On the home screen the widget stays a list."
-msgstr "Quand l'entrée « Films - Aléatoire » est ouverte depuis un menu ou une liste, un film est tiré au sort et proposé au lieu d'afficher la liste. Sur l'accueil, le widget reste une liste."
 
 msgctxt "#30577"
 msgid "« Previous"
@@ -1630,18 +812,1158 @@ msgctxt "#30578"
 msgid "Drawing a movie…"
 msgstr "Tirage en cours…"
 
-msgctxt "#30579"
-msgid "« Collections - Recently added » widget"
-msgstr "Widget « Collections - Ajouts récents »"
+msgctxt "#30600"
+msgid "Offer the next one, then play it"
+msgstr "Proposer le suivant, puis l'enchaîner"
 
-msgctxt "#30580"
-msgid "Starting playback"
-msgstr "Démarrage de la lecture"
+msgctxt "#30601"
+msgid "Play the next one without asking"
+msgstr "Enchaîner sans demander"
 
-msgctxt "#30581"
-msgid "Intro and credits skipping"
-msgstr "Saut d'intro et de générique"
+msgctxt "#30602"
+msgid "Release date, oldest → newest"
+msgstr "Date de sortie, ancien → récent"
 
-msgctxt "#30582"
-msgid "Lists"
-msgstr "Listes"
+msgctxt "#30603"
+msgid "Release date, newest → oldest"
+msgstr "Date de sortie, récent → ancien"
+
+msgctxt "#30604"
+msgid "Date added, newest first"
+msgstr "Date d'ajout, récent d'abord"
+
+msgctxt "#30605"
+msgid "Date added, oldest first"
+msgstr "Date d'ajout, ancien d'abord"
+
+msgctxt "#30606"
+msgid "Title, A → Z"
+msgstr "Titre, A → Z"
+
+msgctxt "#30607"
+msgid "Title, Z → A"
+msgstr "Titre, Z → A"
+
+msgctxt "#30608"
+msgid "Rating, best first"
+msgstr "Note, meilleure d'abord"
+
+msgctxt "#30609"
+msgid "Collection order in Emby"
+msgstr "Ordre de la collection dans Emby"
+
+msgctxt "#30610"
+msgid "Season and episode numbers"
+msgstr "Numéros de saison et d'épisode"
+
+msgctxt "#30611"
+msgid "Air date, oldest → newest"
+msgstr "Date de diffusion, ancien → récent"
+
+msgctxt "#30612"
+msgid "Air date, newest → oldest"
+msgstr "Date de diffusion, récent → ancien"
+
+msgctxt "#30613"
+msgid "After 95 % watched"
+msgstr "Après 95 % vus"
+
+msgctxt "#30614"
+msgid "After 90 % watched"
+msgstr "Après 90 % vus"
+
+msgctxt "#30615"
+msgid "After 80 % watched"
+msgstr "Après 80 % vus"
+
+msgctxt "#30616"
+msgid "{0:d} s"
+msgstr "{0:d} s"
+
+msgctxt "#30617"
+msgid "{0:d} min"
+msgstr "{0:d} min"
+
+msgctxt "#30618"
+msgid "{0:d}"
+msgstr "{0:d}"
+
+msgctxt "#30619"
+msgid "{0:d} kb/s"
+msgstr "{0:d} kb/s"
+
+msgctxt "#30620"
+msgid "{0:d} %"
+msgstr "{0:d} %"
+
+msgctxt "#30621"
+msgid "{0:d} px"
+msgstr "{0:d} px"
+
+msgctxt "#30622"
+msgid "{0:d} MB"
+msgstr "{0:d} Mo"
+
+msgctxt "#30623"
+msgid "{0:d} h"
+msgstr "{0:d} h"
+
+msgctxt "#30624"
+msgid "{0:d} s before the end"
+msgstr "{0:d} s avant la fin"
+
+msgctxt "#30625"
+msgid "No"
+msgstr "Non"
+
+msgctxt "#30626"
+msgid "Resume where I left off"
+msgstr "Reprendre là où je m'étais arrêté"
+
+msgctxt "#30627"
+msgid "Resumes straight from the last position. Off: EmbyCon asks « Resume » or « From the beginning »."
+msgstr "Reprend directement à la dernière position. Désactivé : EmbyCon demande « Reprendre » ou « Depuis le début »."
+
+msgctxt "#30628"
+msgid "Go back a little when resuming"
+msgstr "Revenir un peu en arrière à la reprise"
+
+msgctxt "#30629"
+msgid "Rewinds a few seconds before resuming, to pick up the thread."
+msgstr "Recule de quelques secondes avant de reprendre, pour retrouver le fil."
+
+msgctxt "#30630"
+msgid "Several versions of a movie: play the first"
+msgstr "Plusieurs versions d'un film : lire la première"
+
+msgctxt "#30631"
+msgid "When a movie exists in several versions (4K, 1080p…), plays the first one without asking."
+msgstr "Quand un film existe en plusieurs versions (4K, 1080p…), lance la première sans demander laquelle."
+
+msgctxt "#30632"
+msgid "Trailers before the movie"
+msgstr "Bandes-annonces avant le film"
+
+msgctxt "#30633"
+msgid "Plays the intros set up in Emby (cinema mode) before a movie started from the beginning."
+msgstr "Lit les intros configurées dans Emby (mode cinéma) avant un film lancé depuis le début."
+
+msgctxt "#30634"
+msgid "Stop the video when the screensaver starts"
+msgstr "Arrêter la vidéo quand l'écran de veille démarre"
+
+msgctxt "#30635"
+msgid "A paused video is stopped, and its position saved, when the Kodi screensaver starts."
+msgstr "Une vidéo en pause est arrêtée, et sa position enregistrée, quand l'écran de veille de Kodi s'active."
+
+msgctxt "#30636"
+msgid "My audio language"
+msgstr "Ma langue audio"
+
+msgctxt "#30637"
+msgid "Used by the automatic subtitle choice below."
+msgstr "Sert au choix automatique des sous-titres ci-dessous."
+
+msgctxt "#30638"
+msgid "My subtitle language"
+msgstr "Ma langue de sous-titres"
+
+msgctxt "#30639"
+msgid "Language used for automatic subtitles and for forced subtitles."
+msgstr "Langue utilisée pour les sous-titres automatiques et les sous-titres forcés."
+
+msgctxt "#30640"
+msgid "Yes"
+msgstr "Oui"
+
+msgctxt "#30641"
+msgid "Subtitles when the audio is not in my language"
+msgstr "Sous-titres si l'audio n'est pas dans ma langue"
+
+msgctxt "#30642"
+msgid "Audio in another language: subtitles in my language are turned on. Audio in my language: they are turned off. A choice made by hand is always kept."
+msgstr "Audio dans une autre langue : les sous-titres dans ma langue s'activent. Audio dans ma langue : ils sont coupés. Un choix fait à la main est toujours respecté."
+
+msgctxt "#30643"
+msgid "Forced subtitles in my language"
+msgstr "Sous-titres forcés dans ma langue"
+
+msgctxt "#30644"
+msgid "Forced subtitles only translate the parts spoken in another language (foreign dialogue, signs)."
+msgstr "Les sous-titres forcés ne traduisent que les passages dans une autre langue (dialogues étrangers, panneaux)."
+
+msgctxt "#30645"
+msgid "If there are several"
+msgstr "S'il y en a plusieurs"
+
+msgctxt "#30646"
+msgid "External subtitles: ask which ones"
+msgstr "Sous-titres externes : demander lesquels"
+
+msgctxt "#30647"
+msgid "For separate subtitle files (.srt…): show a choice list when playback starts."
+msgstr "Pour les fichiers de sous-titres séparés (.srt…) : afficher une liste de choix au lancement."
+
+msgctxt "#30648"
+msgid "Automatic, based on the connection"
+msgstr "Automatique, selon la connexion"
+
+msgctxt "#30649"
+msgid "Fixed bitrate"
+msgstr "Débit fixe"
+
+msgctxt "#30650"
+msgid "Quality"
+msgstr "Qualité"
+
+msgctxt "#30651"
+msgid "Automatic: EmbyCon regularly measures the connection to the server and sets the bitrate. Fixed bitrate: you choose the limit."
+msgstr "Automatique : EmbyCon mesure régulièrement la connexion au serveur et règle le débit. Débit fixe : tu choisis la limite."
+
+msgctxt "#30652"
+msgid "Safety margin"
+msgstr "Marge de sécurité"
+
+msgctxt "#30653"
+msgid "Share of the measured bitrate actually used. 80 % leaves room if the connection weakens."
+msgstr "Part du débit mesuré vraiment utilisée. 80 % laisse de la marge si la connexion faiblit."
+
+msgctxt "#30654"
+msgid "Minimum bitrate"
+msgstr "Débit minimum"
+
+msgctxt "#30655"
+msgid "The bitrate never goes below this, even after a bad measurement."
+msgstr "Le débit ne descend jamais en dessous, même si une mesure est mauvaise."
+
+msgctxt "#30656"
+msgid "No limit"
+msgstr "Sans limite"
+
+msgctxt "#30657"
+msgid "Maximum bitrate"
+msgstr "Débit maximum"
+
+msgctxt "#30658"
+msgid "Cap, even if the connection allows more."
+msgstr "Plafond, même si la connexion permet davantage."
+
+msgctxt "#30659"
+msgid "Result of the last connection measurement."
+msgstr "Résultat de la dernière mesure de la connexion."
+
+msgctxt "#30660"
+msgid "Starts a measurement right away."
+msgstr "Lance une mesure tout de suite."
+
+msgctxt "#30661"
+msgid "Maximum bitrate (kb/s)"
+msgstr "Débit maximal (kb/s)"
+
+msgctxt "#30662"
+msgid "Limit sent to the Emby server: above it, the server transcodes the video."
+msgstr "Limite envoyée au serveur Emby : au-delà, il transcode la vidéo."
+
+msgctxt "#30663"
+msgid "« Skip intro » button"
+msgstr "Bouton « Passer l'intro »"
+
+msgctxt "#30664"
+msgid "Skip automatically"
+msgstr "Passer automatiquement"
+
+msgctxt "#30665"
+msgid "Series intro"
+msgstr "Intro des séries"
+
+msgctxt "#30666"
+msgid "Relies on the intro markers detected by Emby."
+msgstr "S'appuie sur les marqueurs d'intro détectés par Emby."
+
+msgctxt "#30667"
+msgid "Without an Emby marker: skip the start"
+msgstr "Sans marqueur Emby : sauter le début"
+
+msgctxt "#30668"
+msgid "If Emby has not found the intro, skips this many seconds at the start of each episode."
+msgstr "Si Emby n'a pas repéré l'intro, saute ce nombre de secondes au début de chaque épisode."
+
+msgctxt "#30669"
+msgid "« Skip credits » button"
+msgstr "Bouton « Passer le générique »"
+
+msgctxt "#30670"
+msgid "End credits"
+msgstr "Générique de fin"
+
+msgctxt "#30671"
+msgid "Relies on the credits markers detected by Emby."
+msgstr "S'appuie sur les marqueurs de générique détectés par Emby."
+
+msgctxt "#30672"
+msgid "Without an Emby marker: offer before the end"
+msgstr "Sans marqueur Emby : proposer avant la fin"
+
+msgctxt "#30673"
+msgid "If Emby has not found the credits, the skip is offered this many seconds before the end."
+msgstr "Si Emby n'a pas repéré le générique, le saut est proposé ce nombre de secondes avant la fin."
+
+msgctxt "#30674"
+msgid "At the end of an episode"
+msgstr "À la fin d'un épisode"
+
+msgctxt "#30675"
+msgid "Offer: a window announces the next episode before the end; if you do nothing, it starts at the end."
+msgstr "Proposer : une fenêtre annonce l'épisode suivant avant la fin ; sans réponse de ta part, il démarre à la fin."
+
+msgctxt "#30676"
+msgid "Show the offer"
+msgstr "Afficher la proposition"
+
+msgctxt "#30677"
+msgid "When the « Next episode » window appears."
+msgstr "Moment où la fenêtre « Épisode suivant » apparaît."
+
+msgctxt "#30678"
+msgid "At the end of a movie in a collection"
+msgstr "À la fin d'un film d'une collection"
+
+msgctxt "#30679"
+msgid "An Emby collection groups the movies of a saga (Star Wars, Alien…)."
+msgstr "Une collection Emby regroupe les films d'une même saga (Star Wars, Alien…)."
+
+msgctxt "#30680"
+msgid "30 s before the end"
+msgstr "30 s avant la fin"
+
+msgctxt "#30681"
+msgid "1 min before the end"
+msgstr "1 min avant la fin"
+
+msgctxt "#30682"
+msgid "1 min 30 before the end"
+msgstr "1 min 30 avant la fin"
+
+msgctxt "#30683"
+msgid "2 min before the end"
+msgstr "2 min avant la fin"
+
+msgctxt "#30684"
+msgid "3 min before the end"
+msgstr "3 min avant la fin"
+
+msgctxt "#30685"
+msgid "4 min before the end"
+msgstr "4 min avant la fin"
+
+msgctxt "#30686"
+msgid "5 min before the end"
+msgstr "5 min avant la fin"
+
+msgctxt "#30687"
+msgid "7 min before the end"
+msgstr "7 min avant la fin"
+
+msgctxt "#30688"
+msgid "10 min before the end"
+msgstr "10 min avant la fin"
+
+msgctxt "#30689"
+msgid "15 min before the end"
+msgstr "15 min avant la fin"
+
+msgctxt "#30690"
+msgid "Used when Emby has no credits marker; otherwise the offer appears when the credits start."
+msgstr "Utilisé quand Emby n'a pas de marqueur de générique ; sinon la proposition apparaît au début du générique."
+
+msgctxt "#30691"
+msgid "Oldest to newest"
+msgstr "Du plus ancien au plus récent"
+
+msgctxt "#30692"
+msgid "Newest to oldest"
+msgstr "Du plus récent au plus ancien"
+
+msgctxt "#30693"
+msgid "By title"
+msgstr "Par titre"
+
+msgctxt "#30694"
+msgid "Collection playback order"
+msgstr "Ordre de lecture d'une collection"
+
+msgctxt "#30695"
+msgid "Used by « Play all » and for the next movie."
+msgstr "Sert à « Tout lire » et au film suivant."
+
+msgctxt "#30696"
+msgid "Update the list when coming back"
+msgstr "Mettre à jour la liste en revenant"
+
+msgctxt "#30697"
+msgid "Refreshes the displayed list (watched, unwatched, resume) when playback stops."
+msgstr "Rafraîchit la liste affichée (vu, non vu, reprise) quand la lecture s'arrête."
+
+msgctxt "#30698"
+msgid "Offer to delete a watched episode"
+msgstr "Proposer de supprimer un épisode vu"
+
+msgctxt "#30699"
+msgid "Deletes the episode from the server after confirmation, once this share has been watched."
+msgstr "Supprime l'épisode du serveur après confirmation, une fois cette part regardée."
+
+msgctxt "#30700"
+msgid "Offer to delete a watched movie"
+msgstr "Proposer de supprimer un film vu"
+
+msgctxt "#30701"
+msgid "Deletes the movie from the server after confirmation, once this share has been watched."
+msgstr "Supprime le film du serveur après confirmation, une fois cette part regardée."
+
+msgctxt "#30702"
+msgid "Group movies of the same collection"
+msgstr "Regrouper les films d'une même collection"
+
+msgctxt "#30703"
+msgid "In Movies, the movies of a collection are gathered in a single folder."
+msgstr "Dans Films, les films d'une collection sont réunis dans un seul dossier."
+
+msgctxt "#30704"
+msgid "Hide what I have already watched"
+msgstr "Masquer ce que j'ai déjà vu"
+
+msgctxt "#30705"
+msgid "Applies to movie, series and episode lists."
+msgstr "S'applique aux listes de films, séries et épisodes."
+
+msgctxt "#30706"
+msgid "Always show them"
+msgstr "Toujours les afficher"
+
+msgctxt "#30707"
+msgid "Skip if there is only one"
+msgstr "Sauter s'il n'y en a qu'une"
+
+msgctxt "#30708"
+msgid "Never: episodes in a row"
+msgstr "Jamais : épisodes à la suite"
+
+msgctxt "#30709"
+msgid "Seasons of a series"
+msgstr "Saisons d'une série"
+
+msgctxt "#30710"
+msgid "How a series opens."
+msgstr "Comment s'ouvre une série."
+
+msgctxt "#30711"
+msgid "Add « All episodes » in a series"
+msgstr "Ajouter « Tous les épisodes » dans une série"
+
+msgctxt "#30712"
+msgid "Adds an entry above the seasons that lists every episode of the series."
+msgstr "Ajoute en tête des saisons une entrée qui liste tous les épisodes de la série."
+
+msgctxt "#30713"
+msgid "Show empty folders"
+msgstr "Afficher les dossiers vides"
+
+msgctxt "#30714"
+msgid "Series, seasons or collections with nothing playable."
+msgstr "Séries, saisons ou collections sans contenu lisible."
+
+msgctxt "#30715"
+msgid "Order of the Movies list."
+msgstr "Ordre de la liste Films."
+
+msgctxt "#30716"
+msgid "Series"
+msgstr "Séries"
+
+msgctxt "#30717"
+msgid "Order of the Series list."
+msgstr "Ordre de la liste Séries."
+
+msgctxt "#30718"
+msgid "Collections"
+msgstr "Collections"
+
+msgctxt "#30719"
+msgid "Order of the Collections list and widget (the skin follows this order)."
+msgstr "Ordre de la liste et du widget Collections (le skin suit cet ordre)."
+
+msgctxt "#30720"
+msgid "Movies in a collection"
+msgstr "Films d'une collection"
+
+msgctxt "#30721"
+msgid "Order of the movies when a collection is opened."
+msgstr "Ordre des films quand on ouvre une collection."
+
+msgctxt "#30722"
+msgid "Seasons and episodes"
+msgstr "Saisons et épisodes"
+
+msgctxt "#30723"
+msgid "Order inside a series."
+msgstr "Ordre à l'intérieur d'une série."
+
+msgctxt "#30724"
+msgid "Skin widgets: release date instead of date added"
+msgstr "Widgets du skin : date de sortie au lieu de la date d'ajout"
+
+msgctxt "#30725"
+msgid "Widgets sorted by « date added » (Arctic's Recently added…) then follow the release date of movies and episodes."
+msgstr "Les widgets triés par « date d'ajout » (Ajouts récents d'Arctic…) suivent alors la date de sortie des films et épisodes."
+
+msgctxt "#30726"
+msgid "Everything on one page"
+msgstr "Tout sur une page"
+
+msgctxt "#30727"
+msgid "Beyond this, the list is split into pages."
+msgstr "Au-delà, la liste est découpée en pages."
+
+msgctxt "#30728"
+msgid "Items in short lists and widgets"
+msgstr "Éléments des listes courtes et des widgets"
+
+msgctxt "#30729"
+msgid "Number of items in « Recently added », « In progress »… and in widgets."
+msgstr "Nombre d'éléments de « Ajouts récents », « En cours »… et des widgets."
+
+msgctxt "#30730"
+msgid "Remember the view chosen in each list"
+msgstr "Retenir la vue choisie dans chaque liste"
+
+msgctxt "#30731"
+msgid "List, posters, thumbnails…: the chosen view is applied again on the next visit."
+msgstr "Liste, affiches, vignettes… : la vue choisie est réappliquée à la prochaine visite."
+
+msgctxt "#30732"
+msgid "Forget remembered views"
+msgstr "Oublier les vues retenues"
+
+msgctxt "#30733"
+msgid "Every list goes back to the skin's default view."
+msgstr "Toutes les listes reprennent la vue par défaut du skin."
+
+msgctxt "#30734"
+msgid "Number of unwatched episodes"
+msgstr "Nombre d'épisodes non vus"
+
+msgctxt "#30735"
+msgid "Added after the name of a series or season, for example « Lupin (3) »."
+msgstr "Ajouté après le nom d'une série ou d'une saison, par exemple « Lupin (3) »."
+
+msgctxt "#30736"
+msgid "Percentage already watched"
+msgstr "Pourcentage déjà vu"
+
+msgctxt "#30737"
+msgid "Added after the title of a started item, for example « Dune (45 %) »."
+msgstr "Ajouté après le titre d'un élément commencé, par exemple « Dune (45 %) »."
+
+msgctxt "#30738"
+msgid "(st) mark when subtitles exist"
+msgstr "Mention (st) si des sous-titres existent"
+
+msgctxt "#30739"
+msgid "Added after the title, for example « Dune (st) »."
+msgstr "Ajoutée après le titre, par exemple « Dune (st) »."
+
+msgctxt "#30740"
+msgid "Lupin - Chapter 1"
+msgstr "Lupin - Chapitre 1"
+
+msgctxt "#30741"
+msgid "Chapter 1"
+msgstr "Chapitre 1"
+
+msgctxt "#30742"
+msgid "s1e1 - Chapter 1"
+msgstr "s1e1 - Chapitre 1"
+
+msgctxt "#30743"
+msgid "Lupin - s1e1 - Chapter 1"
+msgstr "Lupin - s1e1 - Chapitre 1"
+
+msgctxt "#30744"
+msgid "Episode titles in mixed lists"
+msgstr "Titre des épisodes dans les listes mélangées"
+
+msgctxt "#30745"
+msgid "For lists that mix several series: Recently added, In progress…"
+msgstr "Pour les listes qui mélangent plusieurs séries : Ajouts récents, En cours…"
+
+msgctxt "#30746"
+msgid "Overview"
+msgstr "Résumé"
+
+msgctxt "#30747"
+msgid "The description of the movie or episode."
+msgstr "Le texte de présentation du film ou de l'épisode."
+
+msgctxt "#30748"
+msgid "Cast and crew"
+msgstr "Acteurs et équipe"
+
+msgctxt "#30749"
+msgid "More complete, but lists load more slowly."
+msgstr "Plus complet, mais les listes se chargent plus lentement."
+
+msgctxt "#30750"
+msgid "Technical info (resolution, codecs, audio)"
+msgstr "Infos techniques (résolution, codecs, audio)"
+
+msgctxt "#30751"
+msgid "Used by the skin for the 4K, HDR, Atmos… logos."
+msgstr "Utilisées par le skin pour les logos 4K, HDR, Atmos…"
+
+msgctxt "#30752"
+msgid "Spoiler protection for unwatched episodes"
+msgstr "Anti-spoiler pour les épisodes non vus"
+
+msgctxt "#30753"
+msgid "Replaces the overview with « [Spoiler Alert] » and the episode image with the series poster."
+msgstr "Remplace le résumé par « [Spoiler Alert] » et l'image de l'épisode par l'affiche de la série."
+
+msgctxt "#30754"
+msgid "Original"
+msgstr "Originale"
+
+msgctxt "#30755"
+msgid "Maximum image size"
+msgstr "Taille maximale des images"
+
+msgctxt "#30756"
+msgid "Shrinks downloaded images, useful on a slow connection."
+msgstr "Réduit les images téléchargées, utile avec une connexion lente."
+
+msgctxt "#30757"
+msgid "Prepare images during the screensaver"
+msgstr "Préparer les images pendant l'écran de veille"
+
+msgctxt "#30758"
+msgid "Downloads list images in the background so they show up immediately."
+msgstr "Télécharge les images des listes en arrière-plan pour qu'elles s'affichent tout de suite."
+
+msgctxt "#30759"
+msgid "When there is something new"
+msgstr "S'il y a du nouveau"
+
+msgctxt "#30760"
+msgid "Start again every"
+msgstr "Recommencer toutes les"
+
+msgctxt "#30761"
+msgid "Without a value, preparation only starts again when the library has something new."
+msgstr "Sans valeur, la préparation ne recommence que s'il y a du nouveau dans la bibliothèque."
+
+msgctxt "#30762"
+msgid "Opening the widget starts the draw"
+msgstr "Ouvrir le widget lance le tirage"
+
+msgctxt "#30763"
+msgid "Opening « Movies - Random » from the home screen directly shows a randomly drawn movie, with Play, Next and Previous."
+msgstr "Ouvrir « Films - Aléatoire » depuis l'accueil affiche directement la fiche d'un film tiré au sort, avec Lire, Suivant et Précédent."
+
+msgctxt "#30764"
+msgid "Only movies I have not watched"
+msgstr "Seulement des films que je n'ai pas vus"
+
+msgctxt "#30765"
+msgid "Movies already watched are never drawn."
+msgstr "Les films déjà vus ne sont jamais tirés."
+
+msgctxt "#30766"
+msgid "Maximum movie length"
+msgstr "Durée maximale du film"
+
+msgctxt "#30767"
+msgid "For a short evening: leaves out movies that are too long."
+msgstr "Pour une soirée courte : écarte les films trop longs."
+
+msgctxt "#30768"
+msgid "Refresh the widget every"
+msgstr "Renouveler le widget toutes les"
+
+msgctxt "#30769"
+msgid "A new selection appears on the home screen at this pace."
+msgstr "Une nouvelle sélection apparaît sur l'accueil à ce rythme."
+
+msgctxt "#30770"
+msgid "Search for the server on the network"
+msgstr "Rechercher le serveur sur le réseau"
+
+msgctxt "#30771"
+msgid "Looks for an Emby server on the local network and sets it up."
+msgstr "Cherche un serveur Emby sur le réseau local et le configure."
+
+msgctxt "#30772"
+msgid "HTTPS for a server reachable from the Internet."
+msgstr "HTTPS pour un serveur accessible depuis Internet."
+
+msgctxt "#30773"
+msgid "Server address"
+msgstr "Adresse du serveur"
+
+msgctxt "#30774"
+msgid "Domain name or IP address, without http:// or port."
+msgstr "Nom de domaine ou adresse IP, sans http:// ni port."
+
+msgctxt "#30775"
+msgid "8096 by default for HTTP, 8920 for HTTPS."
+msgstr "8096 par défaut pour HTTP, 8920 pour HTTPS."
+
+msgctxt "#30776"
+msgid "Check the certificate"
+msgstr "Vérifier le certificat"
+
+msgctxt "#30777"
+msgid "Only turn this off for a self-signed certificate."
+msgstr "À désactiver seulement pour un certificat auto-signé."
+
+msgctxt "#30778"
+msgid "Change user"
+msgstr "Changer d'utilisateur"
+
+msgctxt "#30779"
+msgid "Pick another account on the Emby server."
+msgstr "Choisir un autre compte du serveur Emby."
+
+msgctxt "#30780"
+msgid "User"
+msgstr "Utilisateur"
+
+msgctxt "#30781"
+msgid "Emby account used by this Kodi."
+msgstr "Compte Emby utilisé par ce Kodi."
+
+msgctxt "#30782"
+msgid "Password of the account."
+msgstr "Mot de passe du compte."
+
+msgctxt "#30783"
+msgid "Remember me"
+msgstr "Se souvenir de moi"
+
+msgctxt "#30784"
+msgid "Keeps the user and password to log in again without typing them."
+msgstr "Garde l'utilisateur et le mot de passe pour se reconnecter sans les retaper."
+
+msgctxt "#30785"
+msgid "Name of this Kodi in Emby"
+msgstr "Nom de ce Kodi dans Emby"
+
+msgctxt "#30786"
+msgid "Name shown in the Emby dashboard (devices, now playing)."
+msgstr "Nom affiché dans le tableau de bord Emby (appareils, lectures en cours)."
+
+msgctxt "#30787"
+msgid "Play the file directly over the network"
+msgstr "Lire le fichier directement par le réseau"
+
+msgctxt "#30788"
+msgid "Kodi opens the file on the network share instead of the Emby stream. The server path must be reachable from this Kodi."
+msgstr "Kodi ouvre le fichier sur le partage réseau au lieu du flux Emby. Le chemin du serveur doit être accessible depuis ce Kodi."
+
+msgctxt "#30789"
+msgid "Automatic (transcoded on ODROID-N2+)"
+msgstr "Automatique (transcodées sur ODROID-N2+)"
+
+msgctxt "#30790"
+msgid "Always transcode"
+msgstr "Toujours transcoder"
+
+msgctxt "#30791"
+msgid "Play as is"
+msgstr "Lire telles quelles"
+
+msgctxt "#30792"
+msgid "AV1 videos"
+msgstr "Vidéos AV1"
+
+msgctxt "#30793"
+msgid "The ODROID-N2+ processor cannot decode AV1: the server has to transcode it."
+msgstr "Le processeur de l'ODROID-N2+ ne décode pas l'AV1 : le serveur doit le transcoder."
+
+msgctxt "#30794"
+msgid "Transcode HEVC (h265)"
+msgstr "Transcoder le HEVC (h265)"
+
+msgctxt "#30795"
+msgid "The server converts these videos before sending them."
+msgstr "Le serveur convertit ces vidéos avant de les envoyer."
+
+msgctxt "#30796"
+msgid "Transcode MPEG-2"
+msgstr "Transcoder le MPEG-2"
+
+msgctxt "#30797"
+msgid "Transcode DivX (msmpeg4v3)"
+msgstr "Transcoder le DivX (msmpeg4v3)"
+
+msgctxt "#30798"
+msgid "Transcode MPEG-4"
+msgstr "Transcoder le MPEG-4"
+
+msgctxt "#30799"
+msgid "640 px"
+msgstr "640 px"
+
+msgctxt "#30800"
+msgid "720 px"
+msgstr "720 px"
+
+msgctxt "#30801"
+msgid "1024 px"
+msgstr "1024 px"
+
+msgctxt "#30802"
+msgid "1280 px (720p)"
+msgstr "1280 px (720p)"
+
+msgctxt "#30803"
+msgid "1440 px"
+msgstr "1440 px"
+
+msgctxt "#30804"
+msgid "1600 px"
+msgstr "1600 px"
+
+msgctxt "#30805"
+msgid "1920 px (1080p)"
+msgstr "1920 px (1080p)"
+
+msgctxt "#30806"
+msgid "2600 px"
+msgstr "2600 px"
+
+msgctxt "#30807"
+msgid "4096 px (4K)"
+msgstr "4096 px (4K)"
+
+msgctxt "#30808"
+msgid "Maximum width"
+msgstr "Largeur maximale"
+
+msgctxt "#30809"
+msgid "Above this, the server scales the picture down."
+msgstr "Au-delà, le serveur réduit l'image."
+
+msgctxt "#30810"
+msgid "Convert video to 8 bits"
+msgstr "Convertir la vidéo en 8 bits"
+
+msgctxt "#30811"
+msgid "Asks the server for 8-bit video (h264), for a screen that shows 10-bit or HDR badly."
+msgstr "Demande au serveur une vidéo 8 bits (h264), pour un écran qui affiche mal le 10 bits ou le HDR."
+
+msgctxt "#30812"
+msgid "Forced transcoding bitrate (kb/s)"
+msgstr "Débit d'un transcodage forcé (kb/s)"
+
+msgctxt "#30813"
+msgid "Used by « Play with transcoding » in the context menu."
+msgstr "Utilisé par « Lire en transcodant » du menu contextuel."
+
+msgctxt "#30814"
+msgid "AC3 (Dolby Digital)"
+msgstr "AC3 (Dolby Digital)"
+
+msgctxt "#30815"
+msgid "AAC"
+msgstr "AAC"
+
+msgctxt "#30816"
+msgid "Format requested when the server transcodes the sound."
+msgstr "Format demandé quand le serveur transcode le son."
+
+msgctxt "#30817"
+msgid "Audio bitrate (kb/s)"
+msgstr "Débit audio (kb/s)"
+
+msgctxt "#30818"
+msgid "Bitrate of the transcoded sound."
+msgstr "Débit du son transcodé."
+
+msgctxt "#30819"
+msgid "1 (mono)"
+msgstr "1 (mono)"
+
+msgctxt "#30820"
+msgid "2 (stereo)"
+msgstr "2 (stéréo)"
+
+msgctxt "#30821"
+msgid "3"
+msgstr "3"
+
+msgctxt "#30822"
+msgid "4"
+msgstr "4"
+
+msgctxt "#30823"
+msgid "5"
+msgstr "5"
+
+msgctxt "#30824"
+msgid "6 (5.1)"
+msgstr "6 (5.1)"
+
+msgctxt "#30825"
+msgid "7"
+msgstr "7"
+
+msgctxt "#30826"
+msgid "8 (7.1)"
+msgstr "8 (7.1)"
+
+msgctxt "#30827"
+msgid "Maximum audio channels"
+msgstr "Canaux audio maximum"
+
+msgctxt "#30828"
+msgid "Above this, the server reduces the number of channels."
+msgstr "Au-delà, le serveur réduit le nombre de canaux."
+
+msgctxt "#30829"
+msgid "Server timeout"
+msgstr "Délai d'attente du serveur"
+
+msgctxt "#30830"
+msgid "Beyond this, the request is abandoned."
+msgstr "Au-delà, la requête est abandonnée."
+
+msgctxt "#30831"
+msgid "Connection attempts"
+msgstr "Tentatives de connexion"
+
+msgctxt "#30832"
+msgid "Number of tries before showing an error."
+msgstr "Nombre d'essais avant d'afficher une erreur."
+
+msgctxt "#30833"
+msgid "Keep-alive signal (WebSocket)"
+msgstr "Signal de présence (WebSocket)"
+
+msgctxt "#30834"
+msgid "Keeps the remote control connection open."
+msgstr "Garde la connexion de contrôle à distance ouverte."
+
+msgctxt "#30835"
+msgid "Bitrate test size"
+msgstr "Taille du test de débit"
+
+msgctxt "#30836"
+msgid "Amount downloaded to measure the connection (automatic quality and manual test)."
+msgstr "Quantité téléchargée pour mesurer la connexion (qualité automatique et test manuel)."
+
+msgctxt "#30837"
+msgid "Keep lists in cache"
+msgstr "Garder les listes en cache"
+
+msgctxt "#30838"
+msgid "Lists already loaded show up instantly during this time."
+msgstr "Les listes déjà chargées s'affichent instantanément pendant cette durée."
+
+msgctxt "#30839"
+msgid "Every time"
+msgstr "À chaque affichage"
+
+msgctxt "#30840"
+msgid "Re-check a cached list at most every"
+msgstr "Revérifier une liste en cache au plus toutes les"
+
+msgctxt "#30841"
+msgid "Avoids asking the server for the same list every time it is shown."
+msgstr "Évite de redemander la même liste au serveur à chaque affichage."
+
+msgctxt "#30842"
+msgid "Remote control from Emby"
+msgstr "Contrôle à distance depuis Emby"
+
+msgctxt "#30843"
+msgid "Control this Kodi from the Emby app or website, and receive library updates."
+msgstr "Piloter ce Kodi depuis l'application ou le site Emby, et recevoir les mises à jour de la bibliothèque."
+
+msgctxt "#30844"
+msgid "EmbyCon context menu"
+msgstr "Menu contextuel EmbyCon"
+
+msgctxt "#30845"
+msgid "Replaces the Kodi context menu on EmbyCon items."
+msgstr "Remplace le menu contextuel de Kodi sur les éléments EmbyCon."
+
+msgctxt "#30846"
+msgid "EmbyCon chapters instead of bookmarks"
+msgstr "Chapitres EmbyCon à la place des signets"
+
+msgctxt "#30847"
+msgid "Replaces the Kodi « Bookmarks » window with the list of Emby chapters."
+msgstr "Remplace la fenêtre « Signets » de Kodi par la liste des chapitres Emby."
+
+msgctxt "#30848"
+msgid "Show loading progress"
+msgstr "Afficher la progression du chargement"
+
+msgctxt "#30849"
+msgid "A progress bar while lists are loading."
+msgstr "Une barre de progression pendant le chargement des listes."
+
+msgctxt "#30850"
+msgid "Hide connection errors"
+msgstr "Masquer les erreurs de connexion"
+
+msgctxt "#30851"
+msgid "No more notification when the server does not answer."
+msgstr "Plus de notification quand le serveur ne répond pas."
+
+msgctxt "#30852"
+msgid "Detailed log (debug)"
+msgstr "Journal détaillé (débogage)"
+
+msgctxt "#30853"
+msgid "Turn on for a diagnosis, then off again: the log grows quickly."
+msgstr "À activer pour un diagnostic, puis à désactiver : le journal grossit vite."
+
+msgctxt "#30854"
+msgid "Settings layout"
+msgstr "Organisation des réglages"
+
+msgctxt "#30855"
+msgid "Internal."
+msgstr "Interne."
+
+msgctxt "#30856"
+msgid "What happens when a video starts: resume, languages, quality."
+msgstr "Ce qui se passe quand je lance une vidéo : reprise, langues, qualité."
+
+msgctxt "#30857"
+msgid "Resume"
+msgstr "Reprise"
+
+msgctxt "#30858"
+msgid "Audio and subtitles"
+msgstr "Audio et sous-titres"
+
+msgctxt "#30859"
+msgid "Stream quality"
+msgstr "Qualité du flux"
+
+msgctxt "#30860"
+msgid "Skips and up next"
+msgstr "Enchaînements"
+
+msgctxt "#30861"
+msgid "Intro, credits, next episode and next movie, and what happens at the end."
+msgstr "Intro, générique, épisode et film suivants, et ce qui se passe à la fin."
+
+msgctxt "#30862"
+msgid "Intro and credits"
+msgstr "Intro et générique"
+
+msgctxt "#30863"
+msgid "Next movie in a collection"
+msgstr "Film suivant d'une collection"
+
+msgctxt "#30864"
+msgid "After playback"
+msgstr "Après la lecture"
+
+msgctxt "#30865"
+msgid "Lists and sorting"
+msgstr "Listes et tri"
+
+msgctxt "#30866"
+msgid "What appears in lists, and in which order."
+msgstr "Ce qui apparaît dans les listes, et dans quel ordre."
+
+msgctxt "#30867"
+msgid "Content"
+msgstr "Contenu"
+
+msgctxt "#30868"
+msgid "List order"
+msgstr "Ordre des listes"
+
+msgctxt "#30869"
+msgid "List size"
+msgstr "Taille des listes"
+
+msgctxt "#30870"
+msgid "Titles and details"
+msgstr "Titres et fiches"
+
+msgctxt "#30871"
+msgid "What titles and the movie and episode details show."
+msgstr "Ce qu'affichent les titres et les fiches des films et des épisodes."
+
+msgctxt "#30872"
+msgid "Titles"
+msgstr "Titres"
+
+msgctxt "#30873"
+msgid "Details"
+msgstr "Fiches"
+
+msgctxt "#30874"
+msgid "Images"
+msgstr "Images"
+
+msgctxt "#30875"
+msgid "The « Movies - Random » widget and the draw card."
+msgstr "Le widget « Films - Aléatoire » et la fiche de tirage."
+
+msgctxt "#30876"
+msgid "Draw"
+msgstr "Tirage"
+
+msgctxt "#30877"
+msgid "Server and account"
+msgstr "Serveur et compte"
+
+msgctxt "#30878"
+msgid "Connection to the Emby server. Set once, rarely changed."
+msgstr "Connexion au serveur Emby. Réglé une fois, rarement modifié."
+
+msgctxt "#30879"
+msgid "Server"
+msgstr "Serveur"
+
+msgctxt "#30880"
+msgid "Account"
+msgstr "Compte"
+
+msgctxt "#30881"
+msgid "This device"
+msgstr "Cet appareil"
+
+msgctxt "#30882"
+msgid "Only change these for playback or connection problems."
+msgstr "À toucher seulement en cas de problème de lecture ou de connexion."
+
+msgctxt "#30883"
+msgid "Video transcoding"
+msgstr "Transcodage vidéo"
+
+msgctxt "#30884"
+msgid "Audio transcoding"
+msgstr "Transcodage audio"
+
+msgctxt "#30885"
+msgid "Network"
+msgstr "Réseau"
+
+msgctxt "#30886"
+msgid "Cache"
+msgstr "Cache"
+
+msgctxt "#30887"
+msgid "Kodi integration (restart required)"
+msgstr "Intégration à Kodi (redémarrage nécessaire)"
+
+msgctxt "#30888"
+msgid "Troubleshooting"
+msgstr "Dépannage"

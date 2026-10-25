@@ -9,9 +9,11 @@ from __future__ import annotations
 
 from typing import Callable
 
-PROFIL_AUTO = 0
-PROFIL_N2PLUS = 1
-PROFIL_MANUEL = 2
+# v1.20.0 : reglage « Vidéos AV1 » (av1_transcode), qui remplace le profil
+# materiel et la case « Forcer le transcodage av1 »
+PROFIL_AUTO = 0  # Automatique : transcode sur ODROID-N2+ detecte
+PROFIL_N2PLUS = 1  # Toujours transcoder
+PROFIL_MANUEL = 2  # Lire telles quelles
 
 
 def _lire_fichier(chemin: str) -> str:
@@ -42,8 +44,9 @@ def av1_transcodage_force(
     le transcodage au serveur Emby.
 
     Args:
-        valeur_profil: valeur du réglage ``hardware_profile``
-            (0=Auto, 1=N2+, 2=Manuel) ; lue dans les réglages si absente.
+        valeur_profil: valeur du réglage ``av1_transcode``
+            (0=Automatique, 1=Toujours, 2=Jamais) ; lue dans les réglages
+            si absente.
         detecteur: fonction de détection de la plateforme,
             injectable pour les tests unitaires.
     """
@@ -51,7 +54,10 @@ def av1_transcodage_force(
         # import paresseux : le module reste testable sans Kodi
         import xbmcaddon
 
-        valeur_profil = int(xbmcaddon.Addon().getSetting("hardware_profile") or "0")
+        try:
+            valeur_profil = int(xbmcaddon.Addon().getSetting("av1_transcode") or "0")
+        except ValueError:
+            valeur_profil = PROFIL_AUTO
     if valeur_profil == PROFIL_MANUEL:
         return False
     if valeur_profil == PROFIL_N2PLUS:

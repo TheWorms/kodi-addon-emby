@@ -19,7 +19,6 @@ from resources.lib.play_utils import (
 )
 from resources.lib.kodi_utils import HomeWindow
 from resources.lib.widgets import (
-    set_background_image,
     set_random_movies,
     check_for_new_content,
 )
@@ -28,18 +27,16 @@ from resources.lib.menu_functions import set_library_window_values
 from resources.lib.context_monitor import ContextMonitor
 from resources.lib.server_detect import check_server, auto_detect_and_set_bitrate
 from resources.lib.library_change_monitor import LibraryChangeMonitor
-from resources.lib.tracking import set_timing_enabled
+from resources.lib.settings_migration import migrate_settings
 from resources.lib.image_server import HttpImageServerThread
 from resources.lib.playnext import PlayNextService
 from resources.lib.chapter_dialog import ChapterDialogMonitor
 from resources.lib.view_memory import ViewMonitor
 from resources.lib.collection_dates import refresh_all_collection_dates
 
+# v1.20.0 : nouvelle organisation des reglages, convertie avant tout le reste
+migrate_settings()
 settings = xbmcaddon.Addon()
-
-log_timing_data = settings.getSetting("log_timing") == "true"
-if log_timing_data:
-    set_timing_enabled(True)
 
 # clear user and token when logging in
 home_window = HomeWindow()
@@ -105,7 +102,7 @@ monitor_service: MonitoringService = MonitoringService(play_monitor_service)
 
 home_window = HomeWindow()
 last_progress_update = time.time()
-last_background_update = 0
+last_library_values_update = 0.0
 last_random_movie_update = 0
 skin_checked = False
 skin_check_delay = 20
@@ -160,7 +157,6 @@ if emby_bookmarks:
     chapter_dialog_monitor = ChapterDialogMonitor()
     chapter_dialog_monitor.start()
 
-background_interval = int(settings.getSetting("background_interval"))
 random_movie_list_interval = int(settings.getSetting("random_movie_refresh_interval"))
 random_movie_list_interval = random_movie_list_interval * 60
 
@@ -250,13 +246,12 @@ while not kodi_monitor.abortRequested():
                     last_random_movie_update = time.time()
                     set_random_movies()
 
-                if user_changed or (
-                    background_interval != 0
-                    and (time.time() - last_background_update) > background_interval
-                ):
-                    last_background_update = time.time()
+                # v1.20.0 : plus d'image de fond tournante (reglage retire,
+                # non lue par Arctic) ; les proprietes des mediatheques sont
+                # toujours tenues a jour
+                if user_changed or (time.time() - last_library_values_update) > 60:
+                    last_library_values_update = time.time()
                     set_library_window_values(user_changed)
-                    set_background_image(user_changed)
 
                 if remote_control and user_changed:
                     websocket_client.stop_client()
@@ -283,11 +278,6 @@ while not kodi_monitor.abortRequested():
                 last_random_movie_update = time.time() - (
                     random_movie_list_interval - 15
                 )
-                if background_interval != 0 and (
-                    (time.time() - last_background_update) > background_interval
-                ):
-                    last_background_update = time.time()
-                    set_background_image(False)
 
     except Exception as error:
         log.error("Exception in Playback Monitor: {0}", error)

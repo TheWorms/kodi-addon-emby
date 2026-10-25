@@ -162,11 +162,11 @@ def test_sens_du_tri_des_collections() -> None:
     def reglages(valeurs):
         return SimpleNamespace(getSetting=lambda k: valeurs.get(k, ""))
 
-    assert df._collections_ascending(reglages({"sort_order-BoxSets": "0"}), {"media_type": "boxsets"})
-    assert not df._collections_ascending(reglages({"sort_order-BoxSets": "1"}), {"media_type": "boxsets"})
-    assert df._collections_ascending(
-        reglages({"sort_order-RecentBoxSets": "0", "sort_order-BoxSets": "1"}), {"type": "recent_boxsets"}
-    )
+    assert df._collections_ascending(reglages({"list_sort-BoxSets": "9a"}), {"media_type": "boxsets"})
+    assert not df._collections_ascending(reglages({"list_sort-BoxSets": "9d"}), {"media_type": "boxsets"})
+    # v1.20.0 : un seul reglage pour la liste et le widget « Ajouts récents »
+    assert df._collections_ascending(reglages({"list_sort-BoxSets": "2a"}), {"type": "recent_boxsets"})
+    assert not df._collections_ascending(reglages({"list_sort-BoxSets": "0"}), {"media_type": "boxsets"})
 
 
 # --- v1.19.1 : l'ordre EmbyCon pilote le widget Arctic ----------------------

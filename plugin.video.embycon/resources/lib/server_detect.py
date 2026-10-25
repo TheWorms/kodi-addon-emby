@@ -683,20 +683,6 @@ def check_server(force: bool = False, change_user: bool = False) -> None:
                     saved_password = settings.getSetting(
                         "saved_user_password_" + hashed_username
                     )
-                    allow_password_saving = (
-                        settings.getSetting("allow_password_saving") == "true"
-                    )
-
-                    # if not saving passwords but have a saved ask to clear it
-                    if not allow_password_saving and saved_password:
-                        clear_password = xbmcgui.Dialog().yesno(
-                            string_load(30368), string_load(30369)
-                        )
-                        if clear_password:
-                            settings.setSetting(
-                                "saved_user_password_" + hashed_username, ""
-                            )
-
                     mdp_candidat = None
                     if saved_password:
                         # v1.14 : verifier le mot de passe sauvegarde AVANT
@@ -743,19 +729,18 @@ def check_server(force: bool = False, change_user: bool = False) -> None:
                     save_user_details(settings, selected_user_name, mdp_candidat)
 
                     # should we save the password
-                    if allow_password_saving:
-                        save_password = xbmcgui.Dialog().yesno(
-                            string_load(30363), string_load(30364)
+                    save_password = xbmcgui.Dialog().yesno(
+                        string_load(30363), string_load(30364)
+                    )
+                    if save_password:
+                        log.debug(
+                            "Saving password for fast user switching: {0}",
+                            hashed_username,
                         )
-                        if save_password:
-                            log.debug(
-                                "Saving password for fast user switching: {0}",
-                                hashed_username,
-                            )
-                            settings.setSetting(
-                                "saved_user_password_" + hashed_username,
-                                mdp_candidat,
-                            )
+                        settings.setSetting(
+                            "saved_user_password_" + hashed_username,
+                            mdp_candidat,
+                        )
                 else:
                     log.debug(
                         "Saving username with no password: {0}", selected_user_name

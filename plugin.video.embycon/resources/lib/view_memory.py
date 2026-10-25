@@ -67,15 +67,6 @@ _BASE_BY_MODE = {
     "SHOW_ADDON_MENU": "menus",
 }
 
-# anciens reglages (v1.15 et avant) -> categorie
-_LEGACY_SETTINGS = {
-    "view-movies": "movies",
-    "view-tvshows": "tvshows",
-    "view-seasons": "seasons",
-    "view-episodes": "episodes",
-    "view-sets": "sets",
-}
-
 _VIEWS_FILE = "views.json"
 
 
@@ -136,7 +127,8 @@ class ViewStore:
             views = data.get("views", {})
             return views if isinstance(views, dict) else {}
         except FileNotFoundError:
-            return self._migrate_legacy()
+            # v1.20.0 : plus de reprise des anciens reglages view-* (retires)
+            return {}
         except (OSError, ValueError) as err:
             log.error("Vues memorisees illisibles ({0}) : on repart de zero", err)
             return {}
@@ -149,26 +141,6 @@ class ViewStore:
         with open(tmp, "w", encoding="utf-8") as f:
             json.dump({"version": 1, "views": views}, f, indent=1, sort_keys=True)
         os.replace(tmp, self.path)
-
-    def _migrate_legacy(self) -> dict:
-        """Premiere utilisation : reprend les vues des anciens reglages."""
-        views = {}
-        try:
-            settings = xbmcaddon.Addon()
-            for setting_id, category in _LEGACY_SETTINGS.items():
-                value = settings.getSetting(setting_id)
-                if value and value.isdigit():
-                    views[category] = value
-                    settings.setSetting(setting_id, "")
-        except Exception as err:
-            log.error("Migration des vues : {0}", err)
-        try:
-            self._write(views)
-            if views:
-                log.info("Vues migrees depuis les anciens reglages : {0}", views)
-        except OSError as err:
-            log.error("Ecriture des vues impossible : {0}", err)
-        return views
 
     def lookup(self, chain: list[str]) -> str | None:
         with self._lock:

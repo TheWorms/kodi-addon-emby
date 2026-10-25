@@ -34,6 +34,8 @@ from .sort_options import (
     server_sort,
     client_sort,
     sort_gui_items,
+    sort_setting,
+    is_descending,
     describe_order,
     rank_stamps,
 )
@@ -264,10 +266,6 @@ def get_content(url: str, params: dict[str, str]) -> int:
         if context == "BoxSets":
             stamp_rank_dates(dir_items)
 
-    # v1.16 : listes « recents » en ordre « plus ancien d'abord »
-    if params.get("reverse") == "true":
-        dir_items = list(reversed(dir_items))
-
     detected_type = result.detected_type
     total_records = result.total_records
 
@@ -405,7 +403,9 @@ def set_sort(
     settings = xbmcaddon.Addon()
     preset_sort_order = ""
     if not sorted_explicitly:
-        preset_sort_order = settings.getSetting("sort-" + view_type)
+        # v1.20.0 : critere du reglage list_sort-<vue> ("9a" -> "9")
+        preset = sort_setting(settings.getSetting, view_type)
+        preset_sort_order = preset[0] if preset else ""
     log.debug("SETTING_SORT preset_sort_order: {0}", preset_sort_order)
     if preset_sort_order in sorting_order_mapping:
         xbmcplugin.addSortMethod(pluginhandle, sorting_order_mapping[preset_sort_order])
@@ -444,10 +444,11 @@ def stamp_rank_dates(dir_items: list) -> None:
 
 
 def _collections_ascending(settings: xbmcaddon.Addon, params: dict[str, str]) -> bool:
-    """v1.19 : collections en ordre croissant -> date du premier film."""
-    if params.get("type") == "recent_boxsets":
-        return settings.getSetting("sort_order-RecentBoxSets") == "0"
-    return settings.getSetting("sort_order-BoxSets") == "0"
+    """v1.19 : collections en ordre croissant -> date du premier film.
+
+    v1.20.0 : un seul reglage (list_sort-BoxSets) pour la liste et les widgets.
+    """
+    return not is_descending(settings.getSetting, "BoxSets")
 
 
 @timer
@@ -490,7 +491,8 @@ def process_directory(
         use_prem_date_for_added=use_prem_date_for_added,
     )
 
-    use_cache = settings.getSetting("use_cache") == "true" and use_cache_data
+    # v1.20.0 : plus de case « Mettre en cache » : Durée du cache = 0 la coupe
+    use_cache = use_cache_data
     get_items_result = data_manager.get_items(url, gui_options, use_cache)
     item_list = get_items_result.item_list
     total_records = get_items_result.total_records

@@ -1,17 +1,13 @@
 # Gnu General Public License - see LICENSE.TXT
 
-import xbmcaddon
-
 from resources.lib.simple_logging import SimpleLogging
 from resources.lib.functions import main_entry_point
-from resources.lib.tracking import set_timing_enabled
+from resources.lib.settings_migration import migrate_settings
 
 log = SimpleLogging("default")
 
-settings = xbmcaddon.Addon()
-log_timing_data = settings.getSetting("log_timing") == "true"
-if log_timing_data:
-    set_timing_enabled(True)
+# v1.20.0 : nouvelle organisation des reglages (conversion unique)
+migrate_settings()
 
 log.debug("About to enter mainEntryPoint()")
 

@@ -59,11 +59,14 @@ def test_pas_de_dialogue_en_mode_auto_ou_desactive() -> None:
     assert next_trigger_time(data, _settings(next_movie_mode="0"), 7200) == 0
 
 
-def test_episode_inchange() -> None:
+def test_episode_selon_le_mode() -> None:
+    """v1.20.0 : « À la fin d'un épisode » décide, comme pour les films."""
     data = {"item_type": "Episode", "next_episode": {"Id": "e2"}}
-    assert next_trigger_time(data, _settings(play_next_trigger_time="45"), 2400) == 45
-    # v1.19 : 0 = jamais (plus d'interrupteur separe)
-    assert next_trigger_time(data, _settings(play_next_trigger_time="0"), 2400) == 0
+    reglages = _settings(next_episode_mode="1", play_next_trigger_time="45")
+    assert next_trigger_time(data, reglages, 2400) == 45
+    for mode in ("0", "2"):
+        reglages = _settings(next_episode_mode=mode, play_next_trigger_time="45")
+        assert next_trigger_time(data, reglages, 2400) == 0
 
 
 def test_rien_sans_element_suivant() -> None:
@@ -164,7 +167,7 @@ def test_film_hors_collection(monkeypatch) -> None:
 # --- enchainement automatique en fin de film --------------------------------
 
 
-def _fin_de_film(monkeypatch, position, mode="2", deja_traite=False):
+def _fin_de_film(monkeypatch, position, mode="2", deja_traite=False, item_type="Movie"):
     envois = []
     monkeypatch.setattr(pu, "send_event_notification", lambda m, d: envois.append((m, d)))
     monkeypatch.setattr(
@@ -172,15 +175,14 @@ def _fin_de_film(monkeypatch, position, mode="2", deja_traite=False):
         "Addon",
         lambda: _settings(
             next_movie_mode=mode,
-            promptPlayNextEpisodePercentage="100",
-            promptPlayNextEpisodePercentage_prompt="true",
+            next_episode_mode=mode,
             promptDeleteEpisodePercentage="100",
             promptDeleteMoviePercentage="100",
         ),
         raising=False,
     )
     data = {
-        "item_type": "Movie",
+        "item_type": item_type,
         "next_episode": {"Id": "m2", "Name": "Episode II"},
         "currentPossition": position,
         "duration": 100,
@@ -219,3 +221,18 @@ def test_pas_de_double_lancement_ni_apres_refus(monkeypatch) -> None:
 
 def test_mode_desactive_n_enchaine_pas(monkeypatch) -> None:
     assert _fin_de_film(monkeypatch, 97, mode="0") == []
+
+
+# --- v1.20.0 : episode suivant, meme logique que les films --------------------
+
+
+def test_episode_enchaine_en_fin_d_episode(monkeypatch) -> None:
+    for mode in ("1", "2"):
+        envois = _fin_de_film(monkeypatch, 97, mode=mode, item_type="Episode")
+        assert [e[1]["item_id"] for e in envois] == ["m2"]
+
+
+def test_episode_pas_d_enchainement(monkeypatch) -> None:
+    assert _fin_de_film(monkeypatch, 97, mode="0", item_type="Episode") == []
+    assert _fin_de_film(monkeypatch, 50, mode="2", item_type="Episode") == []
+    assert _fin_de_film(monkeypatch, 97, mode="1", deja_traite=True, item_type="Episode") == []

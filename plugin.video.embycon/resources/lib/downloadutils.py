@@ -304,10 +304,8 @@ class DownloadUtils:
             filtered_codecs.append("mpeg4")
         # v1.14 : profil matériel — sur ODROID-N2+ le S922X ne décode pas
         # l'AV1 matériellement, il faut demander son transcodage au serveur
-        if (
-            addon_settings.getSetting("force_transcode_av1") == "true"
-            or av1_transcodage_force()
-        ):
+        # v1.20.0 : un seul réglage « Vidéos AV1 » (av1_transcode)
+        if av1_transcodage_force():
             filtered_codecs.append("av1")
 
         playback_bitrate = addon_settings.getSetting("max_stream_bitrate")

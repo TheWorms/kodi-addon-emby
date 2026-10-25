@@ -23,7 +23,6 @@ from .translation import string_load
 from .datamanager import DataManager
 from .utils import get_art, get_emby_url
 from .custom_nodes import CustomNode, load_custom_nodes
-from .sort_options import recent_newest_first
 
 log = SimpleLogging(__name__)
 
@@ -37,13 +36,6 @@ def random_movie_path(parent_id: str | None = None, genre_id: str | None = None)
     if genre_id:
         path += "&genre_ids=" + genre_id
     return path
-
-
-def _recent_reverse_param(settings: xbmcaddon.Addon, kind: str) -> str:
-    """v1.16 : « plus ancien d'abord » sur une liste de recents -> &reverse=true."""
-    if recent_newest_first(settings.getSetting, kind):
-        return ""
-    return "&reverse=true"
 
 
 def do_user_change(menu_params: dict[str, str]) -> None:
@@ -106,18 +98,6 @@ def do_user_change(menu_params: dict[str, str]) -> None:
             saved_password = settings.getSetting(
                 "saved_user_password_" + hashed_username
             )
-            allow_password_saving = (
-                settings.getSetting("allow_password_saving") == "true"
-            )
-
-            # if not saving passwords but have a saved ask to clear it
-            if not allow_password_saving and saved_password:
-                clear_password = xbmcgui.Dialog().yesno(
-                    string_load(30368), string_load(30369)
-                )
-                if clear_password:
-                    settings.setSetting("saved_user_password_" + hashed_username, "")
-
             if saved_password:
                 log.debug("Saving username and password: {0}", selected_user_name)
                 log.debug("Using stored password for user: {0}", hashed_username)
@@ -133,19 +113,18 @@ def do_user_change(menu_params: dict[str, str]) -> None:
                     save_user_details(settings, selected_user_name, kb.getText())
 
                     # should we save the password
-                    if allow_password_saving:
-                        save_password = xbmcgui.Dialog().yesno(
-                            string_load(30363), string_load(30364)
+                    save_password = xbmcgui.Dialog().yesno(
+                        string_load(30363), string_load(30364)
+                    )
+                    if save_password:
+                        log.debug(
+                            "Saving password for fast user switching: {0}",
+                            hashed_username,
                         )
-                        if save_password:
-                            log.debug(
-                                "Saving password for fast user switching: {0}",
-                                hashed_username,
-                            )
-                            settings.setSetting(
-                                "saved_user_password_" + hashed_username,
-                                kb.getText(),
-                            )
+                        settings.setSetting(
+                            "saved_user_password_" + hashed_username,
+                            kb.getText(),
+                        )
 
         else:
             log.debug("User has no password, saving details.")
@@ -1185,7 +1164,6 @@ def display_tvshow_type(_menu_params: dict[str, str], view: dict[str, str]) -> N
         + urllib.parse.quote(path)
         + "&mode=GET_CONTENT&media_type=tvshows&sort=none"
     )
-    url += _recent_reverse_param(settings, "RecentSeries")
     add_menu_directory_item(
         view_name + string_load(30288) + " (" + show_x_filtered_items + ")", url
     )
@@ -1208,7 +1186,6 @@ def display_tvshow_type(_menu_params: dict[str, str], view: dict[str, str]) -> N
         + "&mode=GET_CONTENT&media_type=Episodes&sort=none"
     )
     url += "&name_format=" + urllib.parse.quote("Episode|episode_name_format")
-    url += _recent_reverse_param(settings, "RecentSeries")
     add_menu_directory_item(
         view_name + string_load(30268) + " (" + show_x_filtered_items + ")", url
     )
@@ -1566,7 +1543,6 @@ def display_movies_type(_menu_params: dict[str, str], view: dict[str, str]) -> N
         + urllib.parse.quote(path)
         + "&mode=GET_CONTENT&media_type=movies&sort=none"
     )
-    url += _recent_reverse_param(settings, "RecentMovies")
     add_menu_directory_item(
         view_name + string_load(30268) + " (" + show_x_filtered_items + ")", url
     )

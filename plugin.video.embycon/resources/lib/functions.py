@@ -3,10 +3,7 @@ from __future__ import annotations
 
 import urllib.parse
 import sys
-import os
 import time
-from datetime import datetime
-import cProfile
 import json
 
 import xbmcplugin
@@ -17,7 +14,6 @@ import xbmcvfs
 
 from .downloadutils import DownloadUtils, load_user_details
 from .utils import send_event_notification
-from .profile_utils import get_profile_data, remove_old_profiles
 from .kodi_utils import HomeWindow
 from .clientinfo import ClientInformation
 from .datamanager import DataManager, clear_cached_server_data, invalidate_content_cache
@@ -72,21 +68,6 @@ def main_entry_point() -> None:
     mode = params.get("mode", None)
 
     settings = xbmcaddon.Addon()
-    addon_dir = xbmcvfs.translatePath(settings.getAddonInfo("profile"))
-
-    profiling_enabled = settings.getSetting("profiling_enabled") == "true"
-    pr: cProfile.Profile | None = None
-    if profiling_enabled:
-        if mode in [
-            "MOVIE_ALPHA",
-            "TVSHOW_ALPHA",
-            "WIDGET_CONTENT",
-            "GET_CONTENT_BY_TV_SHOW",
-            "GET_CONTENT",
-            "SHOW_CONTENT",
-        ]:
-            pr = cProfile.Profile()
-            pr.enable()
 
     kodi_version = int(xbmc.getInfoLabel("System.BuildVersion")[:2])
     param_url = params.get("url", "")
@@ -102,7 +83,6 @@ def main_entry_point() -> None:
     log.debug("EmbyCon -> Mode: {0}", mode)
     log.debug("EmbyCon -> URL: {0}", param_url)
 
-    item_count = 0
 
     if mode == "CHANGE_USER":
         check_server(change_user=True)
@@ -150,12 +130,12 @@ def main_entry_point() -> None:
     elif mode == "CLEAR_CACHE":
         clear_cached_server_data()
     elif mode == "WIDGET_CONTENT":
-        item_count = get_widget_content(int(sys.argv[1]), params)
+        get_widget_content(int(sys.argv[1]), params)
     elif mode == "WIDGET_CONTENT_CAST":
         get_widget_content_cast(int(sys.argv[1]), params)
     elif mode == "SHOW_CONTENT":
         check_server()
-        item_count = show_content(params)
+        show_content(params)
     elif mode == "SEARCH":
         xbmcplugin.setContent(int(sys.argv[1]), "files")
         show_search()
@@ -175,11 +155,11 @@ def main_entry_point() -> None:
         parent_id = __get_parent_id_from(params)
         if parent_id is not None:
             enriched_url = param_url + "&ParentId=" + parent_id
-            item_count = get_content(enriched_url, params)
+            get_content(enriched_url, params)
         else:
             log.info("Unable to find TV show parent ID.")
     elif mode == "GET_CONTENT":
-        item_count = get_content(param_url, params)
+        get_content(param_url, params)
     elif mode == "PLAY":
         play_action(params)
     elif mode == "RANDOM_MOVIE":
@@ -200,26 +180,6 @@ def main_entry_point() -> None:
     else:
         check_server()
         display_main_menu()
-
-    if pr:
-        pr.disable()
-        profile_file_path = os.path.join(addon_dir, "profile")
-        xbmcvfs.mkdirs(profile_file_path)
-
-        # del old profiles
-        remove_old_profiles(profile_file_path, 50)
-
-        pdata = get_profile_data(pr)
-        pdata["addon_action"] = sys.argv[2]
-        pdata["item_count"] = item_count
-        pstring = json.dumps(pdata)
-
-        file_time_stamp = datetime.now().strftime("%Y%m%d-%H%M%S-%f")
-        profile_file_name = "profile(" + file_time_stamp + ").json"
-        tab_file_name = os.path.join(profile_file_path, profile_file_name)
-
-        with open(tab_file_name, "w", encoding="utf-8") as f:
-            f.write(pstring)
 
     log.debug("===== EmbyCon FINISHED =====")
 

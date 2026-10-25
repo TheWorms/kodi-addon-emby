@@ -50,28 +50,13 @@ def test_aucun_film_au_premier_tirage() -> None:
     assert h.suivant() is None and h.courant() is None and not h.peut_reculer
 
 
-def _reglages(**valeurs):
-    base = {"sort-RecentBoxSets": "4", "sort_order-RecentBoxSets": "1"}
-    base.update({k.replace("__", "-"): v for k, v in valeurs.items()})
-    return lambda cle: base.get(cle, "")
-
-
-def test_widget_collections_par_defaut_date_d_ajout() -> None:
-    assert server_sort(_reglages(), "RecentBoxSets") == ("DateCreated,SortName", "Descending")
-    assert client_sort(_reglages(), "RecentBoxSets") == ("added", True)
-
-
-def test_widget_collections_date_de_sortie_decroissante() -> None:
-    get = _reglages(**{"sort__RecentBoxSets": "9"})
-    assert server_sort(get, "RecentBoxSets") == (
-        "PremiereDate,ProductionYear,SortName",
-        "Descending",
-    )
-    assert client_sort(get, "RecentBoxSets") == ("date", True)
-    get = _reglages(**{"sort__RecentBoxSets": "9", "sort_order__RecentBoxSets": "0"})
-    assert client_sort(get, "RecentBoxSets") == ("date", False)
+def test_widget_ajouts_recents_n_a_plus_de_tri_propre() -> None:
+    """v1.20.0 : le tri des collections est celui de la liste Collections."""
+    get = lambda cle: {"list_sort-BoxSets": "9a"}.get(cle, "")  # noqa: E731
+    assert server_sort(get, "RecentBoxSets") is None
+    assert client_sort(get, "RecentBoxSets") is None
 
 
 def test_liste_des_collections_triee_cote_client() -> None:
-    get = lambda cle: {"sort-BoxSets": "9", "sort_order-BoxSets": "1"}.get(cle, "")  # noqa: E731
+    get = lambda cle: {"list_sort-BoxSets": "9d"}.get(cle, "")  # noqa: E731
     assert client_sort(get, "BoxSets") == ("date", True)
