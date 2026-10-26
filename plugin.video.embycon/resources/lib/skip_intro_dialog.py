@@ -185,16 +185,40 @@ class SkipIntroDialog(xbmcgui.WindowXMLDialog):
         """Bouton non utilise : il disparait (v1.21.4)."""
         if self.dialog_open:
             log.info("Bouton « Passer » non utilise : masque apres {0} s", self.timeout)
-            self.dialog_open = False
-            self.close()
+            self._force_close()
 
     def dismiss(self) -> None:
         """Fermeture par le moniteur (fin de l'intro, arret, delai)."""
         if self._timer is not None:
             self._timer.cancel()
         if self.dialog_open:
-            self.dialog_open = False
+            self._force_close()
+
+    def _force_close(self) -> None:
+        """v1.21.5 : close() seul laissait le bouton a l'ecran sur Cormoran.
+
+        On masque d'abord le bouton, puis on ferme le dialogue par l'API
+        Python ET par la commande Kodi Dialog.Close sur son identifiant.
+        """
+        self.dialog_open = False
+        try:
+            self.getControl(1).setVisible(False)
+        except Exception as err:
+            log.debug("Bouton « Passer » : masquage impossible ({0})", err)
+        try:
             self.close()
+        except Exception as err:
+            log.debug("Bouton « Passer » : close() ({0})", err)
+        try:
+            window_id = self.getId()
+            log.info(
+                "Bouton « Passer » : fermeture du dialogue {0} (dialogue actif {1})",
+                window_id,
+                xbmcgui.getCurrentWindowDialogId(),
+            )
+            xbmc.executebuiltin("Dialog.Close(%d,true)" % window_id)
+        except Exception as err:
+            log.debug("Bouton « Passer » : Dialog.Close ({0})", err)
 
     def onFocus(self, controlId: int) -> None:
         pass

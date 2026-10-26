@@ -133,6 +133,8 @@ def test_bouton_se_ferme_seul(monkeypatch) -> None:
 
     fermes = []
     monkeypatch.setattr(sid.SkipIntroDialog, "close", lambda self: fermes.append(1), raising=False)
+    monkeypatch.setattr(sid.SkipIntroDialog, "getControl", lambda self, i: SimpleNamespace(setVisible=lambda v: None), raising=False)
+    monkeypatch.setattr(sid.SkipIntroDialog, "getId", lambda self: 13001, raising=False)
     d = sid.SkipIntroDialog.__new__(sid.SkipIntroDialog)
     d.dialog_open = True
     d.timeout = 10
