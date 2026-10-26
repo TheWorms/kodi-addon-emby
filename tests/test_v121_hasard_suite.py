@@ -126,3 +126,18 @@ def test_fin_naturelle_compte_comme_vu_jusqu_au_bout(monkeypatch) -> None:
             "can_delete": False, "playback_ended": True}
     pu.prompt_for_stop_actions("m1", data)
     assert lances == ["m2"]
+
+
+def test_bouton_se_ferme_seul(monkeypatch) -> None:
+    from lib import skip_intro_dialog as sid
+
+    fermes = []
+    monkeypatch.setattr(sid.SkipIntroDialog, "close", lambda self: fermes.append(1), raising=False)
+    d = sid.SkipIntroDialog.__new__(sid.SkipIntroDialog)
+    d.dialog_open = True
+    d.timeout = 10
+    d.expire()
+    assert fermes == [1] and not d.dialog_open
+    d.expire()  # deja ferme : rien
+    d.dismiss()
+    assert fermes == [1]

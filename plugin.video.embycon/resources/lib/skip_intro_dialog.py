@@ -103,13 +103,14 @@ class SkipIntroMonitor(threading.Thread):
                     skip_intro_dialog = SkipIntroDialog(
                         "SkipIntroDialog.xml", addon_path, "default", "720p"
                     )
+                    skip_intro_dialog.timeout = duration
                     skip_intro_dialog.show()
                     shown_at = time.time()
 
             # v1.21.0 : bouton ignore -> il disparait apres le temps regle
             if skip_intro_dialog is not None and button_expired(shown_at, time.time(), duration):
                 log.info("Saut d'intro : bouton non utilise, masque apres {0} s", duration)
-                skip_intro_dialog.close()
+                skip_intro_dialog.dismiss()
                 break
 
             # player skipped past intro end so exit the monitor
@@ -120,7 +121,7 @@ class SkipIntroMonitor(threading.Thread):
                     intro_end_sec,
                 )
                 if skip_intro_dialog is not None:
-                    skip_intro_dialog.close()
+                    skip_intro_dialog.dismiss()
                 break
 
             # dialog has been actioned so do the thing
@@ -135,6 +136,9 @@ class SkipIntroMonitor(threading.Thread):
 
             monitor.waitForAbort(1.0)
 
+        # v1.21.4 : toute sortie (arret, changement de fichier, erreur) ferme le bouton
+        if skip_intro_dialog is not None:
+            skip_intro_dialog.dismiss()
         log.debug("SkipIntroMonitor Exited")
 
     def set_times(self, start: int, end: int) -> None:
@@ -152,6 +156,9 @@ class SkipIntroDialog(xbmcgui.WindowXMLDialog):
     dialog_open = False
     confirm = False
     action_exitkeys_id = None
+    # v1.21.4 : secondes avant fermeture automatique (0 = jamais)
+    timeout = 0
+    _timer = None
 
     def __init__(
         self,
@@ -169,6 +176,25 @@ class SkipIntroDialog(xbmcgui.WindowXMLDialog):
     def onInit(self) -> None:
         log.debug("SkipIntroPromptDialog: onInit")
         self.action_exitkeys_id = [10, 13]
+        if self.timeout > 0 and self._timer is None:
+            self._timer = threading.Timer(self.timeout, self.expire)
+            self._timer.daemon = True
+            self._timer.start()
+
+    def expire(self) -> None:
+        """Bouton non utilise : il disparait (v1.21.4)."""
+        if self.dialog_open:
+            log.info("Bouton « Passer » non utilise : masque apres {0} s", self.timeout)
+            self.dialog_open = False
+            self.close()
+
+    def dismiss(self) -> None:
+        """Fermeture par le moniteur (fin de l'intro, arret, delai)."""
+        if self._timer is not None:
+            self._timer.cancel()
+        if self.dialog_open:
+            self.dialog_open = False
+            self.close()
 
     def onFocus(self, controlId: int) -> None:
         pass
@@ -243,7 +269,7 @@ class SkipCreditsMonitor(threading.Thread):
             # Tres proche de la fin : plus rien a faire
             if total_time > 0 and play_time >= (total_time - 2):
                 if credits_dialog is not None:
-                    credits_dialog.close()
+                    credits_dialog.dismiss()
                 break
 
             if (
@@ -259,13 +285,14 @@ class SkipCreditsMonitor(threading.Thread):
                     credits_dialog = SkipIntroDialog(
                         "SkipCreditsDialog.xml", addon_path, "default", "720p"
                     )
+                    credits_dialog.timeout = duration
                     credits_dialog.show()
                     shown_at = time.time()
 
             # v1.21.0 : bouton ignore -> il disparait apres le temps regle
             if credits_dialog is not None and button_expired(shown_at, time.time(), duration):
                 log.info("Saut du generique : bouton non utilise, masque apres {0} s", duration)
-                credits_dialog.close()
+                credits_dialog.dismiss()
                 break
 
             if credits_dialog is not None and not credits_dialog.dialog_open:
@@ -278,6 +305,8 @@ class SkipCreditsMonitor(threading.Thread):
 
             monitor.waitForAbort(1.0)
 
+        if credits_dialog is not None:
+            credits_dialog.dismiss()
         log.debug("SkipCreditsMonitor Exited")
 
     def _skip_to_end(self, player: xbmc.Player, total_time: float) -> None:
