@@ -1977,3 +1977,7 @@ msgstr ""
 msgctxt "#30893"
 msgid "If you do not press it, the intro or credits button disappears after this time."
 msgstr ""
+
+msgctxt "#30894"
+msgid "Skip intro"
+msgstr ""

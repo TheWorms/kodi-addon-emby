@@ -23,7 +23,7 @@
 			<width>180</width>
 			<height>70</height>
 			<visible>true</visible>
-			<label>Skip Intro</label>
+			<label>$ADDON[plugin.video.embycon 30894]</label>
 			<align>center</align>
 			<onleft>1</onleft>
       		<onright>1</onright>

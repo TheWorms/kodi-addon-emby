@@ -650,7 +650,7 @@ msgstr "Sauter le générique de fin"
 
 msgctxt "#30470"
 msgid "Skip Credits"
-msgstr "Sauter le générique"
+msgstr "Passer le générique"
 
 msgctxt "#30481"
 msgid "French"
@@ -1987,3 +1987,7 @@ msgstr "Afficher le bouton « Passer » pendant"
 msgctxt "#30893"
 msgid "If you do not press it, the intro or credits button disappears after this time."
 msgstr "Si tu ne l'utilises pas, le bouton de l'intro ou du générique disparaît après ce délai."
+
+msgctxt "#30894"
+msgid "Skip intro"
+msgstr "Passer l'intro"
