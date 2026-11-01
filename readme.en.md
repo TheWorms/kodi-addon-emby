@@ -1,3 +1,7 @@
+<!-- logo:start -->
+<p align="center"><img src="plugin.video.embycon/icon.png" alt="Logo" width="160"></p>
+<!-- logo:end -->
+
 # EmbyCon — French edition · `kodi-addon-emby`
 
 <!-- version:auto -->
