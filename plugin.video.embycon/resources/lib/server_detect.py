@@ -325,7 +325,7 @@ def _kbps(value: int) -> str:
 
 def measure_bitrate_now() -> None:
     """Bouton « Mesurer maintenant » des reglages (qualite auto)."""
-    icon = "special://home/addons/plugin.video.embycon/icon.png"
+    icon = "special://home/addons/plugin.video.embycon/icon-addon.png"
     heading = string_load(30537)
     xbmcgui.Dialog().notification(heading, string_load(30546), icon=icon, time=3000)
     result = auto_detect_and_set_bitrate(force=True)

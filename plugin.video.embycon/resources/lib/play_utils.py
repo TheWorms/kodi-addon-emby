@@ -148,7 +148,7 @@ def _prepare_play_all_item(
         xbmcgui.Dialog().notification(
             string_load(30316),
             error_string,
-            icon="special://home/addons/plugin.video.embycon/icon.png",
+            icon="special://home/addons/plugin.video.embycon/icon-addon.png",
         )
         return None
 
@@ -476,7 +476,7 @@ def add_to_playlist(play_info: dict[str, str], monitor: PlaybackMonitorService) 
         xbmcgui.Dialog().notification(
             string_load(30316),
             error_string,
-            icon="special://home/addons/plugin.video.embycon/icon.png",
+            icon="special://home/addons/plugin.video.embycon/icon-addon.png",
         )
         return
 
@@ -687,7 +687,7 @@ def play_file(
         xbmcgui.Dialog().notification(
             string_load(30316),
             error_string,
-            icon="special://home/addons/plugin.video.embycon/icon.png",
+            icon="special://home/addons/plugin.video.embycon/icon-addon.png",
         )
         return None
 
@@ -1759,7 +1759,7 @@ def prompt_for_stop_actions(item_id: str, data: dict) -> None:
         xbmcgui.Dialog().notification(
             string_load(30572 if item_type == "Movie" else NEXT_EPISODE_STRING),
             next_episode.get("Name") or "",
-            icon="special://home/addons/plugin.video.embycon/icon.png",
+            icon="special://home/addons/plugin.video.embycon/icon-addon.png",
         )
         play_info = {}
         play_info["item_id"] = next_item_id

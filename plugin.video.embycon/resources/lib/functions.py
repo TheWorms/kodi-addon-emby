@@ -172,7 +172,7 @@ def main_entry_point() -> None:
         xbmcgui.Dialog().notification(
             "EmbyCon",
             string_load(30562),
-            icon="special://home/addons/plugin.video.embycon/icon.png",
+            icon="special://home/addons/plugin.video.embycon/icon-addon.png",
         )
     elif mode == "AUTO_BITRATE_NOW":
         # v1.15 : bouton « Mesurer maintenant » des reglages (qualite auto)
@@ -608,7 +608,7 @@ def show_menu(params: dict[str, str]) -> None:
             xbmcgui.Dialog().notification(
                 "EmbyCon",
                 string_load(30559),
-                icon="special://home/addons/plugin.video.embycon/icon.png",
+                icon="special://home/addons/plugin.video.embycon/icon-addon.png",
                 time=8000,
             )
 

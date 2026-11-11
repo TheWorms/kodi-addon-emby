@@ -83,7 +83,7 @@ def notifier_erreur_reseau(titre: str, message: str) -> None:
     xbmcgui.Dialog().notification(
         titre,
         message,
-        icon="special://home/addons/plugin.video.embycon/icon.png",
+        icon="special://home/addons/plugin.video.embycon/icon-addon.png",
     )
 
 
@@ -757,7 +757,7 @@ class DownloadUtils:
                 xbmcgui.Dialog().notification(
                     string_load(30316),
                     string_load(30044),
-                    icon="special://home/addons/plugin.video.embycon/icon.png",
+                    icon="special://home/addons/plugin.video.embycon/icon-addon.png",
                 )
                 return ""
             if not userid:
@@ -771,7 +771,7 @@ class DownloadUtils:
             xbmcgui.Dialog().notification(
                 string_load(30316),
                 string_load(30045),
-                icon="special://home/addons/plugin.video.embycon/icon.png",
+                icon="special://home/addons/plugin.video.embycon/icon-addon.png",
             )
 
         log.debug("userid: {0}", userid)

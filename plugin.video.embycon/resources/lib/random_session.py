@@ -103,7 +103,7 @@ def handle_stop(item_id: str, percent: int) -> bool:
             xbmcgui.Dialog().notification(
                 xbmcaddon.Addon().getLocalizedString(30519),
                 film.get("Name") or "",
-                icon="special://home/addons/plugin.video.embycon/icon.png",
+                icon="special://home/addons/plugin.video.embycon/icon-addon.png",
             )
             lancer_film(film.get("Id"), session.get("parent_id"), session.get("genre_ids"))
             return True

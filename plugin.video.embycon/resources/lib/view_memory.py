@@ -288,6 +288,6 @@ class ViewMonitor(threading.Thread):
             xbmcgui.Dialog().notification(
                 "EmbyCon",
                 string_load(30559),
-                icon="special://home/addons/plugin.video.embycon/icon.png",
+                icon="special://home/addons/plugin.video.embycon/icon-addon.png",
                 time=8000,
             )

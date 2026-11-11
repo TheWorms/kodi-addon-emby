@@ -326,7 +326,7 @@ class HttpImageHandler(BaseHTTPRequestHandler):
 
         else:
             image_path: str = xbmcvfs.translatePath(
-                "special://home/addons/plugin.video.embycon/icon.png"
+                "special://home/addons/plugin.video.embycon/icon-addon.png"
             )
             self.send_response(200)
             self.send_header("Content-type", "image/png")

@@ -240,7 +240,7 @@ class RandomMovieDialog(xbmcgui.WindowXMLDialog):
         xbmcgui.Dialog().notification(
             string_load(30519),
             string_load(30524),
-            icon="special://home/addons/plugin.video.embycon/icon.png",
+            icon="special://home/addons/plugin.video.embycon/icon-addon.png",
         )
 
     def _afficher(self) -> None:
