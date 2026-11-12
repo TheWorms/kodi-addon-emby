@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import ssl
 import threading
 import time
 
@@ -304,6 +305,14 @@ class WebSocketClient(threading.Thread):
         if ping_interval < 5:
             ping_interval = 5
 
+        # v1.22.5 : la connexion temps reel suit le reglage « verifier le
+        # certificat » des listes et de la lecture (elle verifiait toujours :
+        # avec un certificat auto-signe, les evenements du serveur n'arrivaient
+        # jamais, sans message).
+        sslopt = None
+        if server.startswith("wss") and xbmcaddon.Addon().getSetting("verify_cert") == "false":
+            sslopt = {"cert_reqs": ssl.CERT_NONE, "check_hostname": False}
+
         # v1.14 phase 2c : backoff exponentiel 1 -> 2 -> 4 s ... plafonne a 60 s,
         # remis a 1 apres 5 minutes de connexion stable
         delai_reconnexion = 1
@@ -313,7 +322,7 @@ class WebSocketClient(threading.Thread):
                 break
 
             debut_connexion = time.monotonic()
-            self._client.run_forever(ping_interval=ping_interval)
+            self._client.run_forever(ping_interval=ping_interval, sslopt=sslopt)
 
             if self._stop_websocket:
                 break

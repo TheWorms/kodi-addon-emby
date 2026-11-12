@@ -1,6 +1,7 @@
 # Gnu General Public License - see LICENSE.TXT
 from __future__ import annotations
 
+import re
 import urllib.parse
 import sys
 import time
@@ -56,6 +57,40 @@ from .view_memory import (
 
 
 log = SimpleLogging(__name__)
+
+
+# v1.22.5 : bandes-annonces YouTube par Wtube quand il est installe (l'addon
+# YouTube officiel etait appele en dur ; absent, rien ne se passait).
+_YOUTUBE_ID = re.compile(r"^[A-Za-z0-9_-]{11}$")
+
+
+def youtube_id_from_url(url: str | None) -> str | None:
+    """Identifiant de la video dans une adresse YouTube (watch?v=, youtu.be/,
+    /embed/), ou None. Valide : il est insere dans une commande Kodi."""
+    if not url:
+        return None
+    parsed = urllib.parse.urlsplit(url)
+    candidates = urllib.parse.parse_qs(parsed.query).get("v", [])
+    path = parsed.path.rstrip("/")
+    if parsed.netloc.lower().endswith("youtu.be") or "/embed/" in path or "/shorts/" in path:
+        candidates.append(path.rsplit("/", 1)[-1])
+    for candidate in candidates:
+        if _YOUTUBE_ID.match(candidate):
+            return candidate
+    return None
+
+
+def youtube_trailer_command(url: str | None) -> str | None:
+    """Commande Kodi qui lit la bande-annonce : Wtube, sinon l'addon YouTube
+    officiel, sinon None."""
+    video_id = youtube_id_from_url(url)
+    if video_id is None:
+        return None
+    if xbmc.getCondVisibility("System.HasAddon(plugin.video.wtube)"):
+        return "PlayMedia(plugin://plugin.video.wtube/?action=play&id=%s)" % video_id
+    if xbmc.getCondVisibility("System.HasAddon(plugin.video.youtube)"):
+        return "RunPlugin(plugin://plugin.video.youtube/play/?video_id=%s)" % video_id
+    return None
 
 # v1.15 : types de conteneurs lisibles d'un bloc via « Tout lire »
 PLAY_ALL_TYPES = ("Season", "MusicAlbum", "Playlist", "BoxSet")
@@ -1179,15 +1214,11 @@ def play_item_trailer(item_id: str) -> None:
             play_action(params)
 
         elif trailer.get("type") == "remote":
-            youtube_id = trailer.get("url").rsplit("=", 1)[1]
-            youtube_plugin = (
-                "RunPlugin(plugin://plugin.video.youtube/play/?video_id=%s)"
-                % youtube_id
-            )
-            log.debug("youtube_plugin: {0}", youtube_plugin)
-
-            # play_info = {}
-            # play_info["url"] = youtube_plugin
-            # log.info("Sending embycon_play_trailer_action : {0}", play_info)
-            # send_event_notification("embycon_play_youtube_trailer_action", play_info)
-            xbmc.executebuiltin(youtube_plugin)
+            command = youtube_trailer_command(trailer.get("url"))
+            log.debug("youtube trailer command: {0}", command)
+            if command:
+                xbmc.executebuiltin(command)
+            else:
+                xbmcgui.Dialog().notification(
+                    "EmbyCon", string_load(30912), xbmcgui.NOTIFICATION_INFO, 5000
+                )

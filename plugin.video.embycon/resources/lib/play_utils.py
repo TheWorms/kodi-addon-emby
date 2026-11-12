@@ -345,9 +345,64 @@ def _seek_and_wait(player: xbmc.Player, seek_to_time: float, target_seek: float)
     return count < max_loops and player.isPlaying()
 
 
+# v1.22.5 : la lecture demarre directement au point de reprise. Kodi ouvre la
+# video a la position donnee (StartOffset de l'element) avant d'afficher la
+# premiere image. Avant, le film partait du debut, puis un saut l'amenait au
+# point de reprise (15 a 30 s de debut de film a l'ecran sur la box).
+def set_start_offset(list_item, seconds: float) -> None:
+    if seconds > 0:
+        list_item.setProperty("StartOffset", "%.3f" % seconds)
+        log.info("PlaybackResumeAction : demarrage direct a {0} s", round(seconds, 1))
+
+
+def _first_position(player: xbmc.Player, timeout: float, xbmc_monitor=None) -> float | None:
+    """Premiere position non nulle de la lecture ; None si elle s'arrete ou si
+    rien ne s'affiche avant `timeout` secondes."""
+    if xbmc_monitor is None:
+        xbmc_monitor = xbmc.Monitor()
+    waited = 0.0
+    while waited < timeout:
+        if not player.isPlaying():
+            return None
+        position = _player_time(player)
+        if position > 0:
+            return position
+        if xbmc_monitor.waitForAbort(0.25):
+            return None
+        waited += 0.25
+    return None
+
+
+def _check_resume_start(
+    player: xbmc.Player, seek_to_time: float, timeout: float, xbmc_monitor=None
+) -> bool:
+    """Lecture lancee avec StartOffset : verifie qu'elle a demarre au point de
+    reprise. Sinon (flux qui ne s'ouvre pas a une position), saut comme avant.
+    False si la lecture s'est arretee ou n'a pas pu etre placee."""
+    target_seek = seek_to_time - 10
+    position = _first_position(player, timeout, xbmc_monitor)
+    if position is None:
+        if not player.isPlaying():
+            return False
+        log.info(
+            "PlaybackResumeAction : aucune position apres {0} s, lecture laissee telle quelle",
+            timeout,
+        )
+        return True
+    if position >= target_seek:
+        log.info("PlaybackResumeAction : lecture demarree au point de reprise ({0} s)", round(position, 1))
+        return True
+    log.info(
+        "PlaybackResumeAction : lecture demarree a {0} s au lieu de {1} s, saut",
+        round(position, 1),
+        round(seek_to_time, 1),
+    )
+    return _seek_and_wait(player, seek_to_time, target_seek)
+
+
 def _resume_first_item(player: xbmc.Player, seek_time: float) -> bool:
-    """Reprise du premier element (auto_resume). False si la lecture a echoue."""
-    player.pause()
+    """Reprise du premier element (auto_resume), lance avec StartOffset
+    (v1.22.5, voir set_start_offset). False si la lecture a echoue."""
     if not _wait_for_playback(player, 100):
         log.info(
             "PlaybackResumeAction : Playback item did not get to a play state in 10 seconds so exiting"
@@ -356,25 +411,11 @@ def _resume_first_item(player: xbmc.Player, seek_time: float) -> bool:
         return False
 
     log.info("PlaybackResumeAction : Playback is Running")
-    seek_to_time = seek_time
-    target_seek = seek_to_time - 10
-
-    if not _seek_and_wait(player, seek_to_time, target_seek):
+    if not _check_resume_start(player, seek_time, 60):
         log.info("PlaybackResumeAction : Playback could not seek to required position")
         player.stop()
         return False
-
-    count = 0
-    while bool(xbmc.getCondVisibility("Player.Paused")) and count < 10:
-        log.info("PlaybackResumeAction : Unpausing playback")
-        player.pause()
-        xbmc.sleep(1000)
-        count = count + 1
-
-    if count == 10:
-        log.info("PlaybackResumeAction : Could not unpause")
-    else:
-        log.info("PlaybackResumeAction : Playback resumed")
+    log.info("PlaybackResumeAction : Playback resumed")
     return True
 
 
@@ -410,6 +451,12 @@ def play_all_files(
     first_url = ""
     added = 0
     started = False
+    first_seek = 0.0
+    if play_items:
+        auto_resume_int: int = int(auto_resume)
+        if auto_resume_int != -1:
+            first_seek = (auto_resume_int / 1000) / 10000
+        log.debug("play_all_files auto_resume : {0} seekto : {1}", auto_resume_int, first_seek)
 
     for index, item in enumerate(items):
         if started and not _still_our_playlist(player, playlist, first_url, added):
@@ -431,6 +478,8 @@ def play_all_files(
             continue
 
         playurl, list_item = prepared
+        if added == 0 and first_seek:
+            set_start_offset(list_item, first_seek)
         playlist.add(playurl, list_item)
         if added == 0:
             first_url = playurl
@@ -441,16 +490,9 @@ def play_all_files(
 
         if not started:
             started = True
-            auto_resume_int: int = int(auto_resume)
-            seek_time = 0
-            if auto_resume_int != -1:
-                seek_time = (auto_resume_int / 1000) / 10000
-            log.debug(
-                "play_all_files auto_resume : {0} seekto : {1}", auto_resume_int, seek_time
-            )
             player.play(playlist)
-            if seek_time != 0:
-                if not _resume_first_item(player, seek_time):
+            if first_seek != 0:
+                if not _resume_first_item(player, first_seek):
                     return None
             elif not _wait_for_playback(player, 300):
                 log.info("Tout lire : la lecture n'a pas demarre en 30 s, abandon")
@@ -943,6 +985,8 @@ def play_file(
         item_title,
         maxwidth=max_image_width,
     )
+    if seek_time != 0:
+        set_start_offset(list_item, seek_time - jump_back_amount)
 
     player = xbmc.Player()
 
@@ -968,7 +1012,6 @@ def play_file(
     player.play(playlist)
 
     if seek_time != 0:
-        player.pause()
         # v1.22.4 : un serveur qui transcode peut mettre 30 s a demarrer
         wait_tenths = 300 if playback_type == "2" else 100
         if not _wait_for_playback(player, wait_tenths):
@@ -981,26 +1024,16 @@ def play_file(
 
         log.info("PlaybackResumeAction : Playback is Running")
 
-        seek_to_time = seek_time - jump_back_amount
-        target_seek = seek_to_time - 10
-
-        if not _seek_and_wait(player, seek_to_time, target_seek):
+        # v1.22.5 : la lecture est partie du point de reprise (StartOffset) ;
+        # saut seulement si le flux l'a ignore
+        start_timeout = 60 if playback_type == "2" else 20
+        if not _check_resume_start(player, seek_time - jump_back_amount, start_timeout):
             log.info(
                 "PlaybackResumeAction : Playback could not seek to required position"
             )
             player.stop()
         else:
-            count = 0
-            while bool(xbmc.getCondVisibility("Player.Paused")) and count < 10:
-                log.info("PlaybackResumeAction : Unpausing playback")
-                player.pause()
-                xbmc.sleep(1000)
-                count = count + 1
-
-            if count == 10:
-                log.info("PlaybackResumeAction : Could not unpause")
-            else:
-                log.info("PlaybackResumeAction : Playback resumed")
+            log.info("PlaybackResumeAction : Playback resumed")
 
     # v1.22.4 : vitesse du serveur mesuree une fois la video lancee (et la
     # reprise faite), pas pendant le demarrage

@@ -2059,3 +2059,7 @@ msgstr "OK : choisir · Retour : garder le choix « auto »"
 msgctxt "#30911"
 msgid "AUTO"
 msgstr "AUTO"
+
+msgctxt "#30912"
+msgid "No YouTube add-on (Wtube) to play this trailer"
+msgstr "Aucun addon YouTube (Wtube) pour lire cette bande-annonce"

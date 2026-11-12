@@ -2049,3 +2049,7 @@ msgstr ""
 msgctxt "#30911"
 msgid "AUTO"
 msgstr ""
+
+msgctxt "#30912"
+msgid "No YouTube add-on (Wtube) to play this trailer"
+msgstr ""

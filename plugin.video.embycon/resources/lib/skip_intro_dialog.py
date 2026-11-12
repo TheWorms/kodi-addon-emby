@@ -50,6 +50,10 @@ class SkipIntroMonitor(threading.Thread):
         player = xbmc.Player()
         monitor = xbmc.Monitor()
         while not monitor.abortRequested():
+            # v1.22.5 : arret detecte avant d'interroger la position (Kodi
+            # journalisait « Kodi is not playing any media file » a chaque arret)
+            if not player.isPlayingVideo():
+                break
             try:
                 play_time = player.getTime()
                 play_path = player.getPlayingFile()
@@ -134,7 +138,10 @@ class SkipIntroMonitor(threading.Thread):
                     player.seekTime(intro_end_sec)
                 break
 
-            monitor.waitForAbort(1.0)
+            # v1.22.5 : 0,25 s tant que le bouton est affiche, pour qu'il
+            # disparaisse des l'arret du film (il restait jusqu'a 1 s par-dessus
+            # le retour a la liste)
+            monitor.waitForAbort(0.25 if skip_intro_dialog is not None else 1.0)
 
         # v1.21.4 : toute sortie (arret, changement de fichier, erreur) ferme le bouton
         if skip_intro_dialog is not None:
@@ -195,7 +202,7 @@ class SkipIntroDialog(xbmcgui.WindowXMLDialog):
             self._force_close()
 
     def _force_close(self) -> None:
-        """v1.21.5 : close() seul laissait le bouton a l'ecran sur Cormoran.
+        """v1.21.5 : close() seul laissait le bouton a l'ecran sur la box.
 
         On masque d'abord le bouton, puis on ferme le dialogue par l'API
         Python ET par la commande Kodi Dialog.Close sur son identifiant.
@@ -270,6 +277,8 @@ class SkipCreditsMonitor(threading.Thread):
         player = xbmc.Player()
         monitor = xbmc.Monitor()
         while not monitor.abortRequested():
+            if not player.isPlayingVideo():  # v1.22.5, voir SkipIntroMonitor
+                break
             try:
                 play_time = player.getTime()
                 play_path = player.getPlayingFile()
@@ -327,7 +336,7 @@ class SkipCreditsMonitor(threading.Thread):
                     self._skip_to_end(player, total_time)
                 break
 
-            monitor.waitForAbort(1.0)
+            monitor.waitForAbort(0.25 if credits_dialog is not None else 1.0)
 
         if credits_dialog is not None:
             credits_dialog.dismiss()
