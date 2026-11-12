@@ -342,6 +342,12 @@ def get_content(url: str, params: dict[str, str]) -> int:
             view_type = "Episodes"
             content_type = "episodes"
         xbmcplugin.setContent(pluginhandle, content_type)
+    elif not dir_items:
+        # v1.21.11 : une liste vide declare quand meme un type de contenu. Le
+        # skin Arctic: Worms couvre la fenetre Videos tant qu'une liste EmbyCon
+        # n'a ni element ni type de contenu (chargement en cours) : sans cela,
+        # une liste vide resterait couverte.
+        xbmcplugin.setContent(pluginhandle, "videos")
 
     # set the sort items
     if page_limit > 0 and media_type.lower() in ["movies", "movie", "tvshows"]:
