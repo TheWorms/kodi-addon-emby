@@ -2035,3 +2035,11 @@ msgstr "externe"
 msgctxt "#30905"
 msgid "No subtitles"
 msgstr "Aucun sous-titre"
+
+msgctxt "#30906"
+msgid "Hide watched collections in widgets"
+msgstr "Masquer les collections déjà vues dans les widgets"
+
+msgctxt "#30907"
+msgid "On the home screen, a collection whose movies have all been watched disappears from the Collections widgets. The Collections list still shows it."
+msgstr "Sur l'accueil, une collection dont tous les films ont été vus disparaît des widgets Collections. La liste Collections continue de l'afficher."

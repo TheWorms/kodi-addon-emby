@@ -439,6 +439,11 @@
 					<default>false</default>
 					<control type="toggle" />
 				</setting>
+				<setting id="hide_watched_collections" type="boolean" label="30906" help="30907">
+					<level>0</level>
+					<default>false</default>
+					<control type="toggle" />
+				</setting>
 				<setting id="flatten_tvshow_seasons" type="integer" label="30709" help="30710">
 					<level>0</level>
 					<default>0</default>

@@ -2025,3 +2025,11 @@ msgstr ""
 msgctxt "#30905"
 msgid "No subtitles"
 msgstr ""
+
+msgctxt "#30906"
+msgid "Hide watched collections in widgets"
+msgstr ""
+
+msgctxt "#30907"
+msgid "On the home screen, a collection whose movies have all been watched disappears from the Collections widgets. The Collections list still shows it."
+msgstr ""

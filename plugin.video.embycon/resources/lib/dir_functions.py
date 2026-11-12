@@ -1,6 +1,7 @@
 # Gnu General Public License - see LICENSE.TXT
 from __future__ import annotations
 
+import xbmc
 import xbmcaddon
 import xbmcplugin
 import xbmcgui
@@ -41,6 +42,7 @@ from .sort_options import (
     same_date_added,
 )
 from .collection_dates import apply_collection_dates
+from .watched_filter import drop_watched, hide_in_widget
 
 log = SimpleLogging(__name__)
 
@@ -231,6 +233,14 @@ def get_content(url: str, params: dict[str, str]) -> int:
 
     use_cache = params.get("use_cache", "true") == "true"
 
+    # v1.22.1 : widget Collections de l'accueil -> collections deja vues
+    # masquees (reglage) ; liste toujours fraiche pour suivre ce qui est vu
+    hide_watched_sets = media_type is not None and media_type.startswith("boxsets") and hide_in_widget(
+        settings.getSetting, xbmc.getCondVisibility("Window.IsActive(videos)")
+    )
+    if hide_watched_sets:
+        use_cache = False
+
     # EmbyCon FR: les listes qui filtrent les elements deja vus (IsPlayed=false,
     # ex. Ajouts recents / Dernieres quand hide_watched est actif) doivent rester
     # fraiches, sinon un episode fraichement vu reste visible tant que le cache
@@ -259,6 +269,11 @@ def get_content(url: str, params: dict[str, str]) -> int:
     # "masquer les vus".
     if re.search(r"IsPlayed=false", url, flags=re.IGNORECASE):
         dir_items = [gi for gi in dir_items if gi.play_count == 0]
+
+    if hide_watched_sets:
+        before = len(dir_items)
+        dir_items = drop_watched(dir_items)
+        log.info("Widget Collections : {0} collection(s) deja vue(s) masquee(s)", before - len(dir_items))
 
     # v1.16 : tri client (dans une serie : saisons / episodes)
     if client_sort_spec is not None:

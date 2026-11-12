@@ -16,6 +16,7 @@ from .kodi_utils import HomeWindow
 from .dir_functions import process_directory, DirectoryResult
 from .tracking import timer
 from .random_movie import lancer_film_au_hasard, random_widget_launches
+from .watched_filter import SETTING as WATCHED_SETTING, drop_watched
 
 
 log = SimpleLogging(__name__)
@@ -256,6 +257,12 @@ def get_widget_content(handle: int, params: dict) -> int:
         log.error("getWigetContent type not set")
         return 0
 
+    hide_watched_sets = False
+    try:
+        widget_limit = max(1, int(settings.getSetting("show_x_filtered_items") or 20))
+    except ValueError:
+        widget_limit = 20
+
     log.debug("widget_type: {0}", widget_type)
 
     url_verb = "{server}/emby/Users/{userid}/Items"
@@ -328,6 +335,11 @@ def get_widget_content(handle: int, params: dict) -> int:
         url_params["SortBy"] = "DateCreated,SortName"
         url_params["SortOrder"] = "Descending"
         url_params["IncludeItemTypes"] = "BoxSet"
+        # v1.22.1 : collections deja vues masquees -> on en demande plus au
+        # serveur, puis on garde le nombre d'elements des widgets
+        if settings.getSetting(WATCHED_SETTING) == "true":
+            hide_watched_sets = True
+            url_params["Limit"] = widget_limit * 5
 
     elif widget_type == "recent_episodes":
         xbmcplugin.setContent(handle, "episodes")
@@ -426,6 +438,8 @@ def get_widget_content(handle: int, params: dict) -> int:
     # ce qui garantit qu'un episode deja lu ne reste jamais dans la liste.
     if hide_watched and widget_type in ("recent_tvshows", "recent_episodes"):
         dir_items = [gi for gi in dir_items if gi.play_count == 0]
+    if hide_watched_sets:
+        dir_items = drop_watched(dir_items)[:widget_limit]
 
     list_items = [item.as_tuple() for item in dir_items]
     detected_type = directory_result.detected_type

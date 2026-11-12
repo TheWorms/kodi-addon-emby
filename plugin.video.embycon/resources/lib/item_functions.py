@@ -32,6 +32,9 @@ class GuiItem:
     list_item: xbmcgui.ListItem
     is_folder: bool
     play_count: int = 0
+    # v1.22.1 : elements non vus / total (collections deja vues masquees)
+    unplayed_items: int | None = None
+    total_items: int | None = None
     # v1.16 : cles de tri cote client (contexte « dans une serie »)
     sort_date: str = ""
     sort_name: str = ""
@@ -948,6 +951,8 @@ def add_gui_item(
         list_item=list_item,
         is_folder=folder,
         play_count=item_details.play_count,
+        unplayed_items=item_details.recursive_unplayed_items_count,
+        total_items=item_details.recursive_item_count,
         sort_date=sort_date,
         sort_name=item_details.sort_name or item_details.name or "",
         sort_added=item_details.date_added or "",
