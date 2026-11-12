@@ -44,6 +44,7 @@ from .skin_cloner import clone_default_skin
 from .item_functions import extract_media_info
 from .custom_nodes import load_custom_nodes
 from .profile_utils import list_available_profiles, view_profile_details
+from . import search_memory
 from .random_movie import lancer_film_au_hasard
 from .marker_info import show_marker_info
 from .view_memory import (
@@ -908,6 +909,17 @@ def search_results(params: dict[str, str]) -> None:
 
     handle = int(sys.argv[1])
 
+    # v1.22.3 : Kodi recharge la recherche affichee (retour de video, menu
+    # contextuel) -> la relancer sans rouvrir le clavier
+    if not query_string:
+        query_string = search_memory.query_for_refresh(
+            search_memory.decode(HomeWindow().get_property(search_memory.PROPERTY)),
+            xbmc.getInfoLabel("Container.FolderPath"),
+            item_type,
+        )
+        if query_string:
+            log.info("Recherche rechargee sans clavier : {0}", query_string)
+
     if not query_string:
         home_window = HomeWindow()
         last_search = home_window.get_property("last_search")
@@ -919,12 +931,18 @@ def search_results(params: dict[str, str]) -> None:
         if kb.isConfirmed():
             user_input = kb.getText().strip()
         else:
+            # v1.22.3 : recherche ouverte directement (raccourci de l'accueil)
+            # puis annulee -> accueil, jamais l'explorateur de Kodi
+            if search_memory.is_search_list(xbmc.getInfoLabel("Container.FolderPath"), item_type):
+                log.info("Recherche annulee : retour a l'accueil")
+                xbmc.executebuiltin("ActivateWindow(Home)")
             # v1.22.2 : recherche annulee -> le dire a Kodi (sinon il attend
             # une liste qui ne vient jamais)
             xbmcplugin.endOfDirectory(handle, succeeded=False, cacheToDisc=False)
             return
 
         home_window.set_property("last_search", user_input)
+        home_window.set_property(search_memory.PROPERTY, search_memory.encode(item_type, user_input))
         log.debug("searchResults Called: {0}", params)
         query = user_input
 

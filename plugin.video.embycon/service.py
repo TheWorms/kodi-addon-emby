@@ -36,6 +36,7 @@ from resources.lib.collection_dates import refresh_all_collection_dates
 from resources.lib import random_session
 from resources.lib.listing_cache import ListingCacheJanitor
 from resources.lib.refresh_guard import can_refresh_after_playback
+from resources.lib import search_memory
 
 # v1.20.0 : nouvelle organisation des reglages, convertie avant tout le reste
 migrate_settings()
@@ -178,10 +179,29 @@ random_was_fullscreen = False
 # v1.21.11 : listes EmbyCon gardees par Kodi le temps de la navigation
 # (retour d'un film sans fenetre vide), effacees une fois sorti de Videos.
 listing_cache_janitor = ListingCacheJanitor()
+# v1.22.3 : secondes passees hors des resultats de la derniere recherche
+search_away = 0
 
 while not kodi_monitor.abortRequested():
     try:
         listing_cache_janitor.tick()
+        # v1.22.3 : oublier la recherche affichee des qu'on la quitte
+        remembered_search = search_memory.decode(home_window.get_property(search_memory.PROPERTY))
+        if remembered_search:
+            if search_memory.still_on_results(
+                remembered_search,
+                xbmc.getInfoLabel("Container.FolderPath"),
+                xbmc.getCondVisibility("Window.IsActive(videos)"),
+                xbmc.Player().isPlaying(),
+            ):
+                search_away = 0
+            else:
+                search_away += 1
+                if search_away >= search_memory.LEAVE_AFTER:
+                    search_away = 0
+                    home_window.clear_property(search_memory.PROPERTY)
+                    log.debug("Recherche affichee oubliee")
+
         if xbmc.Player().isPlaying():
             last_random_movie_update = time.time() - (random_movie_list_interval - 15)
             # if playing every 10 seconds updated the server with progress
