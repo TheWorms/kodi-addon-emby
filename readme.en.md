@@ -5,7 +5,7 @@
 # EmbyCon — French edition · `kodi-addon-emby`
 
 <!-- version:auto -->
-**Version : 1.22.3**
+**Version : 1.22.4**
 <!-- /version:auto -->
 
 [Français](README.md) · **English**
