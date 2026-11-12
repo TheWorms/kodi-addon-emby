@@ -34,6 +34,7 @@ from .skip_intro_dialog import SkipIntroMonitor, SkipCreditsMonitor
 from .sort_options import sort_emby_items
 from . import random_session
 from .transcode_check import check_transcode_later, decision_line
+from .track_menu import choose_track
 from .track_choice import (
     LANG_ALIASES,
     canonical_lang,
@@ -42,6 +43,7 @@ from .track_choice import (
     lang_matches,
     menu,
     stream_language,
+    subtitle_label,
 )
 
 log = SimpleLogging(__name__)
@@ -1430,6 +1432,11 @@ def _track_words() -> tuple[dict, dict]:
     return names, words
 
 
+def _select_track(heading: str, labels: list, preselect: int) -> int:
+    """v1.22.2 : menu au style du clic droit ; -1 = Retour (choix auto garde)."""
+    return choose_track(heading, labels, preselect, string_load(30910), string_load(30911))
+
+
 def _as_index(value):
     try:
         return int(value)
@@ -1462,7 +1469,6 @@ def audio_subs_pref(
     subs_if_foreign = settings.getSetting("subtitle_auto_mode") == "1"
     forced_auto = settings.getSetting("subtitle_forced_auto") != "false"
     names, words = _track_words()
-    dialog = xbmcgui.Dialog()
     playurlprefs = ""
 
     # --- audio
@@ -1471,7 +1477,7 @@ def audio_subs_pref(
         audio = choose_audio(streams, pref_audio, media_source.get("DefaultAudioStreamIndex"))
         labels, indexes, pre = menu(streams, "Audio", names, words, audio)
         if ask and len(labels) > 1:
-            resp = dialog.select(string_load(30291), labels, preselect=pre)
+            resp = _select_track(string_load(30908), labels, pre)
             if resp > -1:
                 audio = indexes[resp]
     if audio is not None:
@@ -1490,7 +1496,7 @@ def audio_subs_pref(
         )
         labels, indexes, pre = menu(streams, "Subtitle", names, words, sub, words["none"])
         if ask and len(labels) > 1:
-            resp = dialog.select(string_load(30292), labels, preselect=pre)
+            resp = _select_track(string_load(30909), labels, pre)
             if resp > -1:
                 sub = indexes[resp]
     elif sub < 0:
@@ -1545,6 +1551,7 @@ def external_subs(
     externalsubs = []
     sub_names = []
     download_utils = DownloadUtils()
+    names, words = _track_words()
 
     for stream in media_streams:
         if (
@@ -1570,24 +1577,7 @@ def external_subs(
                     token,
                 )
 
-            default = ""
-            if stream["IsDefault"]:
-                default = "default"
-            forced = ""
-            if stream["IsForced"]:
-                forced = "forced"
-
-            sub_name = (
-                stream.get("Language", "n/a")
-                + " ("
-                + stream.get("Codec", "n/a")
-                + ") "
-                + default
-                + " "
-                + forced
-            )
-
-            sub_names.append(sub_name)
+            sub_names.append(subtitle_label(stream, names, words))
             externalsubs.append(url)
 
     if len(externalsubs) == 0:
@@ -1601,7 +1591,9 @@ def external_subs(
     ):
         list_item.setSubtitles(externalsubs)
     else:
-        resp = xbmcgui.Dialog().select(string_load(30292), sub_names)
+        # lecture directe : pas de choix automatique a marquer ici (Kodi
+        # choisit ensuite parmi les sous-titres du fichier si on revient)
+        resp = _select_track(string_load(30909), sub_names, -1)
         if resp > -1:
             selected_sub = externalsubs[resp]
             log.debug("External Subtitle Selected: {0}", selected_sub)

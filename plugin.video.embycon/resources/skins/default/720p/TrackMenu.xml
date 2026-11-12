@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- v1.22.2 : choix des pistes d'une lecture reduite, au style du menu
+     contextuel EmbyCon (ActionMenu) : panneau noir, lignes grises, ligne
+     selectionnee en clair. Hauteur et position ajustees par le script. -->
+<window id="3302" type="dialog">
+	<zorder>2</zorder>
+	<coordinates>
+		<system>1</system>
+		<left>0</left>
+		<top>0</top>
+	</coordinates>
+	<controls>
+
+		<control type="image" id="3010">
+			<left>340</left>
+			<top>150</top>
+			<width>600</width>
+			<height>420</height>
+			<texture border="40">bg.png</texture>
+		</control>
+
+		<control type="label" id="3001">
+			<left>354</left>
+			<top>160</top>
+			<width>572</width>
+			<height>40</height>
+			<font>font12</font>
+			<textcolor>9EFFFFFF</textcolor>
+			<align>center</align>
+			<aligny>center</aligny>
+			<label></label>
+		</control>
+
+		<control type="list" id="3000">
+			<left>354</left>
+			<top>205</top>
+			<width>572</width>
+			<height>300</height>
+			<orientation>vertical</orientation>
+			<scrolltime>150</scrolltime>
+			<itemlayout width="572" height="50">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>572</width>
+					<height>45</height>
+					<texture border="1" colordiffuse="ff161616">white.png</texture>
+				</control>
+				<control type="label">
+					<left>12</left>
+					<top>0</top>
+					<width>548</width>
+					<height>45</height>
+					<label>$INFO[ListItem.Label]</label>
+					<textcolor>A3FFFFFF</textcolor>
+					<font>font14</font>
+					<align>center</align>
+					<aligny>center</aligny>
+				</control>
+			</itemlayout>
+			<focusedlayout width="572" height="50">
+				<control type="image">
+					<left>0</left>
+					<top>0</top>
+					<width>572</width>
+					<height>45</height>
+					<texture border="1" colordiffuse="ff525252">white.png</texture>
+				</control>
+				<control type="label">
+					<left>12</left>
+					<top>0</top>
+					<width>548</width>
+					<height>45</height>
+					<label>$INFO[ListItem.Label]</label>
+					<textcolor>FFFFFFFF</textcolor>
+					<font>font14</font>
+					<align>center</align>
+					<aligny>center</aligny>
+					<scroll>true</scroll>
+				</control>
+			</focusedlayout>
+		</control>
+
+		<control type="label" id="3002">
+			<left>354</left>
+			<top>510</top>
+			<width>572</width>
+			<height>34</height>
+			<font>font12</font>
+			<textcolor>94FFFFFF</textcolor>
+			<align>center</align>
+			<aligny>center</aligny>
+			<label></label>
+		</control>
+
+	</controls>
+</window>

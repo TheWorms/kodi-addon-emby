@@ -919,6 +919,9 @@ def search_results(params: dict[str, str]) -> None:
         if kb.isConfirmed():
             user_input = kb.getText().strip()
         else:
+            # v1.22.2 : recherche annulee -> le dire a Kodi (sinon il attend
+            # une liste qui ne vient jamais)
+            xbmcplugin.endOfDirectory(handle, succeeded=False, cacheToDisc=False)
             return
 
         home_window.set_property("last_search", user_input)
@@ -932,6 +935,7 @@ def search_results(params: dict[str, str]) -> None:
     log.debug("query : {0}", query)
 
     if (not item_type) or (not query):
+        xbmcplugin.endOfDirectory(handle, succeeded=False, cacheToDisc=False)
         return
 
     # show a progress indicator if needed

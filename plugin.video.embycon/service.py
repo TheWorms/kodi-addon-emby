@@ -35,6 +35,7 @@ from resources.lib.view_memory import ViewMonitor
 from resources.lib.collection_dates import refresh_all_collection_dates
 from resources.lib import random_session
 from resources.lib.listing_cache import ListingCacheJanitor
+from resources.lib.refresh_guard import can_refresh_after_playback
 
 # v1.20.0 : nouvelle organisation des reglages, convertie avant tout le reste
 migrate_settings()
@@ -227,12 +228,13 @@ while not kodi_monitor.abortRequested():
                             folder_path = xbmc.getInfoLabel(
                                 "Container.FolderPath"
                             )
-                            if (
-                                folder_path
-                                and "plugin.video.embycon" in folder_path
-                            ):
+                            # v1.22.2 : jamais une recherche (elle rouvrirait
+                            # le clavier pendant le chargement -> gel de Kodi)
+                            if can_refresh_after_playback(folder_path):
                                 log.debug("Refreshing container after playback")
                                 xbmc.executebuiltin("Container.Refresh")
+                            elif folder_path and "plugin.video.embycon" in folder_path:
+                                log.info("Retour de lecture : resultats de recherche non recharges")
             else:
                 refresh_grace = 0
 

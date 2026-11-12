@@ -219,6 +219,10 @@ def _reglages(monkeypatch, dialog, **valeurs):
         raising=False,
     )
     monkeypatch.setattr(pu.xbmcgui, "Dialog", lambda: dialog, raising=False)
+    # v1.22.2 : menu au style du clic droit
+    monkeypatch.setattr(
+        pu, "_select_track", lambda heading, labels, pre: dialog.select(heading, labels, preselect=pre)
+    )
     textes = {30481: "Français", 30482: "Anglais", 30905: "Aucun sous-titre"}
     monkeypatch.setattr(pu, "string_load", lambda i: textes.get(i, "#%s" % i))
     monkeypatch.setattr(pu, "DownloadUtils", FakeDownloadUtils)
@@ -237,10 +241,10 @@ def test_me_demander_listes_preselectionnees(monkeypatch) -> None:
     _reglages(monkeypatch, dialog, transcode_tracks_mode="1")
     url = pu.audio_subs_pref(URL, FakeListItem(), SOURCE, "42", "", "")
     (h_audio, l_audio, pre_audio), (h_sub, l_sub, pre_sub) = dialog.appels
-    assert h_audio == "#30291" and pre_audio == 2  # VFF deja selectionnee
+    assert h_audio == "#30908" and pre_audio == 2  # VFF deja selectionnee
     assert l_audio[pre_audio] == "Français (VFF) — EAC3 5.1"
     # apres le choix de la VO, la pre-selection suit : sous-titres complets
-    assert h_sub == "#30292" and l_sub[pre_sub] == "Français"
+    assert h_sub == "#30909" and l_sub[pre_sub] == "Français"
     assert url == URL + "&AudioStreamIndex=1&SubtitleStreamIndex=6"
 
 
