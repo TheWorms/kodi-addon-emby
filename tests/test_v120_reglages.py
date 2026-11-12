@@ -198,7 +198,7 @@ def test_sept_menus() -> None:
         "lecture", "enchainements", "listes", "fiches", "hasard", "serveur", "avance"
     ]
     visibles = [s for s in racine.iter("setting") if s.findtext("visible") != "false"]
-    assert len(visibles) == 95  # v1.21.0 : lecture continue, duree du bouton Passer
+    assert len(visibles) == 96  # v1.22.0 : pistes d'une lecture reduite
 
 
 # --- v1.20.2 : films d'une collection, du plus ancien au plus recent --------

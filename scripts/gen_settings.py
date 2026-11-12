@@ -200,6 +200,10 @@ CATS = [
          "For separate subtitle files (.srt…): show a choice list when playback starts.",
          "Pour les fichiers de sous-titres séparés (.srt…) : afficher une liste de choix au lancement.",
          "0", [opt(0, "Never", "Jamais"), opt(1, "If there are several", "S'il y en a plusieurs"), opt(2, "Always", "Toujours")]),
+   ilist("transcode_tracks_mode", "Tracks of a reduced playback", "Pistes d'une lecture réduite",
+         "When the video is reduced for the connection (transcoding), the server keeps one audio track and one subtitle: EmbyCon picks them from your languages, or asks you with its choice preselected.",
+         "Quand la vidéo est réduite pour la connexion (transcodage), le serveur ne garde qu'une piste audio et un sous-titre : EmbyCon les choisit d'après tes langues, ou te les demande avec son choix déjà sélectionné.",
+         "0", [opt(0, "Automatic, from my languages", "Automatique, selon mes langues"), opt(1, "Ask me", "Me demander")]),
   ]),
   (("Stream quality", "Qualité du flux"), [
    ilist("bitrate_mode", "Quality", "Qualité",

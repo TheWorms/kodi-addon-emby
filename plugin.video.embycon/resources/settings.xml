@@ -106,6 +106,19 @@
 						<heading>30646</heading>
 					</control>
 				</setting>
+				<setting id="transcode_tracks_mode" type="integer" label="30897" help="30898">
+					<level>0</level>
+					<default>0</default>
+					<constraints>
+						<options>
+							<option label="30895">0</option>
+							<option label="30896">1</option>
+						</options>
+					</constraints>
+					<control type="list" format="string">
+						<heading>30897</heading>
+					</control>
+				</setting>
 			</group>
 			<group id="3" label="30859">
 				<setting id="bitrate_mode" type="integer" label="30650" help="30651">

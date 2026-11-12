@@ -33,6 +33,16 @@ from .tracking import timer
 from .skip_intro_dialog import SkipIntroMonitor, SkipCreditsMonitor
 from .sort_options import sort_emby_items
 from . import random_session
+from .transcode_check import check_transcode_later, decision_line
+from .track_choice import (
+    LANG_ALIASES,
+    canonical_lang,
+    choose_audio,
+    choose_subtitle,
+    lang_matches,
+    menu,
+    stream_language,
+)
 
 log = SimpleLogging(__name__)
 
@@ -215,6 +225,14 @@ def _prepare_play_all_item(
         return None
 
     list_item: xbmcgui.ListItem = gui_item.list_item
+
+    # v1.22.0 : video reduite -> pistes choisies automatiquement (jamais de
+    # question au milieu d'un « Tout lire »)
+    _log_decision(item.get("Name", ""), selected_media_source, playback_type_string, False)
+    if playback_type == "2":
+        playurl = audio_subs_pref(
+            playurl, list_item, selected_media_source, item_id, "", "", allow_prompt=False
+        )
 
     # v1.15 : marqueurs -> le saut d'intro/generique marche aussi en Tout lire
     intro_start, intro_end, credits_start = extract_markers(
@@ -523,6 +541,13 @@ def add_to_playlist(play_info: dict[str, str], monitor: PlaybackMonitorService) 
     # add title decoration is needed
     item_title = item.get("Name", string_load(30280))
     list_item = xbmcgui.ListItem(label=item_title)
+
+    # v1.22.0 : video reduite -> pistes choisies automatiquement
+    _log_decision(item.get("Name", ""), selected_media_source, playback_type_string, False)
+    if playback_type == "2":
+        playurl = audio_subs_pref(
+            playurl, list_item, selected_media_source, item_id, "", "", allow_prompt=False
+        )
 
     settings = xbmcaddon.Addon()
     max_image_width = int(settings.getSetting("max_image_width"))
@@ -838,7 +863,9 @@ def play_file(
 
     list_item = gui_item.list_item
 
-    if playback_type == "2":  # if transcoding then prompt for audio and subtitle
+    _log_decision(result.get("Name", ""), selected_media_source, playback_type_string, force_transcode)
+    if playback_type == "2":  # transcodage : pistes audio et sous-titres (v1.22.0 : auto)
+        check_transcode_later(item_id, selected_media_source, result.get("Name", ""))
         playurl = audio_subs_pref(
             playurl,
             list_item,
@@ -1365,6 +1392,51 @@ def set_list_item_props(
 # Present the list of audio and subtitles to select from
 # for external streamable subtitles add the URL to the Kodi item and let Kodi handle it
 # else ask for the subtitles to be burnt in when transcoding
+def _log_decision(name: str, media_source: dict, playback_type_string: str, forced: bool) -> None:
+    """v1.22.0 : une ligne de journal par lecture (video, limite, decision)."""
+    try:
+        settings = xbmcaddon.Addon()
+        key = "force_max_stream_bitrate" if forced else "max_stream_bitrate"
+        log.info(
+            "{0}",
+            decision_line(
+                name,
+                media_source,
+                settings.getSetting(key),
+                settings.getSetting("bitrate_mode") == "1" and not forced,
+                playback_type_string,
+            )
+        )
+    except Exception as err:
+        log.debug("Journal de decision de lecture : {0}", err)
+
+
+def _track_words() -> tuple[dict, dict]:
+    """Noms de langues (ceux des reglages) et mots des listes de pistes."""
+    names = {
+        code: string_load(string_id)
+        for code, string_id in (
+            ("fre", 30481), ("eng", 30482), ("spa", 30483), ("ger", 30484),
+            ("ita", 30485), ("por", 30486), ("jpn", 30487), ("dut", 30488),
+        )
+    }
+    words = {
+        "unknown": string_load(30901),
+        "default": string_load(30902),
+        "forced": string_load(30903),
+        "external": string_load(30904),
+        "none": string_load(30905),
+    }
+    return names, words
+
+
+def _as_index(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def audio_subs_pref(
     url: str,
     list_item: xbmcgui.ListItem,
@@ -1372,134 +1444,86 @@ def audio_subs_pref(
     item_id: str,
     audio_stream_index: str,
     subtitle_stream_index: str,
+    allow_prompt: bool = True,
 ) -> str:
-    dialog = xbmcgui.Dialog()
-    audio_streams_list = {}
-    audio_streams: list[str | xbmcgui.ListItem] = []
-    subtitle_streams_list = {}
-    subtitle_streams: list[str | xbmcgui.ListItem] = ["No subtitles"]
-    downloadable_streams = []
-    select_audio_index = audio_stream_index
-    select_subs_index = subtitle_stream_index
-    playurlprefs = ""
-    default_audio = media_source.get("DefaultAudioStreamIndex", 1)
-    default_sub = media_source.get("DefaultSubtitleStreamIndex", "")
+    """Pistes audio et sous-titres d'une lecture transcodee.
+
+    v1.22.0 : choix automatique d'apres les langues preferees (reglage
+    « Pistes d'une lecture réduite »), ou listes lisibles avec le choix
+    automatique pre-selectionne. Un choix deja fait (menu contextuel) est
+    toujours respecte.
+    """
+    settings = xbmcaddon.Addon()
+    ask = allow_prompt and settings.getSetting("transcode_tracks_mode") == "1"
+    streams = media_source.get("MediaStreams") or []
     source_id = media_source["Id"]
+    pref_audio = settings.getSetting("pref_audio_lang")
+    pref_sub = settings.getSetting("pref_subtitle_lang")
+    subs_if_foreign = settings.getSetting("subtitle_auto_mode") == "1"
+    forced_auto = settings.getSetting("subtitle_forced_auto") != "false"
+    names, words = _track_words()
+    dialog = xbmcgui.Dialog()
+    playurlprefs = ""
 
-    media_streams = media_source["MediaStreams"]
-    download_utils = DownloadUtils()
+    # --- audio
+    audio = _as_index(audio_stream_index)
+    if audio is None:
+        audio = choose_audio(streams, pref_audio, media_source.get("DefaultAudioStreamIndex"))
+        labels, indexes, pre = menu(streams, "Audio", names, words, audio)
+        if ask and len(labels) > 1:
+            resp = dialog.select(string_load(30291), labels, preselect=pre)
+            if resp > -1:
+                audio = indexes[resp]
+    if audio is not None:
+        playurlprefs += "&AudioStreamIndex=%s" % audio
 
-    for stream in media_streams:
-        # Since Emby returns all possible tracks together, have to sort them.
-        index = stream["Index"]
+    # --- sous-titres
+    sub = _as_index(subtitle_stream_index)
+    if sub is None:
+        sub = choose_subtitle(
+            streams,
+            stream_language(streams, audio),
+            pref_audio,
+            pref_sub,
+            subs_if_foreign,
+            forced_auto,
+        )
+        labels, indexes, pre = menu(streams, "Subtitle", names, words, sub, words["none"])
+        if ask and len(labels) > 1:
+            resp = dialog.select(string_load(30292), labels, preselect=pre)
+            if resp > -1:
+                sub = indexes[resp]
+    elif sub < 0:
+        # -1 envoye par la telecommande Emby = aucun sous-titre, choix explicite
+        sub = None
 
-        if "Audio" in stream["Type"]:
-            codec = stream["Codec"]
-            channel_layout = stream.get("ChannelLayout", "")
-
-            try:
-                track = "%s - %s - %s %s" % (
-                    index,
-                    stream["Language"],
-                    codec,
-                    channel_layout,
-                )
-            except Exception:
-                track = "%s - %s %s" % (index, codec, channel_layout)
-
-            audio_streams_list[track] = index
-            audio_streams.append(track)
-
-        elif "Subtitle" in stream["Type"]:
-            try:
-                track = "%s - %s" % (index, stream["Language"])
-            except Exception:
-                track = "%s - %s" % (index, stream["Codec"])
-
-            default = stream["IsDefault"]
-            forced = stream["IsForced"]
-            downloadable = (
-                stream["IsTextSubtitleStream"]
-                and stream["IsExternal"]
-                and stream["SupportsExternalStream"]
-            )
-
-            if default:
-                track = "%s - Default" % track
-            if forced:
-                track = "%s - Forced" % track
-            if downloadable:
-                downloadable_streams.append(index)
-
-            subtitle_streams_list[track] = index
-            subtitle_streams.append(track)
-
-    # set audio index
-    if select_audio_index:
-        playurlprefs += "&AudioStreamIndex=%s" % select_audio_index
-
-    elif len(audio_streams) > 1:
-        resp = dialog.select(string_load(30291), audio_streams)
-        if resp > -1:
-            # User selected audio
-            selected = audio_streams[resp]
-            select_audio_index = audio_streams_list[selected]
-            playurlprefs += "&AudioStreamIndex=%s" % select_audio_index
-        else:  # User backed out of selection
-            playurlprefs += "&AudioStreamIndex=%s" % default_audio
-
-    # set subtitle index
-    log.debug(
-        "Subtitle streams available: ({0}) ({1})", select_subs_index, subtitle_streams
-    )
-    if select_subs_index:
-        # Load subtitles in the listitem if downloadable
-        if select_subs_index in downloadable_streams:
-            subtitle_url = "%s/emby/Videos/%s/%s/Subtitles/%s/Stream.srt"
-            subtitle_url = subtitle_url % (
-                download_utils.get_server(),
+    if sub is not None:
+        stream = next((s for s in streams if s.get("Index") == sub), {})
+        downloadable = (
+            stream.get("IsTextSubtitleStream")
+            and stream.get("IsExternal")
+            and stream.get("SupportsExternalStream")
+        )
+        if downloadable:
+            subtitle_url = "%s/emby/Videos/%s/%s/Subtitles/%s/Stream.srt" % (
+                DownloadUtils().get_server(),
                 item_id,
                 source_id,
-                select_subs_index,
+                sub,
             )
-            log.debug(
-                "Streaming subtitles url: {0} {1}", select_subs_index, subtitle_url
-            )
+            log.debug("Streaming subtitles url: {0} {1}", sub, subtitle_url)
             list_item.setSubtitles([subtitle_url])
         else:
-            # Burn subtitles
-            playurlprefs += "&SubtitleStreamIndex=%s" % select_subs_index
+            # sous-titres graves dans la video par le serveur
+            playurlprefs += "&SubtitleStreamIndex=%s" % sub
 
-    elif len(subtitle_streams) > 1:
-        log.debug("Prompting user for subtitle selection")
-        resp = dialog.select(string_load(30292), subtitle_streams)
-        if resp == 0:
-            # User selected no subtitles
-            pass
-        elif resp > -1:
-            # User selected subtitles
-            selected = subtitle_streams[resp]
-            select_subs_index = subtitle_streams_list[selected]
-
-            # Load subtitles in the listitem if downloadable
-            if select_subs_index in downloadable_streams:
-                subtitle_url = "%s/emby/Videos/%s/%s/Subtitles/%s/Stream.srt"
-                subtitle_url = subtitle_url % (
-                    download_utils.get_server(),
-                    item_id,
-                    source_id,
-                    select_subs_index,
-                )
-                log.debug(
-                    "Streaming subtitles url: {0} {1}", select_subs_index, subtitle_url
-                )
-                list_item.setSubtitles([subtitle_url])
-            else:
-                # Burn subtitles
-                playurlprefs += "&SubtitleStreamIndex=%s" % select_subs_index
-
-        else:  # User backed out of selection
-            playurlprefs += "&SubtitleStreamIndex=%s" % default_sub
+    log.info(
+        "Pistes de la lecture transcodee ({0}) : audio {1} ({2}), sous-titres {3}",
+        "choix manuel" if ask else "automatique",
+        audio,
+        stream_language(streams, audio) or "?",
+        sub if sub is not None else "aucun",
+    )
 
     if url.find("|verifypeer=false") != -1:
         new_url = url.replace("|verifypeer=false", playurlprefs + "|verifypeer=false")
@@ -1839,30 +1863,10 @@ def get_playing_data(play_data_map: dict[str, dict]) -> dict | None:
     return play_data_map.get(playing_file)
 
 
-# EmbyCon FR: correspondance de langue tolerante (codes ISO 639-2/B et /T,
-# codes 2 lettres, noms courants FR/EN) pour la selection auto des sous-titres.
-_LANG_ALIASES = {
-    "fre": {"fre", "fra", "fr", "french", "francais", "français"},
-    "eng": {"eng", "en", "english", "anglais"},
-    "spa": {"spa", "es", "spanish", "espanol", "español", "espagnol"},
-    "ger": {"ger", "deu", "de", "german", "allemand"},
-    "ita": {"ita", "it", "italian", "italien"},
-    "por": {"por", "pt", "portuguese", "portugais"},
-    "jpn": {"jpn", "ja", "japanese", "japonais"},
-    "dut": {"dut", "nld", "nl", "dutch", "neerlandais", "néerlandais"},
-}
-
-
-def _lang_matches(stream_lang: str, pref_code: str) -> bool:
-    """Vrai si la langue d'un flux correspond au code de langue prefere."""
-    if not stream_lang or not pref_code:
-        return False
-    s = stream_lang.strip().lower()
-    aliases = _LANG_ALIASES.get(pref_code, {pref_code})
-    for a in aliases:
-        if s == a or s.startswith(a):
-            return True
-    return False
+# v1.22.0 : helpers de langue deplaces dans track_choice (partages avec le
+# choix des pistes d'une lecture transcodee)
+_LANG_ALIASES = LANG_ALIASES
+_lang_matches = lang_matches
 
 
 def _kodi_subtitle_streams() -> list:
@@ -1917,16 +1921,7 @@ def _pick_subtitle(
     return match_full if match_full is not None else match_forced
 
 
-def _canonical_lang(lang: str) -> str | None:
-    """Code canonique (cle de _LANG_ALIASES) d'une langue de flux, ou None."""
-    if not lang:
-        return None
-    s = lang.strip().lower()
-    for code, aliases in _LANG_ALIASES.items():
-        for a in aliases:
-            if s == a or s.startswith(a):
-                return code
-    return s
+_canonical_lang = canonical_lang
 
 
 def pick_forced_subtitle(streams: list, audio_lang: str, pref_sub: str):
@@ -1999,6 +1994,12 @@ def apply_intelligent_subtitle(play_data: dict) -> None:
     le direct stream et le transcodage, sans dupliquer le rendu (gere par Kodi).
     """
     try:
+        # v1.22.0 : video reduite -> les pistes ont deja ete choisies et
+        # envoyees au serveur (audio_subs_pref) ; Kodi ne voit au mieux que le
+        # sous-titre externe choisi, ne pas le masquer ni en chercher un autre.
+        if play_data and play_data.get("playback_type") == "Transcode":
+            log.debug("Sous-titres : lecture transcodee, choix deja fait")
+            return
         settings = xbmcaddon.Addon()
         # v1.18 : sous-titres forces automatiques (reglage independant du mode)
         forced_auto = settings.getSetting("subtitle_forced_auto") != "false"

@@ -1981,3 +1981,47 @@ msgstr ""
 msgctxt "#30894"
 msgid "Skip intro"
 msgstr ""
+
+msgctxt "#30895"
+msgid "Automatic, from my languages"
+msgstr ""
+
+msgctxt "#30896"
+msgid "Ask me"
+msgstr ""
+
+msgctxt "#30897"
+msgid "Tracks of a reduced playback"
+msgstr ""
+
+msgctxt "#30898"
+msgid "When the video is reduced for the connection (transcoding), the server keeps one audio track and one subtitle: EmbyCon picks them from your languages, or asks you with its choice preselected."
+msgstr ""
+
+msgctxt "#30899"
+msgid "Reduced playback"
+msgstr ""
+
+msgctxt "#30900"
+msgid "Server too slow: {0} fps for {1}, playback may stutter"
+msgstr ""
+
+msgctxt "#30901"
+msgid "Unknown language"
+msgstr ""
+
+msgctxt "#30902"
+msgid "default"
+msgstr ""
+
+msgctxt "#30903"
+msgid "forced"
+msgstr ""
+
+msgctxt "#30904"
+msgid "external"
+msgstr ""
+
+msgctxt "#30905"
+msgid "No subtitles"
+msgstr ""
