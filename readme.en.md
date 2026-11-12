@@ -17,7 +17,7 @@ Kodi add-on to browse and play the media library of an **[Emby](https://emby.med
 
 ---
 
-## ✨ What this fork adds
+## What this fork adds
 
 - **Full French interface** — complete translation (`resource.language.fr_fr`), auto-detected from Kodi's language.
 - **Hide watched items** — on both lists *and* home widgets, with reliable refreshing: cache is purged on marking, and a reload token (`&reload`) is injected into widget paths so widgets update automatically after a watched/unwatched action.
@@ -31,32 +31,60 @@ Kodi add-on to browse and play the media library of an **[Emby](https://emby.med
 
 ---
 
-## 🎬 What's new in 1.15 to 1.20
+## Changelog
+
+### 1.22 · current version
+
+**Playback**
+
+- **Automatic tracks for reduced playback** — when the video is transcoded (connection or hardware), audio and subtitles are picked from your languages, with the same rules as direct playback. Setting *Playback → Audio and subtitles → Tracks of a reduced playback*: *Automatic, from my languages* or *Ask me*.
+- **Track menu in the right-click style** — the automatic choice is already selected and marked *AUTO*; Back keeps it.
+- **Automatic quality diagnostics** — the Kodi log shows, for each playback, the video, the bitrate limit and the server's decision; a notification warns when the server transcodes too slowly.
+
+**Lists**
+
+- **Hide watched collections** — option *Lists and sorting → Content → Hide watched collections in widgets*.
+
+**Fixes**
+
+- Kodi no longer freezes when coming back from a movie started from a search: results come back without reopening the keyboard, and Back no longer leads to the file browser.
+
+<details>
+<summary><b>1.21</b> · random movie, Skip button, new icon, coming back from a movie</summary>
+
+- **Random movie** — back to the home screen on stop, at the end and from full screen; continuous playback that chains another random movie; a natural end counts as fully watched.
+- **« Skip » button** (intro and credits) — disappears after the configured delay; label translated.
+- **New icon** — the mascot, also in the add-on's notifications and windows.
+- **Instant return from a movie** — the list comes back immediately instead of an empty Videos window; Back to a parent list is instant; no more progress box over the home screen.
+
+</details>
+
+<details>
+<summary><b>1.20</b> · settings in 7 menus, collection order</summary>
+
+- **Settings reorganized into 7 menus** — renamed, with a help sentence for each setting: 93 settings instead of 110, duplicates merged, readable values (« Off », « No limit »). Existing settings are converted automatically on update.
+- **Collections widget** — keeps EmbyCon's order, whatever the skin's sort direction.
+- **Movies of a collection** — oldest to newest, to follow a saga year after year.
+- **Next episode** — works like movies: offer then play, or play without asking.
+
+</details>
+
+<details>
+<summary><b>1.15</b> · random movie, collections, forced subtitles, sorting and views, list cache</summary>
 
 - **Random movie** — full-screen card over the movie's fanart with *Play*, *Next*, *Previous* and *Cancel*; « unwatched only » and maximum length filters. Opening the « Movies - Random » widget starts the draw directly.
-- **Movie collections** — *Play all* for a collection, and chaining to the **next movie**: offered when the credits start (or a few minutes before the end), then started automatically. Configurable playback order, oldest to newest by default.
-- **Next episode** — works like movies: offer then play, or play without asking.
-- **Collection dates** — Emby does not date collections: EmbyCon computes their release date from their movies, in parallel, with a disk cache prepared in the background by the service. Date sorting therefore works on collections too.
-- **Movies of a collection in order** — oldest to newest by default, to follow a saga year after year.
+- **Movie collections** — *Play all* for a collection, and chaining to the **next movie**: offered when the credits start (or a few minutes before the end), then started automatically.
+- **Collection dates** — Emby does not date collections: EmbyCon computes their release date from their movies, in parallel, with a disk cache prepared by the service. Date sorting therefore works on collections too, and EmbyCon's sort direction drives Arctic's Collections widget.
 - **Forced subtitles** — shown automatically in your language (foreign dialogue, signs).
-- **Remembered views** — the chosen view (list, posters, thumbnails…) is kept for each category.
-- **Simplified settings (1.20)** — 93 settings instead of 110: duplicates merged, obsolete options removed, readable values (« Off », « No limit ») and sub-settings shown only when relevant. Existing settings are converted automatically on update.
+- **Sorting and views** — a default sort for each kind of list, a « Collections - Recently added » widget, and the chosen view (list, posters, thumbnails…) kept for each category.
+- **Simplified settings** — sub-settings shown only when relevant, duplicates merged; more reliable automatic quality.
+- **SQLite list cache + ETag** — browsing costs a few KB instead of tens of MB; large list pagination, network robustness (retries, stabilized websocket, 401 authentication guard) and CI checks (`ruff` + tests) on every push.
+
+</details>
 
 ---
 
-## 🚀 What's new in 1.14.0
-
-- **SQLite list cache + ETag** — libraries are cached locally with `ETag`/`If-None-Match` negotiation: browsing costs a few KB instead of tens of MB of JSON responses.
-- **Throttled cache revalidation** — a single server check per session (configurable delay) instead of a re-download on every list opening.
-- **Large list pagination** — big libraries load page by page (configurable page size) instead of thousands of items at once.
-- **Network robustness** — configurable retries, duplicate-free error notifications, lighter thumbnails, hardware profile detection (incl. AV1).
-- **Stabilized websocket** — capped exponential backoff and 1-second-step reconnection: no more ghost reconnect after service shutdown.
-- **401 authentication guard** — password rejected by the server? The previous one is kept until the new one is validated.
-- **Fixes & quality** — Play Next dialog crash when the episode artwork is missing; CI safety net (`ruff` lint + tests) on every push.
-
----
-
-## 📦 Installation
+## Installation
 
 ### Via the TheWorms repository (automatic updates)
 
@@ -69,7 +97,7 @@ Kodi add-on to browse and play the media library of an **[Emby](https://emby.med
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 1. Open the add-on settings.
 2. **Server and account**: enter your Emby server address and port (or use auto-detection), then your credentials.
@@ -79,7 +107,7 @@ Kodi add-on to browse and play the media library of an **[Emby](https://emby.med
 
 ---
 
-## 🖥️ Compatibility
+## Compatibility
 
 - **Kodi 21 (Omega)** and Python 3-compatible versions.
 - Tested on CoreELEC (ODROID-N2+).
@@ -87,7 +115,7 @@ Kodi add-on to browse and play the media library of an **[Emby](https://emby.med
 
 ---
 
-## 🙏 Credits & license
+## Credits & license
 
 - Original add-on: **[EmbyCon](https://github.com/faush01/plugin.video.embycon)** by **faush01 / Team B**.
 - French fork and additional features: **[TheWorms](https://github.com/TheWorms)**.
@@ -97,6 +125,6 @@ Emby is a trademark of Emby LLC. This project is not affiliated with Emby LLC or
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Bug reports and suggestions are welcome via [issues](https://github.com/TheWorms/kodi-addon-emby/issues). Please include your Kodi version, your skin, and the relevant log lines.

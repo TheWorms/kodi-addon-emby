@@ -17,7 +17,7 @@ Extension Kodi pour parcourir et lire la médiathèque d'un serveur **[Emby](htt
 
 ---
 
-## ✨ Nouveautés de ce fork
+## Nouveautés de ce fork
 
 - **Interface française complète** — traduction intégrale (`resource.language.fr_fr`), détectée automatiquement selon la langue de Kodi.
 - **Masquage des éléments déjà vus** — sur les listes *et* les widgets d'accueil, avec un rafraîchissement fiable : purge du cache au marquage et jeton de rechargement (`&reload`) injecté dans les chemins de widgets pour une mise à jour automatique après un marquage vu/non-vu.
@@ -31,32 +31,60 @@ Extension Kodi pour parcourir et lire la médiathèque d'un serveur **[Emby](htt
 
 ---
 
-## 🎬 Nouveautés des versions 1.15 à 1.20
+## Journal des versions
+
+### 1.22 · version actuelle
+
+**Lecture**
+
+- **Pistes automatiques en lecture réduite** — quand la vidéo est transcodée (connexion ou matériel), l'audio et les sous-titres sont choisis d'après vos langues, avec les mêmes règles qu'en lecture directe. Réglage *Lecture → Audio et sous-titres → Pistes d'une lecture réduite* : *Automatique* ou *Me demander*.
+- **Menu des pistes au style du clic droit** — le choix automatique est déjà sélectionné et marqué *AUTO* ; Retour le conserve.
+- **Diagnostic de la qualité automatique** — le journal de Kodi indique pour chaque lecture la vidéo, la limite de débit et la décision du serveur ; une notification prévient si le serveur transcode trop lentement.
+
+**Listes**
+
+- **Collections déjà vues masquées** — option *Listes et tri → Contenu → Masquer les collections déjà vues dans les widgets*.
+
+**Corrections**
+
+- Plus de gel de Kodi en revenant d'un film lancé depuis une recherche : les résultats reviennent sans rouvrir le clavier, et Retour ne mène plus à l'explorateur.
+
+<details>
+<summary><b>1.21</b> · film au hasard, bouton Passer, nouvelle icône, retour d'un film</summary>
+
+- **Film au hasard** — retour à l'accueil à l'arrêt, à la fin et depuis le plein écran ; lecture continue qui enchaîne un autre film tiré au hasard ; une fin de lecture naturelle compte comme vue jusqu'au bout.
+- **Bouton « Passer »** (intro et générique) — disparaît après le délai réglé ; libellé traduit.
+- **Nouvelle icône** — la mascotte, aussi dans les notifications et les fenêtres de l'extension.
+- **Retour d'un film immédiat** — la liste réapparaît aussitôt au lieu d'une fenêtre Vidéos vide ; Retour vers une liste parente est instantané ; plus de boîte de progression par-dessus l'accueil.
+
+</details>
+
+<details>
+<summary><b>1.20</b> · réglages en 7 menus, ordre des collections</summary>
+
+- **Réglages réorganisés en 7 menus** — renommés, avec une phrase d'aide par réglage : 93 réglages au lieu de 110, doublons fusionnés, valeurs lisibles (« Désactivé », « Sans limite »). Les réglages existants sont convertis automatiquement à la mise à jour.
+- **Widget Collections** — garde l'ordre EmbyCon, quel que soit le sens de tri du skin.
+- **Films d'une collection** — du plus ancien au plus récent, pour suivre une saga d'année en année.
+- **Épisode suivant** — même fonctionnement que pour les films : proposer puis enchaîner, ou enchaîner sans demander.
+
+</details>
+
+<details>
+<summary><b>1.15</b> · film au hasard, collections, sous-titres forcés, tris et vues, cache des listes</summary>
 
 - **Film au hasard** — fiche plein écran sur le fanart du film avec *Lire*, *Suivant*, *Précédent* et *Annuler* ; filtres « non vus » et durée maximale. Ouvrir le widget « Films - Aléatoire » lance directement le tirage.
-- **Collections de films** — *Tout lire* une collection, et enchaînement du **film suivant** : proposé au début du générique (ou quelques minutes avant la fin), puis lancé automatiquement. Ordre de lecture configurable, du plus ancien au plus récent par défaut.
-- **Épisode suivant** — même fonctionnement que pour les films : proposer puis enchaîner, ou enchaîner sans demander.
-- **Dates des collections** — Emby ne date pas les collections : EmbyCon calcule leur date de sortie à partir de leurs films, en parallèle, avec un cache disque préparé en arrière-plan par le service. Les tris par date fonctionnent donc aussi sur les collections.
-- **Films d'une collection dans l'ordre** — par défaut du plus ancien au plus récent, pour suivre une saga d'année en année.
+- **Collections de films** — *Tout lire* une collection, et enchaînement du **film suivant** : proposé au début du générique (ou quelques minutes avant la fin), puis lancé automatiquement.
+- **Dates des collections** — Emby ne date pas les collections : EmbyCon calcule leur date de sortie à partir de leurs films, en parallèle, avec un cache disque préparé par le service. Les tris par date fonctionnent donc aussi sur les collections, et le sens de tri d'EmbyCon pilote le widget Collections d'Arctic.
 - **Sous-titres forcés** — affichés automatiquement dans votre langue (dialogues étrangers, panneaux).
-- **Vues mémorisées** — la vue choisie (liste, affiches, vignettes…) est retenue pour chaque catégorie.
-- **Réglages simplifiés (1.20)** — 93 réglages au lieu de 110 : doublons fusionnés, options obsolètes retirées, valeurs lisibles (« Désactivé », « Sans limite ») et sous-réglages affichés seulement quand ils servent. Les réglages existants sont convertis automatiquement à la mise à jour.
+- **Tris et vues** — un tri par défaut pour chaque type de liste, widget « Collections - Ajouts récents », et la vue choisie (liste, affiches, vignettes…) retenue pour chaque catégorie.
+- **Réglages simplifiés** — sous-réglages affichés seulement quand ils servent, doublons fusionnés ; qualité automatique fiabilisée.
+- **Cache des listes en base SQLite + ETag** — la navigation consomme quelques Ko au lieu de dizaines de Mo ; pagination des grandes listes, robustesse réseau (retries, websocket stabilisée, garde 401 à l'authentification) et contrôle CI (`ruff` + tests) à chaque push.
+
+</details>
 
 ---
 
-## 🚀 Nouveautés de la version 1.14.0
-
-- **Cache des listes en base SQLite + ETag** — les médiathèques sont mises en cache localement avec négociation `ETag`/`If-None-Match` : la navigation consomme quelques Ko au lieu de dizaines de Mo de réponses JSON.
-- **Revalidation du cache throttlée** — une seule vérification serveur par session (délai configurable), au lieu d'un re-téléchargement à chaque ouverture de liste.
-- **Pagination des grandes listes** — les grandes médiathèques se chargent par pages (taille configurable) au lieu de plusieurs milliers d'éléments d'un coup.
-- **Robustesse réseau** — retries paramétrables, notifications d'erreur sans doublon, vignettes allégées, détection du profil matériel (notamment AV1).
-- **Websocket stabilisée** — backoff exponentiel plafonné et reconnexion en pas de 1 s : plus de reconnexion fantôme après l'arrêt du service.
-- **Garde 401 à l'authentification** — mot de passe refusé par le serveur ? L'ancien est conservé tant que le nouveau n'a pas été validé.
-- **Correctifs & qualité** — crash du dialogue « épisode suivant » si l'affiche de l'épisode est manquante ; filet CI (`ruff` + tests) joué à chaque push.
-
----
-
-## 📦 Installation
+## Installation
 
 ### Via le dépôt TheWorms (mises à jour automatiques)
 
@@ -69,7 +97,7 @@ Extension Kodi pour parcourir et lire la médiathèque d'un serveur **[Emby](htt
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 1. Ouvrez les réglages de l'extension.
 2. **Serveur et compte** : renseignez l'adresse et le port de votre serveur Emby (ou utilisez la détection automatique), puis vos identifiants.
@@ -79,7 +107,7 @@ Extension Kodi pour parcourir et lire la médiathèque d'un serveur **[Emby](htt
 
 ---
 
-## 🖥️ Compatibilité
+## Compatibilité
 
 - **Kodi 21 (Omega)** et versions compatibles Python 3.
 - Testé sur CoreELEC (ODROID-N2+).
@@ -87,7 +115,7 @@ Extension Kodi pour parcourir et lire la médiathèque d'un serveur **[Emby](htt
 
 ---
 
-## 🙏 Crédits & licence
+## Crédits & licence
 
 - Addon d'origine : **[EmbyCon](https://github.com/faush01/plugin.video.embycon)** par **faush01 / Team B**.
 - Fork francophone et fonctionnalités additionnelles : **[TheWorms](https://github.com/TheWorms)**.
@@ -97,6 +125,6 @@ Emby est une marque de Emby LLC. Ce projet n'est pas affilié à Emby LLC ni à 
 
 ---
 
-## 🤝 Contribution
+## Contribution
 
 Les rapports de bugs et suggestions sont bienvenus via les [issues](https://github.com/TheWorms/kodi-addon-emby/issues). Merci de préciser votre version de Kodi, votre skin et de joindre les lignes de log pertinentes.
