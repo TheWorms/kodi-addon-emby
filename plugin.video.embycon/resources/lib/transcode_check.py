@@ -21,7 +21,8 @@ from .simple_logging import SimpleLogging
 
 log = SimpleLogging(__name__)
 
-CHECK_DELAY = 25  # secondes apres le debut de la lecture
+CHECK_DELAY = 25  # secondes de lecture reelle avant la mesure
+START_TIMEOUT = 120  # secondes au plus pour que la video demarre
 SLOW_RATIO = 0.9  # moins de 90 % des images/s de la video = trop lent
 
 
@@ -211,10 +212,34 @@ def report_transcoding(item_id: str, fps: float, name: str) -> bool:
     return True
 
 
+def video_running(is_playing_video: bool, position: float, paused: bool) -> bool:
+    """La video defile-t-elle vraiment (demarrage et reprise termines) ?"""
+    return bool(is_playing_video) and position > 0 and not paused
+
+
 def _check(item_id: str, fps: float, name: str) -> None:
     import xbmc
 
-    if xbmc.Monitor().waitForAbort(CHECK_DELAY):
+    monitor = xbmc.Monitor()
+    player = xbmc.Player()
+    # v1.22.4 : attendre que la video defile (2 min au plus) ; mesurer pendant
+    # le demarrage ou juste apres une reprise donnait de fausses alertes
+    for _ in range(START_TIMEOUT):
+        if monitor.waitForAbort(1):
+            return
+        try:
+            running = video_running(
+                player.isPlayingVideo(),
+                player.getTime(),
+                bool(xbmc.getCondVisibility("Player.Paused")),
+            )
+        except Exception:
+            running = False
+        if running:
+            break
+    else:
+        return
+    if monitor.waitForAbort(CHECK_DELAY):
         return
     report_transcoding(item_id, fps, name)
 

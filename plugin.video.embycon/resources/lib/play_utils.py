@@ -303,6 +303,48 @@ def _wait_for_playback(player: xbmc.Player, timeout_tenths: int) -> bool:
     return player.isPlaying() and not xbmc_monitor.abortRequested()
 
 
+def _player_time(player: xbmc.Player) -> float:
+    try:
+        return player.getTime()
+    except Exception:
+        return 0.0
+
+
+def _seek_and_wait(player: xbmc.Player, seek_to_time: float, target_seek: float) -> bool:
+    """v1.22.4 : se placer au point de reprise sans harceler le serveur.
+
+    Avant, la position etait redemandee toutes les 0,5 s : sur une lecture
+    reduite (transcodage HLS), chaque demande fait repartir la preparation
+    de la video sur le serveur, qui n'arrivait plus a suivre (demarrage tres
+    long, voire echec). Une demande, puis on attend ; on ne redemande que
+    toutes les 10 s (2 s en lecture directe). 2 minutes au plus.
+    """
+    xbmc_monitor = xbmc.Monitor()
+    try:
+        transcoding = ".m3u8" in player.getPlayingFile()
+    except Exception:
+        transcoding = False
+    reseek_every = 20 if transcoding else 4  # en demi-secondes
+    max_loops = 2 * 120
+    count = 0
+    while not xbmc_monitor.abortRequested() and player.isPlaying() and count < max_loops:
+        if count % reseek_every == 0:
+            log.info("PlaybackResumeAction : Seeking to : {0}", seek_to_time)
+            player.seekTime(seek_to_time)
+        current_position = _player_time(player)
+        if current_position >= target_seek:
+            return True
+        if count % 4 == 0:
+            log.info(
+                "PlaybackResumeAction : target:{0} current:{1}",
+                target_seek,
+                current_position,
+            )
+        count = count + 1
+        xbmc.sleep(500)
+    return count < max_loops and player.isPlaying()
+
+
 def _resume_first_item(player: xbmc.Player, seek_time: float) -> bool:
     """Reprise du premier element (auto_resume). False si la lecture a echoue."""
     player.pause()
@@ -314,27 +356,10 @@ def _resume_first_item(player: xbmc.Player, seek_time: float) -> bool:
         return False
 
     log.info("PlaybackResumeAction : Playback is Running")
-    xbmc_monitor = xbmc.Monitor()
     seek_to_time = seek_time
     target_seek = seek_to_time - 10
 
-    count = 0
-    max_loops = 2 * 120
-    while not xbmc_monitor.abortRequested() and player.isPlaying() and count < max_loops:
-        log.info("PlaybackResumeAction : Seeking to : {0}", seek_to_time)
-        player.seekTime(seek_to_time)
-        current_position = player.getTime()
-        if current_position >= target_seek:
-            break
-        log.info(
-            "PlaybackResumeAction : target:{0} current:{1}",
-            target_seek,
-            current_position,
-        )
-        count = count + 1
-        xbmc.sleep(500)
-
-    if count == max_loops:
+    if not _seek_and_wait(player, seek_to_time, target_seek):
         log.info("PlaybackResumeAction : Playback could not seek to required position")
         player.stop()
         return False
@@ -867,7 +892,6 @@ def play_file(
 
     _log_decision(result.get("Name", ""), selected_media_source, playback_type_string, force_transcode)
     if playback_type == "2":  # transcodage : pistes audio et sous-titres (v1.22.0 : auto)
-        check_transcode_later(item_id, selected_media_source, result.get("Name", ""))
         playurl = audio_subs_pref(
             playurl,
             list_item,
@@ -904,6 +928,8 @@ def play_file(
     data["intro_end"] = intro_end
     data["credits_start"] = credits_start
     data["subtitle_stream_index"] = subtitle_stream_index
+    # v1.22.4 : point de reprise de cette lecture (0 = depuis le debut)
+    data["resume_seconds"] = seek_time
     monitor.played_information[playurl] = data
     log.debug("Add to played_information: {0}", monitor.played_information)
 
@@ -943,19 +969,12 @@ def play_file(
 
     if seek_time != 0:
         player.pause()
-        xbmc_monitor: xbmc.Monitor = xbmc.Monitor()
-        count = 0
-        while (
-            not player.isPlaying()
-            and not xbmc_monitor.abortRequested()
-            and count != 100
-        ):
-            count = count + 1
-            xbmc.sleep(100)
-
-        if count == 100 or not player.isPlaying() or xbmc_monitor.abortRequested():
+        # v1.22.4 : un serveur qui transcode peut mettre 30 s a demarrer
+        wait_tenths = 300 if playback_type == "2" else 100
+        if not _wait_for_playback(player, wait_tenths):
             log.info(
-                "PlaybackResumeAction : Playback item did not get to a play state in 10 seconds so exiting"
+                "PlaybackResumeAction : Playback item did not get to a play state in {0} seconds so exiting",
+                wait_tenths // 10,
             )
             player.stop()
             return None
@@ -965,27 +984,7 @@ def play_file(
         seek_to_time = seek_time - jump_back_amount
         target_seek = seek_to_time - 10
 
-        count = 0
-        max_loops = 2 * 120
-        while (
-            not xbmc_monitor.abortRequested()
-            and player.isPlaying()
-            and count < max_loops
-        ):
-            log.info("PlaybackResumeAction : Seeking to : {0}", seek_to_time)
-            player.seekTime(seek_to_time)
-            current_position = player.getTime()
-            if current_position >= target_seek:
-                break
-            log.info(
-                "PlaybackResumeAction : target:{0} current:{1}",
-                target_seek,
-                current_position,
-            )
-            count = count + 1
-            xbmc.sleep(500)
-
-        if count == max_loops:
+        if not _seek_and_wait(player, seek_to_time, target_seek):
             log.info(
                 "PlaybackResumeAction : Playback could not seek to required position"
             )
@@ -1002,6 +1001,11 @@ def play_file(
                 log.info("PlaybackResumeAction : Could not unpause")
             else:
                 log.info("PlaybackResumeAction : Playback resumed")
+
+    # v1.22.4 : vitesse du serveur mesuree une fois la video lancee (et la
+    # reprise faite), pas pendant le demarrage
+    if playback_type == "2":
+        check_transcode_later(item_id, selected_media_source, result.get("Name", ""))
 
     next_episode = get_next_episode(result)
     # v1.17 : film suivant d'une collection (meme mecanique que l'episode
@@ -1600,6 +1604,21 @@ def external_subs(
             list_item.setSubtitles([selected_sub])
 
 
+def held_position(play_data: dict, play_time: float) -> float:
+    """Position a envoyer au serveur : le point de reprise tant qu'il n'est
+    pas atteint (moins une marge d'une minute), la vraie position ensuite."""
+    try:
+        resume = float(play_data.get("resume_seconds") or 0)
+    except (TypeError, ValueError):
+        resume = 0.0
+    if resume <= 0 or play_data.get("resume_reached"):
+        return play_time
+    if play_time >= resume - 60:
+        play_data["resume_reached"] = True
+        return play_time
+    return resume
+
+
 def send_progress(monitor: PlaybackMonitorService) -> None:
     play_data = get_playing_data(monitor.played_information)
 
@@ -1618,6 +1637,9 @@ def send_progress(monitor: PlaybackMonitorService) -> None:
         # l'exception aux callbacks (onPlayBackSeek/Paused/Resumed)
         log.debug("send_progress : lecture arretee, progression non envoyee")
         return
+    # v1.22.4 : tant que la reprise n'a pas eu lieu (demarrage lent, echec),
+    # le serveur garde le point de reprise au lieu de recevoir 0
+    play_time = held_position(play_data, play_time)
     play_data["currentPossition"] = play_time
     play_data["duration"] = total_play_time
     play_data["currently_playing"] = True
