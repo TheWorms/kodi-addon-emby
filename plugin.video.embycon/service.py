@@ -34,6 +34,7 @@ from resources.lib.chapter_dialog import ChapterDialogMonitor
 from resources.lib.view_memory import ViewMonitor
 from resources.lib.collection_dates import refresh_all_collection_dates
 from resources.lib import random_session
+from resources.lib.listing_cache import ListingCacheJanitor
 
 # v1.20.0 : nouvelle organisation des reglages, convertie avant tout le reste
 migrate_settings()
@@ -173,9 +174,13 @@ last_bitrate_check = 0.0
 bitrate_auto_interval = 30 * 60
 # v1.21.2 : film au hasard, « Retour » depuis le plein ecran -> accueil
 random_was_fullscreen = False
+# v1.21.11 : listes EmbyCon gardees par Kodi le temps de la navigation
+# (retour d'un film sans fenetre vide), effacees une fois sorti de Videos.
+listing_cache_janitor = ListingCacheJanitor()
 
 while not kodi_monitor.abortRequested():
     try:
+        listing_cache_janitor.tick()
         if xbmc.Player().isPlaying():
             last_random_movie_update = time.time() - (random_movie_list_interval - 15)
             # if playing every 10 seconds updated the server with progress

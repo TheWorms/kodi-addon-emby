@@ -19,6 +19,7 @@ from .datamanager import DataManager
 from .downloadutils import DownloadUtils
 from .translation import string_load
 from .loading_dialog import LoadingIndicator
+from .listing_cache import show_progress_for
 from .simple_logging import SimpleLogging
 from .item_functions import (
     add_gui_item,
@@ -148,8 +149,12 @@ def get_content(url: str, params: dict[str, str]) -> int:
             sorted_explicitly = True
 
     # show a progress indicator if needed
+    # v1.21.11 : seulement pour une liste ouverte dans la fenetre Videos (pas
+    # pour un widget de l'accueil, ni pour un rechargement en place)
     progress = None
-    if settings.getSetting("showLoadProgress") == "true":
+    if settings.getSetting("showLoadProgress") == "true" and show_progress_for(
+        sys.argv[0] + (sys.argv[2] if len(sys.argv) > 2 else "")
+    ):
         progress = LoadingIndicator()
         progress.create(string_load(30112), string_load(30113))
 
@@ -347,7 +352,10 @@ def get_content(url: str, params: dict[str, str]) -> int:
     # Convert GuiItem objects to tuples for Kodi API
     dir_item_tuples = [item.as_tuple() for item in dir_items]
     xbmcplugin.addDirectoryItems(pluginhandle, dir_item_tuples)
-    xbmcplugin.endOfDirectory(pluginhandle, cacheToDisc=False)
+    # v1.21.11 : liste gardee en cache par Kodi (voir listing_cache) : au
+    # retour d'un film, elle reapparait aussitot au lieu d'une fenetre vide
+    # pendant sa reconstruction.
+    xbmcplugin.endOfDirectory(pluginhandle, cacheToDisc=True)
 
     # v1.16 : la vue memorisee n'est plus envoyee d'ici (trop tot : la liste
     # n'etait pas encore affichee et Kodi/le skin reimposaient leur vue). Le
