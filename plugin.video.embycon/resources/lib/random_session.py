@@ -82,6 +82,35 @@ def clear() -> None:
     HomeWindow().clear_property(PROPERTY)
 
 
+# v1.22.6 : arret du film en cours demande par le film au hasard. Le service
+# (autre processus) le lit a l'arret : pas d'enchainement (film suivant,
+# episode suivant, autre film au hasard) derriere la fiche du tirage.
+STOP_PROPERTY = "embycon_stop_for_random"
+STOP_VALID_SECONDS = 20
+
+
+def mark_stop_for_random(now: float) -> None:
+    HomeWindow().set_property(STOP_PROPERTY, "%.3f" % now)
+
+
+def stop_was_for_random(raw: str, now: float) -> bool:
+    """Le marqueur est-il recent (arret demande il y a moins de 20 s) ?"""
+    try:
+        when = float(raw)
+    except (TypeError, ValueError):
+        return False
+    return 0 <= now - when <= STOP_VALID_SECONDS
+
+
+def consume_stop_for_random(now: float) -> bool:
+    window = HomeWindow()
+    raw = window.get_property(STOP_PROPERTY)
+    if not raw:
+        return False
+    window.clear_property(STOP_PROPERTY)
+    return stop_was_for_random(raw, now)
+
+
 def handle_stop(item_id: str, percent: int) -> bool:
     """Appele a l'arret d'une lecture. True si c'etait un film au hasard."""
     import xbmc

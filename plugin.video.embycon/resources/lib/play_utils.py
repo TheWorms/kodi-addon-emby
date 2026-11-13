@@ -10,6 +10,7 @@ from datetime import timedelta
 import json
 import os
 import base64
+import time
 
 from .simple_logging import SimpleLogging
 from .downloadutils import DownloadUtils, _masque_donnees_sensibles
@@ -1735,6 +1736,12 @@ def get_volume() -> tuple[int | None, bool | None]:
 
 def prompt_for_stop_actions(item_id: str, data: dict) -> None:
     log.debug("prompt_for_stop_actions Called : {0}", data)
+
+    # v1.22.6 : film arrete par l'ouverture du film au hasard -> rien a
+    # enchainer ni a proposer, la fiche du tirage est deja a l'ecran
+    if random_session.consume_stop_for_random(time.time()):
+        log.info("Arret pour le film au hasard : pas d'enchainement")
+        return
 
     settings = xbmcaddon.Addon()
     current_position = data.get("currentPossition", 0)

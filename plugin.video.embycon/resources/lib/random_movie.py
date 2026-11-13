@@ -10,6 +10,7 @@ Lire / Autre tirage / Annuler. La lecture passe ensuite par le chemin normal
 
 from __future__ import annotations
 
+import time
 from typing import Callable, cast
 
 import xbmc
@@ -393,6 +394,10 @@ def lancer_film_au_hasard(params: dict[str, str], handle: int = -1) -> None:
         if not xbmc.getCondVisibility("Window.IsActive(videos)"):
             log.info("Film au hasard : charge comme widget, rien a lancer")
             return
+    # v1.22.6 : une video qui tourne encore derriere (fin de film, generique)
+    # est arretee avant le tirage, comme quand on lance un autre film. Si
+    # elle se terminait avec la fiche ouverte, Kodi se figeait puis plantait.
+    _stop_video_behind()
     film_id = choisir_film_au_hasard(params)
     if film_id:
         parent_id = params.get("parent_id") or None
@@ -403,6 +408,34 @@ def lancer_film_au_hasard(params: dict[str, str], handle: int = -1) -> None:
     if xbmc.getCondVisibility("Window.IsActive(videos)"):
         log.info("Film au hasard : annule, retour a l'accueil")
         xbmc.executebuiltin("ActivateWindow(Home)")
+
+
+def _stop_video_behind(player=None) -> bool:
+    """Arrete la video en cours avant le tirage, comme le lancement d'un autre
+    film. True si une video a ete arretee."""
+    from . import random_session
+
+    player = player or xbmc.Player()
+    try:
+        if not player.isPlayingVideo():
+            return False
+        # le film en cours n'enchaine rien a son arret (voir random_session)
+        random_session.clear()
+        random_session.mark_stop_for_random(time.time())
+        player.stop()
+        monitor = xbmc.Monitor()
+        for _ in range(50):  # 5 s au plus pour que Kodi ferme la video
+            if not player.isPlaying():
+                break
+            if monitor.waitForAbort(0.1):
+                return True
+        # laisser Kodi finir de refermer le son avant d'ouvrir la fiche
+        monitor.waitForAbort(0.5)
+    except Exception as err:
+        log.debug("Film au hasard : arret de la video impossible ({0})", err)
+        return False
+    log.info("Film au hasard : film en cours arrete avant le tirage")
+    return True
 
 
 def random_widget_launches() -> bool:

@@ -5,6 +5,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
+import kodi_stubs  # noqa: E402
+
+kodi_stubs.install()
+
 import lib.search_memory as sm  # noqa: E402
 
 RESULTATS = "plugin://plugin.video.embycon/?item_type=Movie&mode=NEW_SEARCH"

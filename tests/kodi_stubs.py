@@ -22,6 +22,21 @@ def _plain(module, full_name: str, name: str) -> None:
     setattr(module, name, stub)
 
 
+def _mock_class(full_name: str, name: str) -> type:
+    """v1.22.6 : vraie classe (on peut en heriter, et un monkeypatch se
+    restaure sans la supprimer sous Python 3.11) dont les instances se
+    comportent comme un MagicMock (methodes et valeurs de retour factices)."""
+    backing = MagicMock(name=full_name)
+
+    def __init__(self, *args, **kwargs) -> None:
+        pass
+
+    def __getattr__(self, attr):
+        return getattr(backing.return_value, attr)
+
+    return type(name, (), {"__init__": __init__, "__getattr__": __getattr__})
+
+
 def install() -> None:
     for name in ("xbmc", "xbmcgui", "xbmcaddon", "xbmcvfs", "xbmcplugin"):
         if name not in sys.modules:
@@ -29,6 +44,9 @@ def install() -> None:
     # WindowXMLDialog doit rester une vraie classe pour pouvoir en heriter
     sys.modules["xbmcgui"].WindowXMLDialog = type("WindowXMLDialog", (), {})
     sys.modules["xbmcgui"].WindowXML = type("WindowXML", (), {})
+    # v1.22.6 : idem pour le lecteur et le moniteur de Kodi
+    for name in ("Player", "Monitor"):
+        setattr(sys.modules["xbmc"], name, _mock_class("xbmc." + name, name))
     # v1.21.6 : fonctions et classes Kodi patchees par les tests = de simples
     # fonctions Python, pas des enfants MagicMock. Sous Python 3.11, restaurer
     # un enfant MagicMock apres un monkeypatch le SUPPRIME (AttributeError:
